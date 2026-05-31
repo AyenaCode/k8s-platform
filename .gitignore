@@ -1,3 +1,14 @@
 *.local.*
 .env
 *.log
+
+# Frontend (Tier 1)
+frontend/node_modules/
+frontend/dist/
+
+# Backend (Tier 2)
+backend/bin/
+*.test
+
+# OS / editor
+.DS_Store

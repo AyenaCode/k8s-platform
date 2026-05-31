@@ -159,20 +159,24 @@ function sseStream(res, script, cwd, timeout) {
   streamChild(res, spawn('bash', [script], { cwd }), timeout);
 }
 
-// Commands allowed in the in-app terminal: kubectl plus common read-only shell tools.
-// `k` is accepted as an alias for kubectl. This is a LOCAL, single-user learning app —
-// never expose it (the pod's ServiceAccount can change the cluster).
-const ALLOWED_CMDS = new Set([
-  'kubectl', 'k',
-  'ls', 'cat', 'cd', 'pwd', 'echo', 'head', 'tail', 'wc',
-  'grep', 'find', 'env', 'printenv', 'whoami', 'date',
-]);
+// The in-app terminal is a FULL bash shell: any command, pipes, chaining,
+// substitution and redirection are allowed. `k` is accepted as an alias for kubectl.
+// This is a LOCAL, single-user learning app — never expose it (the pod's
+// ServiceAccount can change the cluster, and the shell is unrestricted).
 
-// Always blocked, even if added to ALLOWED_CMDS: decoders would let the learner
+// The only restriction kept: decoders are blocked everywhere so the learner cannot
 // reveal the base64-encoded broken config in deploy.sh and skip the exercise.
 const DENIED_CMDS = new Set([
   'base64', 'base32', 'xxd', 'od', 'openssl', 'python', 'python3', 'node', 'perl', 'ruby',
 ]);
+
+// Pull out every word that sits in a "command position" — the start of the line or
+// just after a shell operator (| ; & newline) or a substitution opener ($( or `).
+// Used to enforce DENIED_CMDS even inside pipes, chains and command substitution.
+function commandWords(cmd) {
+  const flat = cmd.replace(/\$\(|`|\)/g, ' ; ');
+  return flat.split(/[;|&\n]+/).map(s => s.trim().split(/\s+/)[0]).filter(Boolean);
+}
 
 // Working directory for the in-app shell, kept across commands so `cd` persists.
 let shellCwd = EXERCISES_DIR;
@@ -189,13 +193,12 @@ function runCommand(res, cmd, timeout) {
     res.end(); };
 
   if (!cmd) return reject('Empty command.');
-  // Allow pipes (e.g. `| grep`) but block command chaining / substitution / redirection.
-  if (/[;`]|&&|\|\||\$\(|>|</.test(cmd)) return reject('Command chaining, substitution and redirection are not allowed.');
 
   // Expand the leading `k` alias to `kubectl`.
   cmd = cmd.replace(/^k(\s|$)/, 'kubectl$1');
 
-  // `cd` is a shell builtin; handle it here so the directory sticks for later commands.
+  // A standalone `cd` is a shell builtin; handle it here so the directory sticks
+  // for later commands (a `cd` inside a chain runs in its own bash and won't persist).
   if (/^cd(\s|$)/.test(cmd)) {
     const arg    = cmd.slice(2).trim();
     const target = arg ? path.resolve(shellCwd, arg) : EXERCISES_DIR;
@@ -206,11 +209,9 @@ function runCommand(res, cmd, timeout) {
     return okText(shellCwd + '\n');
   }
 
-  // Every pipeline segment must start with an allowed (and not explicitly denied) command.
-  for (const seg of cmd.split('|')) {
-    const first = seg.trim().split(/\s+/)[0];
+  // Block decoders wherever they appear (pipes, chains, substitution) — see DENIED_CMDS.
+  for (const first of commandWords(cmd)) {
     if (DENIED_CMDS.has(first)) return reject(first + ' is disabled to keep the exercises challenging (no decoding the answer).');
-    if (!ALLOWED_CMDS.has(first)) return reject('Command not allowed: ' + (first || '(empty)'));
   }
 
   streamChild(res, spawn('bash', ['-c', cmd], { cwd: shellCwd }), timeout);
