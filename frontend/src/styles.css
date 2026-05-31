@@ -45,29 +45,9 @@ body {
   border-radius: 8px; border: 1px solid #1e2733; max-height: 280px; overflow: auto;
 }
 
-.tabs { display: flex; gap: 0.5rem; margin: 1rem 0 0.5rem; }
-.tabs button {
-  background: var(--panel); color: var(--muted); border: 1px solid #1e2733;
-  padding: 0.4rem 0.9rem; border-radius: 6px; cursor: pointer;
-}
-.tabs button.active { color: var(--fg); border-color: var(--accent); }
-
 .terminal-pane {
   background: #0b0f14; border: 1px solid #1e2733; border-radius: 8px;
   padding: 0.5rem; min-height: 340px;
 }
 
-.safe-box__output {
-  font-family: ui-monospace, monospace; font-size: 13px;
-  white-space: pre-wrap; max-height: 280px; overflow: auto; padding: 0.5rem;
-}
-.safe-box__line--cmd { color: var(--accent); }
-.safe-box__line--err { color: #ff6b6b; }
-.safe-box__bar { display: flex; gap: 0.5rem; align-items: center; padding: 0.4rem; }
-.safe-box__prompt { color: var(--muted); font-family: ui-monospace, monospace; font-size: 12px; }
-.safe-box__input {
-  flex: 1; background: transparent; border: none; outline: none;
-  color: var(--fg); font-family: ui-monospace, monospace; font-size: 13px;
-}
-.safe-box__hint { color: var(--muted); font-size: 11px; }
 .error { color: #ff6b6b; }

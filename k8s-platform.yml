@@ -48,7 +48,10 @@ metadata:
   labels:
     app: k8s-platform
 spec:
-  replicas: 3
+  # 1 replica: the default progress store is in-memory and the PTY terminal is
+  # stateful per pod. To scale horizontally, set DATABASE_URL (Postgres data
+  # tier) and add session-affinity for the terminal WebSocket, then raise this.
+  replicas: 1
   selector:
     matchLabels:
       app: k8s-platform
@@ -64,17 +67,17 @@ spec:
           image: k8s-platform:local
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 3000
+            - containerPort: 8080
           readinessProbe:
             httpGet:
               path: /
-              port: 3000
+              port: 8080
             initialDelaySeconds: 3
             periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /
-              port: 3000
+              port: 8080
             initialDelaySeconds: 10
             periodSeconds: 15
 ---
@@ -88,6 +91,6 @@ spec:
     app: k8s-platform
   ports:
     - port: 80
-      targetPort: 3000
+      targetPort: 8080
       nodePort: 30080
   type: NodePort

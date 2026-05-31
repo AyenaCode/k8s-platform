@@ -1,10 +1,7 @@
-// Package exec runs shell scripts and the safe command box, streaming their
-// output to the browser as Server-Sent Events. The safe command box keeps the
-// anti-cheat denylist (no base64/python/...) ported from app/server.js, so the
-// learner cannot decode the broken config and skip the exercise.
-//
-// The interactive PTY terminal (package terminal) is the *unrestricted* shell;
-// this package is the *restricted* one used for solving exercises.
+// Package exec runs the exercise lifecycle scripts (deploy / reset / check) and
+// streams their output to the browser as Server-Sent Events. Interactive shell
+// access is provided separately by the full-access PTY terminal (package
+// terminal) — there is no restricted command box.
 package exec
 
 import (
@@ -14,9 +11,6 @@ import (
 	"fmt"
 	"net/http"
 	"os/exec"
-	"path/filepath"
-	"regexp"
-	"strings"
 	"sync"
 	"time"
 )
@@ -49,9 +43,9 @@ func (s *sse) send(e event) {
 	s.rc.Flush()
 }
 
-func (s *sse) out(text string)  { s.send(event{Type: "out", Text: text}) }
-func (s *sse) err(text string)  { s.send(event{Type: "err", Text: text}) }
-func (s *sse) done(ok bool)     { s.send(event{Type: "done", OK: &ok}) }
+func (s *sse) out(text string) { s.send(event{Type: "out", Text: text}) }
+func (s *sse) err(text string) { s.send(event{Type: "err", Text: text}) }
+func (s *sse) done(ok bool)    { s.send(event{Type: "done", OK: &ok}) }
 func (s *sse) reject(msg string) {
 	s.err(msg + "\n")
 	s.done(false)
@@ -102,100 +96,12 @@ func streamChild(ctx context.Context, s *sse, cmd *exec.Cmd, timeout time.Durati
 	s.done(cmd.Wait() == nil)
 }
 
-// StreamScript runs `bash <script> [args...]` from dir and streams it.
+// StreamScript runs `bash <script> [args...]` from dir and streams it. Used by
+// the deploy / reset / check buttons. Interactive shell access is handled by the
+// PTY terminal (package terminal), which is the single full-access lab terminal.
 func StreamScript(w http.ResponseWriter, r *http.Request, script, dir string, timeout time.Duration, args ...string) {
 	s, _ := newSSE(w)
 	cmd := exec.Command("bash", append([]string{script}, args...)...)
 	cmd.Dir = dir
 	streamChild(r.Context(), s, cmd, timeout)
-}
-
-// ── Safe command box (anti-cheat) ────────────────────────────────────────────
-//
-// This is a FULL bash shell with ONE restriction: decoders are blocked so the
-// learner cannot reveal the base64-encoded broken config in deploy.sh and skip
-// the exercise. Any other command, plus pipes / chaining / substitution /
-// redirection, is allowed. (The PTY terminal is fully unrestricted; this box is
-// the one used for solving, where the anti-cheat must hold.)
-
-// deniedCmds are decoders, blocked wherever they appear in a command.
-var deniedCmds = map[string]bool{
-	"base64": true, "base32": true, "xxd": true, "od": true, "openssl": true,
-	"python": true, "python3": true, "node": true, "perl": true, "ruby": true,
-}
-
-var (
-	cdRe     = regexp.MustCompile(`^cd(\s|$)`)
-	kAlias   = regexp.MustCompile(`^k(\s|$)`)
-	subOpen  = regexp.MustCompile("\\$\\(|`|\\)") // command-substitution boundaries
-	cmdSep   = regexp.MustCompile(`[;|&\n]+`)     // shell command separators
-)
-
-// commandWords extracts the word in each "command position" — start of line or
-// just after a separator / substitution opener — so the denylist holds even
-// inside pipes, chains and $(...). Mirrors the JS logic in the legacy server.
-func commandWords(cmd string) []string {
-	flat := subOpen.ReplaceAllString(cmd, " ; ")
-	var out []string
-	for _, seg := range cmdSep.Split(flat, -1) {
-		if f := strings.Fields(seg); len(f) > 0 {
-			out = append(out, f[0])
-		}
-	}
-	return out
-}
-
-// CommandRunner executes commands typed in the safe box. cwd persists across
-// commands (so `cd` sticks), guarded for concurrent requests.
-type CommandRunner struct {
-	root string
-	mu   sync.Mutex
-	cwd  string
-}
-
-func NewCommandRunner(exercisesDir string) *CommandRunner {
-	return &CommandRunner{root: exercisesDir, cwd: exercisesDir}
-}
-
-// Run validates cmd against the allow/deny rules, then streams it over SSE.
-func (cr *CommandRunner) Run(w http.ResponseWriter, r *http.Request, cmd string, timeout time.Duration) {
-	s, _ := newSSE(w)
-	cmd = strings.TrimSpace(cmd)
-	if cmd == "" {
-		s.reject("Empty command.")
-		return
-	}
-	cmd = kAlias.ReplaceAllString(cmd, "kubectl$1")
-
-	cr.mu.Lock()
-	defer cr.mu.Unlock()
-
-	// `cd` is a builtin; handle it so the directory sticks for later commands.
-	if cdRe.MatchString(cmd) {
-		arg := strings.TrimSpace(cmd[2:])
-		target := cr.root
-		if arg != "" {
-			target = filepath.Clean(filepath.Join(cr.cwd, arg))
-		}
-		if fi, err := statDir(target); err != nil || !fi {
-			s.reject("cd: no such directory: " + arg)
-			return
-		}
-		cr.cwd = target
-		s.out(cr.cwd + "\n")
-		s.done(true)
-		return
-	}
-
-	// Block decoders wherever they appear (pipes, chains, substitution).
-	for _, name := range commandWords(cmd) {
-		if deniedCmds[name] {
-			s.reject(name + " is disabled to keep the exercises challenging (no decoding the answer).")
-			return
-		}
-	}
-
-	c := exec.Command("bash", "-c", cmd)
-	c.Dir = cr.cwd
-	streamChild(r.Context(), s, c, timeout)
 }

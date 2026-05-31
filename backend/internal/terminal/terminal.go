@@ -1,8 +1,8 @@
 // Package terminal exposes a real interactive shell over a WebSocket. A pseudo
 // terminal (PTY) is spawned per connection, so full-screen programs like vim,
-// nano and `kubectl edit` work. This is the UNRESTRICTED terminal used for
-// editing — exercise solving still goes through the restricted safe box
-// (package exec), which keeps the anti-cheat denylist.
+// nano and `kubectl edit` work. This is the single full-access lab terminal;
+// the exercise lifecycle scripts (deploy / reset / check) stream their output
+// separately over SSE (package exec).
 //
 // Wire protocol (browser -> server):
 //   - text/binary frame      => raw keystrokes, written straight to the PTY
@@ -23,10 +23,10 @@ import (
 const resizeOpcode = 0x01
 
 type Handler struct {
-	shell    string
-	cwd      string
-	allowed  []string // allowed websocket origins; nil = same-origin only
-	log      *slog.Logger
+	shell   string
+	cwd     string
+	allowed []string // allowed websocket origins; nil = same-origin only
+	log     *slog.Logger
 }
 
 func NewHandler(shell, cwd string, allowedOrigins []string, log *slog.Logger) *Handler {

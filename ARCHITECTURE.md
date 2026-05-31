@@ -1,8 +1,8 @@
 # K8s Platform — 3-Tier Architecture
 
 A migration of the original vanilla-JS + Node HTTP app to a scalable, strongly
-typed 3-tier architecture. The legacy app still lives in `app/` and keeps
-running until this stack reaches full parity.
+typed 3-tier architecture. The legacy app has been removed; some pages (courses,
+i18n, gamification) are still being ported to the new frontend.
 
 ## Tiers
 
@@ -31,15 +31,14 @@ running until this stack reaches full parity.
 └───────────────────────────────────────────────────────────────────┘
 ```
 
-## Two terminals (by design)
+## One full-access terminal (Killercoda-style)
 
-| Terminal | Transport | Purpose | Restriction |
-|----------|-----------|---------|-------------|
-| **Safe command box** | SSE (`POST /api/run`) | Solving exercises | Allowlist (kubectl + read-only tools); decoders blocked so the answer can't be decoded. |
-| **PTY terminal** | WebSocket (`/ws/terminal`) | Editing (vim, nano, `kubectl edit`) | Full interactive shell. Unrestricted by design. |
+A single interactive terminal — a real PTY shell over a WebSocket
+(`/ws/terminal`) — does everything: `kubectl`, `vim`, editing, piping, anything.
+No restrictions, no anti-cheat. This mirrors hands-on labs like Killercoda.
 
-The anti-cheat denylist cannot be enforced inside a real PTY, so solving and
-editing are separate tools — both wants preserved.
+The deploy / reset / check buttons are separate (they stream a fixed script over
+SSE), but there is no restricted "command box".
 
 ## Running it
 
@@ -79,7 +78,6 @@ go run ./cmd/server
 | POST | `/api/deploy/{id}` | exec (SSE) | run the incident |
 | POST | `/api/reset` | exec (SSE) | reset the cluster |
 | POST | `/api/check/{id}` | exec (SSE) | verify solved |
-| POST | `/api/run?cmd=` | exec (SSE) | safe command box |
 | GET/POST | `/api/progress` , `/api/progress/{id}/solve` | data | progress / XP |
 | WS | `/ws/terminal` | terminal | interactive PTY |
 
@@ -104,12 +102,12 @@ this is reachable by more than one trusted user on localhost.
 
 ## Status / next steps
 
-- [x] Tier 2 backend: all endpoints, safe box (full bash + anti-cheat denylist), PTY WebSocket — built & verified end-to-end (curl + Node WS client: real shell exec)
+- [x] Tier 2 backend: content endpoints, deploy/reset/check SSE, full-access PTY WebSocket — built & verified end-to-end (curl + Node WS client: real shell exec)
 - [x] Tier 3 data: repository interface + in-memory + Postgres impl + migration
 - [x] Tier 1: build tooling, routing, exercises feature, both terminals — **builds clean; UI not yet exercised in a browser**
 - [ ] Drive the UI in a browser to confirm xterm/SSE rendering at runtime
 - [ ] Port courses pages + markdown rendering
 - [ ] Port i18n (EN/FR) and gamification UI to consume `/api/progress`
 - [ ] **Auth + per-session PTY/cwd isolation + origin allow-list** (required for multi-user scale; see Security)
-- [ ] Retire `app/` once parity is reached
+- [x] Retire the legacy `app/` (done)
 ```

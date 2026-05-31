@@ -15,7 +15,6 @@ import (
 
 	"github.com/ayenacode/k8s-platform/backend/internal/config"
 	"github.com/ayenacode/k8s-platform/backend/internal/content"
-	xexec "github.com/ayenacode/k8s-platform/backend/internal/exec"
 	"github.com/ayenacode/k8s-platform/backend/internal/httpapi"
 	"github.com/ayenacode/k8s-platform/backend/internal/progress"
 	"github.com/ayenacode/k8s-platform/backend/internal/terminal"
@@ -36,13 +35,11 @@ func main() {
 	repo := content.NewRepo(cfg.CoursesDir, cfg.ExercisesDir)
 
 	router := httpapi.NewRouter(httpapi.Deps{
-		Content:        repo,
-		Progress:       store,
-		CommandRunner:  xexec.NewCommandRunner(cfg.ExercisesDir),
-		Terminal:       terminal.NewHandler(cfg.PTYShell, cfg.ExercisesDir, nil, log),
-		StaticDir:      staticDirIfExists(cfg.StaticDir),
-		CommandTimeout: cfg.CommandTimeout,
-		Log:            log,
+		Content:   repo,
+		Progress:  store,
+		Terminal:  terminal.NewHandler(cfg.PTYShell, cfg.ExercisesDir, nil, log),
+		StaticDir: staticDirIfExists(cfg.StaticDir),
+		Log:       log,
 	})
 
 	srv := &http.Server{

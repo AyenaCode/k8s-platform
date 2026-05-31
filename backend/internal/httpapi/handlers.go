@@ -84,11 +84,6 @@ func (h *handlers) check(w http.ResponseWriter, r *http.Request) {
 	xexec.StreamScript(w, r, filepath.Join(dir, "check.sh"), dir, 30*time.Second, ns)
 }
 
-func (h *handlers) run(w http.ResponseWriter, r *http.Request) {
-	cmd := r.URL.Query().Get("cmd")
-	h.d.CommandRunner.Run(w, r, cmd, h.d.CommandTimeout)
-}
-
 func (h *handlers) listProgress(w http.ResponseWriter, r *http.Request) {
 	recs, err := h.d.Progress.List(r.Context(), userID(r))
 	if err != nil {

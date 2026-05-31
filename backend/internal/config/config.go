@@ -6,7 +6,6 @@ package config
 import (
 	"os"
 	"path/filepath"
-	"time"
 )
 
 type Config struct {
@@ -24,8 +23,7 @@ type Config struct {
 	DatabaseURL string
 
 	// Terminal limits.
-	CommandTimeout time.Duration // safe command box (SSE) hard timeout
-	PTYShell       string        // shell spawned for the interactive PTY terminal
+	PTYShell string // shell spawned for the interactive PTY terminal
 }
 
 func getenv(key, def string) string {
@@ -38,14 +36,13 @@ func getenv(key, def string) string {
 func Load() Config {
 	contentRoot := getenv("CONTENT_ROOT", "..")
 	cfg := Config{
-		Addr:           getenv("ADDR", ":8080"),
-		ContentRoot:    contentRoot,
-		CoursesDir:     getenv("COURSES_DIR", filepath.Join(contentRoot, "courses")),
-		ExercisesDir:   getenv("EXERCISES_DIR", filepath.Join(contentRoot, "exercices")),
-		StaticDir:      getenv("STATIC_DIR", filepath.Join("..", "frontend", "dist")),
-		DatabaseURL:    os.Getenv("DATABASE_URL"),
-		CommandTimeout: 30 * time.Second,
-		PTYShell:       getenv("PTY_SHELL", "/bin/bash"),
+		Addr:         getenv("ADDR", ":8080"),
+		ContentRoot:  contentRoot,
+		CoursesDir:   getenv("COURSES_DIR", filepath.Join(contentRoot, "courses")),
+		ExercisesDir: getenv("EXERCISES_DIR", filepath.Join(contentRoot, "exercices")),
+		StaticDir:    getenv("STATIC_DIR", filepath.Join("..", "frontend", "dist")),
+		DatabaseURL:  os.Getenv("DATABASE_URL"),
+		PTYShell:     getenv("PTY_SHELL", "/bin/bash"),
 	}
 	return cfg
 }

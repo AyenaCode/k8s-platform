@@ -12,12 +12,12 @@ make up          # create the kind cluster, build + load the image, deploy the a
 
 No external registry, no cloud account — everything is local.
 
-> **Architecture migration in progress.** The platform is moving from the
-> original vanilla-JS + Node server (still in `app/`) to a scalable, strongly
-> typed **3-tier** stack: a **Go 1.26** backend, a **React 19 + TanStack +
-> TypeScript 6** SPA, and a **Postgres** data tier. The new stack adds a real
-> interactive terminal (vim, `kubectl edit`) over a WebSocket-driven PTY,
-> alongside the existing anti-cheat "safe command box" for solving.
+> **3-tier architecture.** The platform is a scalable, strongly typed **3-tier**
+> stack: a **Go 1.26** backend (`backend/`), a **React 19 + TanStack +
+> TypeScript 6** SPA (`frontend/`), and a **Postgres** data tier. It uses a
+> single **full-access lab terminal** (kubectl, vim, `kubectl edit` —
+> Killercoda-style) over a WebSocket-driven PTY. The legacy vanilla-JS app has
+> been removed; some pages (courses, i18n, gamification) are still being ported.
 > See **[ARCHITECTURE.md](ARCHITECTURE.md)** for the full design and run guide.
 
 ---

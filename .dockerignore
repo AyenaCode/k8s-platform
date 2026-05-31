@@ -1,0 +1,16 @@
+# Keep the build context small and reproducible.
+.git
+.claude
+
+# Frontend: rebuilt inside the image from lockfile.
+frontend/node_modules
+frontend/dist
+
+# Backend: built inside the image.
+backend/bin
+
+# Docs / local files.
+*.md
+*.log
+*.local.*
+.env

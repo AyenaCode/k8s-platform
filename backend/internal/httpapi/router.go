@@ -11,19 +11,16 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/ayenacode/k8s-platform/backend/internal/content"
-	xexec "github.com/ayenacode/k8s-platform/backend/internal/exec"
 	"github.com/ayenacode/k8s-platform/backend/internal/progress"
 	"github.com/ayenacode/k8s-platform/backend/internal/terminal"
 )
 
 type Deps struct {
-	Content        *content.Repo
-	Progress       progress.Store
-	CommandRunner  *xexec.CommandRunner
-	Terminal       *terminal.Handler
-	StaticDir      string
-	CommandTimeout time.Duration
-	Log            *slog.Logger
+	Content   *content.Repo
+	Progress  progress.Store
+	Terminal  *terminal.Handler
+	StaticDir string
+	Log       *slog.Logger
 }
 
 func NewRouter(d Deps) http.Handler {
@@ -45,7 +42,6 @@ func NewRouter(d Deps) http.Handler {
 		// SSE streams
 		r.Post("/deploy/{id}", h.deploy)
 		r.Post("/reset", h.reset)
-		r.Post("/run", h.run)
 		r.Post("/check/{id}", h.check)
 
 		// Progress (data tier)
