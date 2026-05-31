@@ -36,6 +36,7 @@ func NewRouter(d Deps) http.Handler {
 		// Content (JSON)
 		r.Get("/courses", h.listCourses)
 		r.Get("/courses/{slug}", h.getCourse)
+		r.Post("/courses/{slug}/complete", h.completeCourse)
 		r.Get("/exercises", h.listExercises)
 		r.Get("/exercises/{id}", h.getExercise)
 
@@ -46,6 +47,7 @@ func NewRouter(d Deps) http.Handler {
 
 		// Progress (data tier)
 		r.Get("/progress", h.listProgress)
+		r.Get("/progress/summary", h.summary)
 		r.Post("/progress/{id}/solve", h.solve)
 	})
 

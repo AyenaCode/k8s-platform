@@ -88,14 +88,12 @@ web app at **http://localhost:8088**:
 1. Open **Exercises** and pick an incident ticket.
 2. Click **Launch exercise** — it deploys the deliberately broken setup into its own
    namespace and streams the output into an in-browser terminal.
-3. Read the ticket, then diagnose and fix it with `kubectl`.
-4. Click **Reset** when you're done to clean up before the next one.
+3. Read the ticket, then diagnose and fix it in the **persistent terminal** on the right
+   (`kubectl`, `vim`, `kubectl edit` — a real shell, KodeKloud/KillerCoda style).
+4. Click **Check** to verify the fix — solving it awards **XP** and unlocks **badges**.
+5. Click **Reset** when you're done to clean up before the next one.
 
-The standalone `k8s-diag.sh` scans a namespace and reports what is broken, with hints:
-
-```bash
-./k8s-diag.sh exo-001
-```
+Track your level, XP and badges on the **Dashboard**.
 
 ---
 
