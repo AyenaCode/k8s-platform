@@ -1,1 +1,1 @@
-# Kubernates fountamentals for personnal learning and labs.
+# Kubernates for personnal learning and labs.
