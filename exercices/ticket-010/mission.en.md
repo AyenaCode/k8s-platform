@@ -18,23 +18,6 @@ The pod must move to Running and the service must respond.
 > Note: there is a missing dependency. You will need to create a resource
 > to unblock the startup. No need to touch the existing Deployment.
 
-## Deployment
-
-```bash
-./ticket-010/deploy.sh
-```
-
-## Validation criteria
-
-```bash
-# 1. Pod in Running, READY 1/1
-kubectl get pods -n exo-010
-
-# 2. Service responds
-kubectl run test --image=busybox --rm -it --restart=Never -n exo-010 -- wget -qO- http://app-svc:80
-# Should display HTML
-```
-
 ## Hint (if you're stuck)
 
 `Init:0/1` means an init container is still running (or failing)

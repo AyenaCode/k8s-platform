@@ -16,23 +16,6 @@
 Les pods doivent atteindre l'etat Ready 1/1 et rester stables (0 restart en regime permanent).
 Le Service doit repondre.
 
-## Deploiement
-
-```bash
-./ticket-006/deploy.sh
-```
-
-## Critere de validation
-
-```bash
-# 1. Pods Running, Ready 1/1, restarts stables
-kubectl get pods -n exo-006
-
-# 2. Le service repond
-kubectl run test --image=busybox --rm -it --restart=Never -n exo-006 -- wget -qO- http://webapp-svc:80
-# Doit afficher du HTML
-```
-
 ## Indice (si tu seches)
 
 Quand un pod est `Running` mais `0/1 READY`, regarde les conditions et les events

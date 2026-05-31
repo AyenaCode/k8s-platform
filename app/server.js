@@ -159,20 +159,61 @@ function sseStream(res, script, cwd, timeout) {
   streamChild(res, spawn('bash', [script], { cwd }), timeout);
 }
 
-// Run a single user-typed command and stream its output. Restricted to `kubectl`
-// (the diagnosis tool) — this is a LOCAL, single-user learning app; never expose it.
-function runCommand(res, cmd, cwd, timeout) {
+// Commands allowed in the in-app terminal: kubectl plus common read-only shell tools.
+// `k` is accepted as an alias for kubectl. This is a LOCAL, single-user learning app —
+// never expose it (the pod's ServiceAccount can change the cluster).
+const ALLOWED_CMDS = new Set([
+  'kubectl', 'k',
+  'ls', 'cat', 'cd', 'pwd', 'echo', 'head', 'tail', 'wc',
+  'grep', 'find', 'env', 'printenv', 'whoami', 'date',
+]);
+
+// Always blocked, even if added to ALLOWED_CMDS: decoders would let the learner
+// reveal the base64-encoded broken config in deploy.sh and skip the exercise.
+const DENIED_CMDS = new Set([
+  'base64', 'base32', 'xxd', 'od', 'openssl', 'python', 'python3', 'node', 'perl', 'ruby',
+]);
+
+// Working directory for the in-app shell, kept across commands so `cd` persists.
+let shellCwd = EXERCISES_DIR;
+
+function runCommand(res, cmd, timeout) {
   cmd = (cmd || '').trim();
-  const reject = msg => {
-    sseHead(res);
-    res.write('data: ' + JSON.stringify({ type: 'err', text: msg + '\n' }) + '\n\n');
+  const reject  = msg => { sseHead(res);
+    res.write('data: ' + JSON.stringify({ type: 'err',  text: msg + '\n' }) + '\n\n');
     res.write('data: ' + JSON.stringify({ type: 'done', ok: false }) + '\n\n');
-    res.end();
-  };
-  if (!/^kubectl(\s|$)/.test(cmd)) return reject('Only kubectl commands are allowed.');
+    res.end(); };
+  const okText = text => { sseHead(res);
+    if (text) res.write('data: ' + JSON.stringify({ type: 'out', text }) + '\n\n');
+    res.write('data: ' + JSON.stringify({ type: 'done', ok: true }) + '\n\n');
+    res.end(); };
+
+  if (!cmd) return reject('Empty command.');
   // Allow pipes (e.g. `| grep`) but block command chaining / substitution / redirection.
   if (/[;`]|&&|\|\||\$\(|>|</.test(cmd)) return reject('Command chaining, substitution and redirection are not allowed.');
-  streamChild(res, spawn('bash', ['-c', cmd], { cwd }), timeout);
+
+  // Expand the leading `k` alias to `kubectl`.
+  cmd = cmd.replace(/^k(\s|$)/, 'kubectl$1');
+
+  // `cd` is a shell builtin; handle it here so the directory sticks for later commands.
+  if (/^cd(\s|$)/.test(cmd)) {
+    const arg    = cmd.slice(2).trim();
+    const target = arg ? path.resolve(shellCwd, arg) : EXERCISES_DIR;
+    try {
+      if (!fs.statSync(target).isDirectory()) throw new Error();
+    } catch { return reject('cd: no such directory: ' + (arg || target)); }
+    shellCwd = target;
+    return okText(shellCwd + '\n');
+  }
+
+  // Every pipeline segment must start with an allowed (and not explicitly denied) command.
+  for (const seg of cmd.split('|')) {
+    const first = seg.trim().split(/\s+/)[0];
+    if (DENIED_CMDS.has(first)) return reject(first + ' is disabled to keep the exercises challenging (no decoding the answer).');
+    if (!ALLOWED_CMDS.has(first)) return reject('Command not allowed: ' + (first || '(empty)'));
+  }
+
+  streamChild(res, spawn('bash', ['-c', cmd], { cwd: shellCwd }), timeout);
 }
 
 // ─── Server ───────────────────────────────────────────────────────────────────
@@ -217,9 +258,19 @@ http.createServer((req, res) => {
     return sseStream(res, RESET_SCRIPT, EXERCISES_DIR, 60000);
   }
 
-  // Run a kubectl command typed in the in-app terminal
+  // Run a command typed in the in-app terminal
   if (req.method === 'POST' && url === '/api/run') {
-    return runCommand(res, queryParam(req.url, 'cmd'), EXERCISES_DIR, 30000);
+    return runCommand(res, queryParam(req.url, 'cmd'), 30000);
+  }
+
+  // Check whether an exercise is solved (streams the check, done.ok = solved)
+  if (req.method === 'POST' && url.startsWith('/api/check/')) {
+    const id = url.slice(11);
+    const ex = EXERCISES.find(e => e.id === id);
+    if (!ex) return json(res, { error: 'not found' }, 404);
+    const script = path.join(EXERCISES_DIR, 'check.sh');
+    if (!fs.existsSync(script)) return json(res, { error: 'check.sh not found' }, 404);
+    return streamChild(res, spawn('bash', [script, ex.ns], { cwd: EXERCISES_DIR }), 30000);
   }
 
   // Crash demo (used to show the liveness probe restarting the pod)

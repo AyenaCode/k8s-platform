@@ -21,6 +21,7 @@ rules:
       - replicasets
       - pods
       - services
+      - endpoints
       - configmaps
       - secrets
       - jobs

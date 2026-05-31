@@ -538,13 +538,13 @@ button { cursor: pointer; font-family: inherit; }
   animation: btn-pulse 1.5s ease-in-out infinite;
 }
 
-.btn-solve {
+.btn-check {
   background: rgba(50,108,229,.1);
   border-color: rgba(50,108,229,.4);
   color: var(--k8s-hi);
 }
-.btn-solve:not(:disabled):hover { background: rgba(50,108,229,.2); border-color: var(--k8s); }
-.btn-solve.done { background: var(--teal-dim); border-color: var(--teal); color: var(--teal); }
+.btn-check:not(:disabled):hover { background: rgba(50,108,229,.2); border-color: var(--k8s); }
+.btn-check.running { animation: btn-pulse 1.5s ease-in-out infinite; }
 
 .btn-reset {
   background: transparent;

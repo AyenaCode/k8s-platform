@@ -26,20 +26,6 @@ Why can a Service exist but not route traffic?
 4. Fix it **without deleting/recreating** any resource (`edit` or `patch`)
 5. Validate that the Service responds after the fix
 
-## Deployment
-
-```bash
-kubectl apply -f ticket-005/
-```
-
-## Validation
-
-```bash
-# Must display HTML after the fix
-kubectl run test --image=busybox --rm -it --restart=Never -n exo-005 -- \
-  wget -qO- http://backend-api:80
-```
-
 ## Exam constraint
 
 Target time: **5 minutes** — you must find and fix it before then.

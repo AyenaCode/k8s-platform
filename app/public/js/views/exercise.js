@@ -1,4 +1,4 @@
-import { fetchExercises, fetchExercise, streamDeploy, streamReset, streamRun } from '../api.js';
+import { fetchExercises, fetchExercise, streamDeploy, streamReset, streamRun, streamCheck } from '../api.js';
 import { mdToHtml, setupCopyButtons } from '../markdown.js';
 import { Terminal } from '../terminal.js';
 import { markExerciseLaunched, markExerciseComplete, load, refreshNav } from '../gamification.js';
@@ -26,9 +26,7 @@ export default async function renderExercise(id) {
       <div class="deploy-actions">
         <span class="solved-chip${done ? ' visible' : ''}" id="solved-chip">✓ ${t('exercise.solved')}</span>
         <button class="btn btn-launch" id="btn-launch">▶ ${t('exercise.launch')}</button>
-        <button class="btn btn-solve${done ? ' done' : ''}" id="btn-solve">
-          ${done ? '✓ ' + t('exercise.solved') : '✓ ' + t('exercise.markSolved')}
-        </button>
+        <button class="btn btn-check" id="btn-check">✓ ${t('exercise.check')}</button>
         <button class="btn btn-reset" id="btn-reset">⟳ ${t('exercise.reset')}</button>
       </div>
     </div>
@@ -61,19 +59,32 @@ export default async function renderExercise(id) {
   requestAnimationFrame(() => {
     const content = document.getElementById('exercise-content');
     if (content) setupCopyButtons(content);
-    _bindButtons(id, exercises.length);
+    _bindButtons(id, exercises.length, data.ns);
   });
 
   return html;
 }
 
-function _bindButtons(id, totalExercises) {
+function _bindButtons(id, totalExercises, ns) {
   const term      = new Terminal('terminal-wrap', 'terminal-output', 'terminal-title');
   const btnLaunch = document.getElementById('btn-launch');
-  const btnSolve  = document.getElementById('btn-solve');
+  const btnCheck  = document.getElementById('btn-check');
   const btnReset  = document.getElementById('btn-reset');
   const panel     = document.getElementById('deploy-panel');
   const solvedChip = document.getElementById('solved-chip');
+
+  const popToast = detail => document.dispatchEvent(new CustomEvent('app-toast', { detail }));
+
+  // Mark the exercise solved and play the reward animations.
+  async function applySolved() {
+    const totalCourses = await fetch('/api/courses?lang=' + getLang()).then(r => r.json()).then(c => c.length);
+    markExerciseComplete(id, totalExercises, totalCourses);
+    refreshNav();
+    solvedChip?.classList.add('visible');
+    panel?.classList.add('just-solved');
+    setTimeout(() => panel?.classList.remove('just-solved'), 900);
+    if (btnCheck) _floatXP(btnCheck, '+100 XP');
+  }
 
   btnLaunch?.addEventListener('click', async () => {
     btnLaunch.classList.add('running');
@@ -99,17 +110,39 @@ function _bindButtons(id, totalExercises) {
     }
   });
 
-  btnSolve?.addEventListener('click', async () => {
-    if (btnSolve.classList.contains('done')) return;
-    const totalCourses = await fetch('/api/courses?lang=' + getLang()).then(r => r.json()).then(c => c.length);
-    markExerciseComplete(id, totalExercises, totalCourses);
-    refreshNav();
-    btnSolve.classList.add('done');
-    btnSolve.textContent = '✓ ' + t('exercise.solved');
-    solvedChip?.classList.add('visible');
-    panel?.classList.add('just-solved');
-    setTimeout(() => panel?.classList.remove('just-solved'), 900);
-    _floatXP(btnSolve, '+100 XP');
+  btnCheck?.addEventListener('click', async () => {
+    btnCheck.classList.add('running');
+    btnCheck.disabled  = true;
+    btnLaunch.disabled = true;
+    btnReset.disabled  = true;
+    term.command('./check.sh ' + ns);
+    try {
+      await streamCheck(id,
+        msg => term.chunk(msg),
+        async ok => {
+          term.done(ok);
+          btnCheck.classList.remove('running');
+          btnCheck.disabled  = false;
+          btnLaunch.disabled = false;
+          btnReset.disabled  = false;
+          if (ok) {
+            await applySolved();
+            popToast({ icon: '🎉', title: t('exercise.passTitle'), desc: t('exercise.passDesc'), xp: '', duration: 5000 });
+          } else {
+            panel?.classList.add('just-failed');
+            setTimeout(() => panel?.classList.remove('just-failed'), 600);
+            popToast({ icon: '🔧', title: t('exercise.failTitle'), desc: t('exercise.failDesc'), xp: '', duration: 4500 });
+          }
+        }
+      );
+    } catch (e) {
+      term.chunk({ type: 'err', text: t('common.error') + e.message + '\n' });
+      term.done(false);
+      btnCheck.classList.remove('running');
+      btnCheck.disabled  = false;
+      btnLaunch.disabled = false;
+      btnReset.disabled  = false;
+    }
   });
 
   btnReset?.addEventListener('click', async () => {

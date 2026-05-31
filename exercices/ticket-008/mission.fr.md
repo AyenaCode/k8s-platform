@@ -18,23 +18,6 @@ Les pods doivent demarrer (Running, Ready 1/1). Le Service doit repondre.
 > Note : tu vas decouvrir qu'une ressource manque. Cree-la avec
 > `kubectl create secret generic ...` (peu importe les valeurs, on est en dev).
 
-## Deploiement
-
-```bash
-./ticket-008/deploy.sh
-```
-
-## Critere de validation
-
-```bash
-# 1. Pods Running
-kubectl get pods -n exo-008
-
-# 2. Service repond
-kubectl run test --image=busybox --rm -it --restart=Never -n exo-008 -- wget -qO- http://payment-svc:80
-# Doit afficher du HTML
-```
-
 ## Indice (si tu seches)
 
 Quand un pod a un statut autre que Running, le `describe pod` te dit

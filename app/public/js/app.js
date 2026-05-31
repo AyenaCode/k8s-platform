@@ -19,6 +19,9 @@ function _initLangToggle() {
   });
 }
 
+// ── Generic toast event (any view can fire one) ──────────────────────────────
+document.addEventListener('app-toast', e => toast(e.detail, e.detail.duration || 4000));
+
 // ── Gamification events ───────────────────────────────────────────────────────
 document.addEventListener('xp-gained', e => {
   refreshNav();

@@ -13,16 +13,3 @@
 ## Ta mission
 
 Les pods doivent atteindre le status Running. Trouve ce qui bloque et repare.
-
-## Deploiement
-
-```bash
-kubectl apply -f ticket-002/
-```
-
-## Critere de validation
-
-```bash
-kubectl get pods -n exo-002
-# Tous les pods doivent etre Running et READY 1/1
-```

@@ -18,19 +18,6 @@ The pods must be Running and stable (no restart loop).
 > Note: you will need to fix the Deployment YAML. Use `kubectl edit deploy`
 > or `kubectl set` or `kubectl patch`. No other resource to create.
 
-## Deployment
-
-```bash
-./ticket-009/deploy.sh
-```
-
-## Validation criteria
-
-```bash
-# Pods Running, READY 1/1, RESTARTS no longer increasing
-kubectl get pods -n exo-009
-```
-
 ## Hint (if you're stuck)
 
 When a pod in CrashLoop starts and then dies immediately, the logs are

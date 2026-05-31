@@ -18,23 +18,6 @@ Le pod doit passer en Running et le service doit repondre.
 > Note : il y a une dependance manquante. Tu vas devoir creer une ressource
 > pour debloquer le demarrage. Pas besoin de toucher au Deployment existant.
 
-## Deploiement
-
-```bash
-./ticket-010/deploy.sh
-```
-
-## Critere de validation
-
-```bash
-# 1. Pod en Running, READY 1/1
-kubectl get pods -n exo-010
-
-# 2. Service repond
-kubectl run test --image=busybox --rm -it --restart=Never -n exo-010 -- wget -qO- http://app-svc:80
-# Doit afficher du HTML
-```
-
 ## Indice (si tu seches)
 
 `Init:0/1` veut dire qu'un init container est encore en train de tourner (ou en echec)

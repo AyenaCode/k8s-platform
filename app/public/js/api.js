@@ -22,6 +22,10 @@ export function streamRun(cmd, onChunk, onDone) {
   return _stream('/api/run?cmd=' + encodeURIComponent(cmd), onChunk, onDone);
 }
 
+export function streamCheck(id, onChunk, onDone) {
+  return _stream('/api/check/' + id, onChunk, onDone);
+}
+
 async function _stream(url, onChunk, onDone) {
   const res = await fetch(url, { method: 'POST' });
   if (!res.body) throw new Error('No stream');

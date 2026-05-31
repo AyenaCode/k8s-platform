@@ -13,17 +13,3 @@
 ## Ta mission
 
 L'app doit repondre via le Service. Trouve pourquoi ca ne marche pas et repare.
-
-## Deploiement
-
-```bash
-kubectl apply -f ticket-001/
-```
-
-## Critere de validation
-
-```bash
-# Depuis un pod de debug, l'app doit repondre :
-kubectl run test --image=busybox --rm -it --restart=Never -n exo-001 -- wget -qO- http://web-svc:80
-# Doit afficher du HTML (page nginx)
-```
