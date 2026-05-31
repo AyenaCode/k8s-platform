@@ -1,1 +1,1 @@
-# ckad-cka-prep.
+# Kubernates fountamentals for personnal learning and labs.
