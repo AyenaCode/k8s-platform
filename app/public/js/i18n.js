@@ -1,171 +1,228 @@
 // Tiny client-side i18n. Language is stored in localStorage and defaults to the
 // browser language (fr -> French, anything else -> English).
-const LANG_KEY = 'k8s-learn-lang';
+const LANG_KEY = "k8s-learn-lang";
 
 const STRINGS = {
   en: {
-    'nav.courses':    'Courses',
-    'nav.exercises':  'Exercises',
-    'xp.title':       'Your experience points',
-    'streak.title':   'Consecutive practice days',
-    'lang.switchTo':  'FR',
-    'boot':           'Connecting to the cluster...',
-    'copy':           'Copy',
-    'copied':         'Copied!',
-    'term.done':      'done',
-    'term.error':     'error',
-    'common.error':   'Error: ',
+    "nav.courses": "Courses",
+    "nav.exercises": "Exercises",
+    "xp.title": "Your experience points",
+    "streak.title": "Consecutive practice days",
+    "lang.switchTo": "FR",
+    boot: "Connecting to the cluster...",
+    copy: "Copy",
+    copied: "Copied!",
+    "term.done": "done",
+    "term.error": "error",
+    "common.error": "Error: ",
 
-    'toast.levelUp.title': 'Level up!',
-    'toast.levelUp.desc':  'You are now {name}',
+    "toast.levelUp.title": "Level up!",
+    "toast.levelUp.desc": "You are now {name}",
 
-    'level.apprentice': 'Apprentice',
-    'level.padawan':    'Padawan',
-    'level.sreJunior':  'SRE Junior',
-    'level.devopsPro':  'DevOps Pro',
-    'level.k8sMaster':  'K8s Master',
+    "level.apprentice": "Apprentice",
+    "level.padawan": "Padawan",
+    "level.sreJunior": "SRE Junior",
+    "level.devopsPro": "DevOps Pro",
+    "level.k8sMaster": "K8s Master",
 
-    'level.easy':   'Easy',
-    'level.medium': 'Medium',
-    'level.hard':   'Hard',
+    "level.easy": "Easy",
+    "level.medium": "Medium",
+    "level.hard": "Hard",
 
-    'ach.first_deploy.label':  'First Contact',
-    'ach.first_deploy.desc':   'Launched your first exercise',
-    'ach.bug_hunter.label':    'Bug Hunter',
-    'ach.bug_hunter.desc':     'Solved 5 exercises',
-    'ach.completionist.label': 'Completionist',
-    'ach.completionist.desc':  'Finished every exercise',
-    'ach.bookworm.label':      'Bookworm',
-    'ach.bookworm.desc':       'Read every course',
-    'ach.k8s_full.label':      'Full Kubernetes',
-    'ach.k8s_full.desc':       'Courses + exercises completed',
+    "ach.first_deploy.label": "First Contact",
+    "ach.first_deploy.desc": "Launched your first exercise",
+    "ach.bug_hunter.label": "Bug Hunter",
+    "ach.bug_hunter.desc": "Solved 5 exercises",
+    "ach.completionist.label": "Completionist",
+    "ach.completionist.desc": "Finished every exercise",
+    "ach.bookworm.label": "Bookworm",
+    "ach.bookworm.desc": "Read every course",
+    "ach.k8s_full.label": "Full Kubernetes",
+    "ach.k8s_full.desc": "Courses + exercises completed",
 
-    'home.tagline':           'Your Kubernetes learning platform.<br>Read. Deploy. Diagnose. Fix.',
-    'home.ringCourses':       'Courses',
-    'home.ringExercises':     'Exercises',
-    'home.ctaCoursesDesc':    '{n} chapters — architecture, kubectl, debugging. Read them in order.',
-    'home.ctaCoursesArrow':   'Start the courses →',
-    'home.ctaExercisesDesc':  '{n} incident tickets. Real bugs, real commands, no cheating.',
-    'home.ctaExercisesArrow': 'See the exercises →',
-    'home.achievements':      'Achievements',
-    'home.nextCourse':        'Next course: {title}',
-    'home.nextExercise':      'Next exercise: {title}',
-    'home.allDone':           "All done — you're ready for the CKA.",
+    "home.tagline":
+      "Your Kubernetes learning platform.<br>Read. Deploy. Diagnose. Fix.",
+    "home.ringCourses": "Courses",
+    "home.ringExercises": "Exercises",
+    "home.ctaCoursesDesc":
+      "{n} chapters — architecture, kubectl, debugging. Read them in order.",
+    "home.ctaCoursesArrow": "Start the courses →",
+    "home.ctaExercisesDesc":
+      "{n} incident tickets. Real bugs, real commands, no cheating.",
+    "home.ctaExercisesArrow": "See the exercises →",
+    "home.achievements": "Achievements",
+    "home.nextCourse": "Next course: {title}",
+    "home.nextExercise": "Next exercise: {title}",
+    "home.allDone": "All done — you're ready for the CKA.",
 
-    'courses.subtitle': 'Read them in order. {n} chapters — about 1h45 in total.',
-    'courses.chapter':  'Chapter {n}',
+    "courses.subtitle":
+      "Read them in order. {n} chapters — about 1h45 in total.",
+    "courses.chapter": "Chapter {n}",
 
-    'course.notFound': 'Course not found',
-    'course.back':     '← Back to courses',
+    "course.notFound": "Course not found",
+    "course.back": "← Back to courses",
 
-    'exercises.subtitle': 'Launch the deployment in the cluster, diagnose it with kubectl, fix it. {done}/{total} solved.',
+    "exercises.subtitle":
+      "Launch the deployment in the cluster, diagnose it with kubectl, fix it. {done}/{total} solved.",
 
-    'exercise.env':           'Environment',
-    'exercise.solved':        'Solved',
-    'exercise.launch':        'Launch exercise',
-    'exercise.markSolved':    'Mark as solved',
-    'exercise.reset':         'Reset',
-    'exercise.resetConfirm':  'Delete every exo-* namespace?',
-    'exercise.notFound':      'Exercise not found',
-    'exercise.back':          '← Back',
-    'exercise.cmdPlaceholder': 'Type a command: k get pods -n exo-001, ls, cat, cd …',
-    'exercise.cmdRun':         'Run',
-    'exercise.check':          'Check',
-    'exercise.checking':       'Checking your fix…',
-    'exercise.passTitle':      '🎉 Incident resolved!',
-    'exercise.passDesc':       'Great work — the cluster is healthy again.',
-    'exercise.failTitle':      'Not solved yet',
-    'exercise.failDesc':       'Something is still broken. Read the output above and keep digging. 💪',
+    "exercise.env": "Environment",
+    "exercise.solved": "Solved",
+    "exercise.launch": "Launch exercise",
+    "exercise.markSolved": "Mark as solved",
+    "exercise.reset": "Reset",
+    "exercise.resetConfirm": "Delete every exo-* namespace?",
+    "exercise.notFound": "Exercise not found",
+    "exercise.back": "← Back",
+    "exercise.cmdPlaceholder": "k -n exo-001 get pods …",
+    "exercise.cmdRun": "Run",
+    "exercise.check": "Check",
+    "exercise.checking": "Checking your fix…",
+    "exercise.passTitle": "🎉 Incident resolved!",
+    "exercise.passDesc": "Great work — the cluster is healthy again.",
+    "exercise.failTitle": "Not solved yet",
+    "exercise.failDesc":
+      "Something is still broken. Read the output above and keep digging. 💪",
 
-    'error.title':    'Error',
-    'notFound.title': 'Page not found',
-    'notFound.home':  '← Home',
+    "exercise.briefing": "Mission briefing",
+    "exercise.console": "Ops console",
+    "exercise.statusIdle": "Standby",
+    "exercise.statusActive": "Incident active",
+    "exercise.statusResolved": "Resolved",
+    "exercise.reward": "Reward",
+    "exercise.elapsed": "Elapsed",
+    "exercise.ops": "Ops",
+    "exercise.cmdHint": "↑ ↓ history · kubectl only",
+    "exercise.idleHint": "# Launch the incident, then diagnose with kubectl.",
+    "exercise.step.deploy": "Deploy",
+    "exercise.step.diagnose": "Diagnose",
+    "exercise.step.fix": "Fix",
+    "exercise.step.verify": "Verify",
+    "exercise.complete.title": "Mission complete",
+    "exercise.complete.desc":
+      "Incident resolved — the cluster is healthy again.",
+    "exercise.complete.time": "Resolved in {time}",
+    "exercise.complete.next": "Next mission →",
+    "exercise.complete.stay": "Review this one",
+
+    "error.title": "Error",
+    "notFound.title": "Page not found",
+    "notFound.home": "← Home",
   },
 
   fr: {
-    'nav.courses':    'Cours',
-    'nav.exercises':  'Exercices',
-    'xp.title':       "Tes points d'expérience",
-    'streak.title':   'Jours de pratique consécutifs',
-    'lang.switchTo':  'EN',
-    'boot':           'Connexion au cluster...',
-    'copy':           'Copier',
-    'copied':         'Copié !',
-    'term.done':      'terminé',
-    'term.error':     'erreur',
-    'common.error':   'Erreur : ',
+    "nav.courses": "Cours",
+    "nav.exercises": "Exercices",
+    "xp.title": "Tes points d'expérience",
+    "streak.title": "Jours de pratique consécutifs",
+    "lang.switchTo": "EN",
+    boot: "Connexion au cluster...",
+    copy: "Copier",
+    copied: "Copié !",
+    "term.done": "terminé",
+    "term.error": "erreur",
+    "common.error": "Erreur : ",
 
-    'toast.levelUp.title': 'Level up !',
-    'toast.levelUp.desc':  'Tu es maintenant {name}',
+    "toast.levelUp.title": "Level up !",
+    "toast.levelUp.desc": "Tu es maintenant {name}",
 
-    'level.apprentice': 'Apprenti',
-    'level.padawan':    'Padawan',
-    'level.sreJunior':  'SRE Junior',
-    'level.devopsPro':  'DevOps Pro',
-    'level.k8sMaster':  'K8s Master',
+    "level.apprentice": "Apprenti",
+    "level.padawan": "Padawan",
+    "level.sreJunior": "SRE Junior",
+    "level.devopsPro": "DevOps Pro",
+    "level.k8sMaster": "K8s Master",
 
-    'level.easy':   'Facile',
-    'level.medium': 'Moyen',
-    'level.hard':   'Difficile',
+    "level.easy": "Facile",
+    "level.medium": "Moyen",
+    "level.hard": "Difficile",
 
-    'ach.first_deploy.label':  'Premier Contact',
-    'ach.first_deploy.desc':   'Premier exercice lancé',
-    'ach.bug_hunter.label':    'Chasseur de Bugs',
-    'ach.bug_hunter.desc':     '5 exercices résolus',
-    'ach.completionist.label': 'Completionniste',
-    'ach.completionist.desc':  'Tous les exercices terminés',
-    'ach.bookworm.label':      'Bibliothécaire',
-    'ach.bookworm.desc':       'Tous les cours lus',
-    'ach.k8s_full.label':      'Full Kubernetes',
-    'ach.k8s_full.desc':       'Cours + exercices complétés',
+    "ach.first_deploy.label": "Premier Contact",
+    "ach.first_deploy.desc": "Premier exercice lancé",
+    "ach.bug_hunter.label": "Chasseur de Bugs",
+    "ach.bug_hunter.desc": "5 exercices résolus",
+    "ach.completionist.label": "Completionniste",
+    "ach.completionist.desc": "Tous les exercices terminés",
+    "ach.bookworm.label": "Bibliothécaire",
+    "ach.bookworm.desc": "Tous les cours lus",
+    "ach.k8s_full.label": "Full Kubernetes",
+    "ach.k8s_full.desc": "Cours + exercices complétés",
 
-    'home.tagline':           "Ta plateforme d'apprentissage Kubernetes.<br>Lis. Déploie. Diagnostique. Répare.",
-    'home.ringCourses':       'Cours',
-    'home.ringExercises':     'Exercices',
-    'home.ctaCoursesDesc':    "{n} chapitres — architecture, kubectl, debug. À lire dans l'ordre.",
-    'home.ctaCoursesArrow':   'Commencer les cours →',
-    'home.ctaExercisesDesc':  "{n} tickets d'incident. Vrais bugs, vraies commandes, pas de triche.",
-    'home.ctaExercisesArrow': 'Voir les exercices →',
-    'home.achievements':      'Achievements',
-    'home.nextCourse':        'Prochain cours : {title}',
-    'home.nextExercise':      'Prochain exercice : {title}',
-    'home.allDone':           'Tout est complété — tu es prêt pour la CKA.',
+    "home.tagline":
+      "Ta plateforme d'apprentissage Kubernetes.<br>Lis. Déploie. Diagnostique. Répare.",
+    "home.ringCourses": "Cours",
+    "home.ringExercises": "Exercices",
+    "home.ctaCoursesDesc":
+      "{n} chapitres — architecture, kubectl, debug. À lire dans l'ordre.",
+    "home.ctaCoursesArrow": "Commencer les cours →",
+    "home.ctaExercisesDesc":
+      "{n} tickets d'incident. Vrais bugs, vraies commandes, pas de triche.",
+    "home.ctaExercisesArrow": "Voir les exercices →",
+    "home.achievements": "Achievements",
+    "home.nextCourse": "Prochain cours : {title}",
+    "home.nextExercise": "Prochain exercice : {title}",
+    "home.allDone": "Tout est complété — tu es prêt pour la CKA.",
 
-    'courses.subtitle': "À lire dans l'ordre. {n} chapitres — environ 1h45 au total.",
-    'courses.chapter':  'Chapitre {n}',
+    "courses.subtitle":
+      "À lire dans l'ordre. {n} chapitres — environ 1h45 au total.",
+    "courses.chapter": "Chapitre {n}",
 
-    'course.notFound': 'Cours introuvable',
-    'course.back':     '← Retour aux cours',
+    "course.notFound": "Cours introuvable",
+    "course.back": "← Retour aux cours",
 
-    'exercises.subtitle': 'Lance le déploiement dans le cluster, diagnostique avec kubectl, répare. {done}/{total} résolus.',
+    "exercises.subtitle":
+      "Lance le déploiement dans le cluster, diagnostique avec kubectl, répare. {done}/{total} résolus.",
 
-    'exercise.env':           'Environnement',
-    'exercise.solved':        'Résolu',
-    'exercise.launch':        "Lancer l'exercice",
-    'exercise.markSolved':    'Marquer résolu',
-    'exercise.reset':         'Reset',
-    'exercise.resetConfirm':  'Supprimer tous les namespaces exo-* ?',
-    'exercise.notFound':      'Exercice introuvable',
-    'exercise.back':          '← Retour',
-    'exercise.cmdPlaceholder': 'Tape une commande : k get pods -n exo-001, ls, cat, cd …',
-    'exercise.cmdRun':         'Lancer',
-    'exercise.check':          'Vérifier',
-    'exercise.checking':       'Vérification de ta solution…',
-    'exercise.passTitle':      '🎉 Incident résolu !',
-    'exercise.passDesc':       'Bien joué — le cluster est de nouveau en bonne santé.',
-    'exercise.failTitle':      'Pas encore résolu',
-    'exercise.failDesc':       'Quelque chose est encore cassé. Lis la sortie ci-dessus et continue à chercher. 💪',
+    "exercise.env": "Environnement",
+    "exercise.solved": "Résolu",
+    "exercise.launch": "Lancer l'exercice",
+    "exercise.markSolved": "Marquer résolu",
+    "exercise.reset": "Reset",
+    "exercise.resetConfirm": "Supprimer tous les namespaces exo-* ?",
+    "exercise.notFound": "Exercice introuvable",
+    "exercise.back": "← Retour",
+    "exercise.cmdPlaceholder": "k -n exo-001 get pods …",
+    "exercise.cmdRun": "Lancer",
+    "exercise.check": "Vérifier",
+    "exercise.checking": "Vérification de ta solution…",
+    "exercise.passTitle": "🎉 Incident résolu !",
+    "exercise.passDesc":
+      "Bien joué — le cluster est de nouveau en bonne santé.",
+    "exercise.failTitle": "Pas encore résolu",
+    "exercise.failDesc":
+      "Quelque chose est encore cassé. Lis la sortie ci-dessus et continue à chercher. 💪",
 
-    'error.title':    'Erreur',
-    'notFound.title': 'Page introuvable',
-    'notFound.home':  '← Accueil',
+    "exercise.briefing": "Briefing de mission",
+    "exercise.console": "Console ops",
+    "exercise.statusIdle": "En attente",
+    "exercise.statusActive": "Incident en cours",
+    "exercise.statusResolved": "Résolu",
+    "exercise.reward": "Récompense",
+    "exercise.elapsed": "Temps",
+    "exercise.ops": "Cmds",
+    "exercise.cmdHint": "↑ ↓ historique · kubectl uniquement",
+    "exercise.idleHint": "# Lance l'incident, puis diagnostique avec kubectl.",
+    "exercise.step.deploy": "Déployer",
+    "exercise.step.diagnose": "Diagnostiquer",
+    "exercise.step.fix": "Réparer",
+    "exercise.step.verify": "Vérifier",
+    "exercise.complete.title": "Mission accomplie",
+    "exercise.complete.desc":
+      "Incident résolu — le cluster est de nouveau en bonne santé.",
+    "exercise.complete.time": "Résolu en {time}",
+    "exercise.complete.next": "Mission suivante →",
+    "exercise.complete.stay": "Revoir celle-ci",
+
+    "error.title": "Erreur",
+    "notFound.title": "Page introuvable",
+    "notFound.home": "← Accueil",
   },
 };
 
 export function getLang() {
   const saved = localStorage.getItem(LANG_KEY);
-  if (saved === 'en' || saved === 'fr') return saved;
-  return (navigator.language || 'en').toLowerCase().startsWith('fr') ? 'fr' : 'en';
+  if (saved === "en" || saved === "fr") return saved;
+  return (navigator.language || "en").toLowerCase().startsWith("fr")
+    ? "fr"
+    : "en";
 }
 
 export function setLang(lang) {
@@ -174,7 +231,7 @@ export function setLang(lang) {
 }
 
 export function toggleLang() {
-  const next = getLang() === 'en' ? 'fr' : 'en';
+  const next = getLang() === "en" ? "fr" : "en";
   setLang(next);
   return next;
 }
@@ -183,7 +240,7 @@ export function toggleLang() {
 export function t(key, vars) {
   const lang = getLang();
   let s = (STRINGS[lang] && STRINGS[lang][key]) ?? STRINGS.en[key] ?? key;
-  if (vars) for (const k in vars) s = s.replaceAll('{' + k + '}', vars[k]);
+  if (vars) for (const k in vars) s = s.replaceAll("{" + k + "}", vars[k]);
   return s;
 }
 
@@ -191,9 +248,15 @@ export function t(key, vars) {
 // [data-i18n-title] sets the title attribute. Also refreshes the language toggle label.
 export function applyStatic(root = document) {
   document.documentElement.lang = getLang();
-  root.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
-  root.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
-  root.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.dataset.i18nTitle); });
-  const toggle = document.getElementById('lang-toggle');
-  if (toggle) toggle.textContent = t('lang.switchTo');
+  root.querySelectorAll("[data-i18n]").forEach((el) => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  root.querySelectorAll("[data-i18n-html]").forEach((el) => {
+    el.innerHTML = t(el.dataset.i18nHtml);
+  });
+  root.querySelectorAll("[data-i18n-title]").forEach((el) => {
+    el.title = t(el.dataset.i18nTitle);
+  });
+  const toggle = document.getElementById("lang-toggle");
+  if (toggle) toggle.textContent = t("lang.switchTo");
 }
