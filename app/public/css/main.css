@@ -598,6 +598,46 @@ button { cursor: pointer; font-family: inherit; }
 .terminal-output::-webkit-scrollbar { width: 5px; }
 .terminal-output::-webkit-scrollbar-track { background: transparent; }
 .terminal-output::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* In-app command box */
+.cmd-bar {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .6rem 1rem;
+  background: rgba(7,10,18,.6);
+  border-top: 1px solid var(--border);
+}
+.cmd-prompt {
+  font-family: var(--mono);
+  color: var(--teal);
+  font-weight: 600;
+}
+.cmd-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--txt);
+  font-family: var(--mono);
+  font-size: .8rem;
+}
+.cmd-input::placeholder { color: var(--txt-dim); }
+.cmd-input:disabled { opacity: .5; }
+.btn-run {
+  background: rgba(0,201,167,.1);
+  border: 1px solid rgba(0,201,167,.4);
+  color: var(--teal);
+  font-family: var(--mono);
+  font-size: .72rem;
+  font-weight: 600;
+  padding: .35rem .8rem;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.btn-run:not(:disabled):hover { background: rgba(0,201,167,.2); border-color: var(--teal); }
+.btn-run:disabled { opacity: .5; cursor: default; }
 .term-line-out { color: #a8d4ff; }
 .term-line-err { color: #fca5a5; }
 .term-line-cmd { color: var(--txt-muted); }

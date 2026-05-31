@@ -20,6 +20,17 @@ export class Terminal {
 
   hide() { this.wrap.classList.remove('visible'); }
 
+  // Append a typed command without clearing the existing output (terminal-like history).
+  command(label) {
+    this.wrap.classList.add('visible');
+    this._removeCursor();
+    this._appendRaw('\n');
+    this._appendCmd('$ ' + label);
+    this._appendRaw('\n');
+    this._addCursor();
+    this.output.scrollTop = this.output.scrollHeight;
+  }
+
   chunk(msg) {
     this._removeCursor();
     const span = document.createElement('span');

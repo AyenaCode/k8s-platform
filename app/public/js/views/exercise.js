@@ -1,4 +1,4 @@
-import { fetchExercises, fetchExercise, streamDeploy, streamReset } from '../api.js';
+import { fetchExercises, fetchExercise, streamDeploy, streamReset, streamRun } from '../api.js';
 import { mdToHtml, setupCopyButtons } from '../markdown.js';
 import { Terminal } from '../terminal.js';
 import { markExerciseLaunched, markExerciseComplete, load, refreshNav } from '../gamification.js';
@@ -41,6 +41,11 @@ export default async function renderExercise(id) {
       </div>
       <div class="terminal-output" id="terminal-output"></div>
     </div>
+    <form class="cmd-bar" id="cmd-bar">
+      <span class="cmd-prompt">$</span>
+      <input type="text" id="cmd-input" class="cmd-input" placeholder="${t('exercise.cmdPlaceholder')}" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button type="submit" class="btn btn-run" id="btn-run">▶ ${t('exercise.cmdRun')}</button>
+    </form>
   </div>
 
   <div class="article" id="exercise-content">
@@ -126,6 +131,53 @@ function _bindButtons(id, totalExercises) {
       term.done(false);
       btnReset.disabled  = false;
       btnLaunch.disabled = false;
+    }
+  });
+
+  // In-app command box: type a kubectl command, stream the output into the terminal.
+  const cmdBar   = document.getElementById('cmd-bar');
+  const cmdInput = document.getElementById('cmd-input');
+  const btnRun   = document.getElementById('btn-run');
+  const history  = [];
+  let   histIdx  = 0;
+
+  cmdBar?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const cmd = cmdInput.value.trim();
+    if (!cmd) return;
+    history.push(cmd);
+    histIdx = history.length;
+    cmdInput.value = '';
+    term.command(cmd);
+    btnRun.disabled = true;
+    cmdInput.disabled = true;
+    try {
+      await streamRun(cmd,
+        msg => term.chunk(msg),
+        ok  => {
+          term.done(ok);
+          btnRun.disabled = false;
+          cmdInput.disabled = false;
+          cmdInput.focus();
+        }
+      );
+    } catch (err) {
+      term.chunk({ type: 'err', text: t('common.error') + err.message + '\n' });
+      term.done(false);
+      btnRun.disabled = false;
+      cmdInput.disabled = false;
+    }
+  });
+
+  // Up/Down arrows browse command history.
+  cmdInput?.addEventListener('keydown', e => {
+    if (e.key === 'ArrowUp' && histIdx > 0) {
+      histIdx--;
+      cmdInput.value = history[histIdx];
+      e.preventDefault();
+    } else if (e.key === 'ArrowDown') {
+      if (histIdx < history.length - 1) { histIdx++; cmdInput.value = history[histIdx]; }
+      else { histIdx = history.length; cmdInput.value = ''; }
     }
   });
 }

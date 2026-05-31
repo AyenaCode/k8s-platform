@@ -18,6 +18,10 @@ export function streamReset(onChunk, onDone) {
   return _stream('/api/reset', onChunk, onDone);
 }
 
+export function streamRun(cmd, onChunk, onDone) {
+  return _stream('/api/run?cmd=' + encodeURIComponent(cmd), onChunk, onDone);
+}
+
 async function _stream(url, onChunk, onDone) {
   const res = await fetch(url, { method: 'POST' });
   if (!res.body) throw new Error('No stream');

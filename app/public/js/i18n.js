@@ -68,6 +68,8 @@ const STRINGS = {
     'exercise.resetConfirm':  'Delete every exo-* namespace?',
     'exercise.notFound':      'Exercise not found',
     'exercise.back':          '← Back',
+    'exercise.cmdPlaceholder': 'Type a kubectl command, e.g. kubectl get pods -n exo-001',
+    'exercise.cmdRun':         'Run',
 
     'error.title':    'Error',
     'notFound.title': 'Page not found',
@@ -139,6 +141,8 @@ const STRINGS = {
     'exercise.resetConfirm':  'Supprimer tous les namespaces exo-* ?',
     'exercise.notFound':      'Exercice introuvable',
     'exercise.back':          '← Retour',
+    'exercise.cmdPlaceholder': 'Tape une commande kubectl, ex. kubectl get pods -n exo-001',
+    'exercise.cmdRun':         'Lancer',
 
     'error.title':    'Erreur',
     'notFound.title': 'Page introuvable',

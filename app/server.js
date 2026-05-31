@@ -56,13 +56,18 @@ function json(res, data, status = 200) {
   res.end(JSON.stringify(data));
 }
 
-// Read the ?lang= query param; fall back to the default language.
-function langOf(reqUrl) {
+// Read a query-string parameter (URL-decoded), or '' if absent.
+function queryParam(reqUrl, key) {
   const pair = (reqUrl.split('?')[1] || '')
     .split('&')
     .map(kv => kv.split('='))
-    .find(([k]) => k === 'lang');
-  const lang = pair ? pair[1] : '';
+    .find(([k]) => k === key);
+  return pair ? decodeURIComponent((pair[1] || '').replace(/\+/g, ' ')) : '';
+}
+
+// Read the ?lang= query param; fall back to the default language.
+function langOf(reqUrl) {
+  const lang = queryParam(reqUrl, 'lang');
   return LANGS.includes(lang) ? lang : DEFAULT_LANG;
 }
 
@@ -121,15 +126,19 @@ function missionFile(id, lang) {
 
 // ─── SSE stream ───────────────────────────────────────────────────────────────
 
-function sseStream(res, script, cwd, timeout) {
+function sseHead(res) {
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
     'Connection':    'keep-alive',
     'X-Accel-Buffering': 'no',
   });
+}
+
+// Stream a child process's stdout/stderr to the client as SSE events.
+function streamChild(res, child, timeout) {
+  sseHead(res);
   const send  = obj => res.write('data: ' + JSON.stringify(obj) + '\n\n');
-  const child = spawn('bash', [script], { cwd });
   const timer = setTimeout(() => child.kill(), timeout);
   child.on('error', err => {
     clearTimeout(timer);
@@ -144,6 +153,26 @@ function sseStream(res, script, cwd, timeout) {
     send({ type: 'done', ok: code === 0 });
     res.end();
   });
+}
+
+function sseStream(res, script, cwd, timeout) {
+  streamChild(res, spawn('bash', [script], { cwd }), timeout);
+}
+
+// Run a single user-typed command and stream its output. Restricted to `kubectl`
+// (the diagnosis tool) — this is a LOCAL, single-user learning app; never expose it.
+function runCommand(res, cmd, cwd, timeout) {
+  cmd = (cmd || '').trim();
+  const reject = msg => {
+    sseHead(res);
+    res.write('data: ' + JSON.stringify({ type: 'err', text: msg + '\n' }) + '\n\n');
+    res.write('data: ' + JSON.stringify({ type: 'done', ok: false }) + '\n\n');
+    res.end();
+  };
+  if (!/^kubectl(\s|$)/.test(cmd)) return reject('Only kubectl commands are allowed.');
+  // Allow pipes (e.g. `| grep`) but block command chaining / substitution / redirection.
+  if (/[;`]|&&|\|\||\$\(|>|</.test(cmd)) return reject('Command chaining, substitution and redirection are not allowed.');
+  streamChild(res, spawn('bash', ['-c', cmd], { cwd }), timeout);
 }
 
 // ─── Server ───────────────────────────────────────────────────────────────────
@@ -186,6 +215,11 @@ http.createServer((req, res) => {
   if (req.method === 'POST' && url === '/api/reset') {
     if (!fs.existsSync(RESET_SCRIPT)) return json(res, { error: 'reset.sh not found' }, 404);
     return sseStream(res, RESET_SCRIPT, EXERCISES_DIR, 60000);
+  }
+
+  // Run a kubectl command typed in the in-app terminal
+  if (req.method === 'POST' && url === '/api/run') {
+    return runCommand(res, queryParam(req.url, 'cmd'), EXERCISES_DIR, 30000);
   }
 
   // Crash demo (used to show the liveness probe restarting the pod)
