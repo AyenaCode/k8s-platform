@@ -1,19 +1,23 @@
+import { t } from './i18n.js';
+
 const KEY = 'k8s-learn-v2';
 
+// `key` maps to an i18n string (level.<key>); the display name is localized at render time.
 export const LEVELS = [
-  { name: 'Apprenti',    min: 0,    color: '#5a7898' },
-  { name: 'Padawan',     min: 200,  color: '#326ce5' },
-  { name: 'SRE Junior',  min: 500,  color: '#00c9a7' },
-  { name: 'DevOps Pro',  min: 1000, color: '#f59e0b' },
-  { name: 'K8s Master',  min: 1800, color: '#a78bfa' },
+  { key: 'apprentice', min: 0,    color: '#5a7898' },
+  { key: 'padawan',    min: 200,  color: '#326ce5' },
+  { key: 'sreJunior',  min: 500,  color: '#00c9a7' },
+  { key: 'devopsPro',  min: 1000, color: '#f59e0b' },
+  { key: 'k8sMaster',  min: 1800, color: '#a78bfa' },
 ];
 
+// Labels/descriptions are localized in the UI via ach.<id>.label / ach.<id>.desc.
 export const ACHIEVEMENTS = [
-  { id: 'first_deploy',  icon: '🚀', label: 'Premier Contact',   desc: 'Premier exercice lancé',        xp: 50  },
-  { id: 'bug_hunter',    icon: '🔍', label: 'Chasseur de Bugs',  desc: '5 exercices résolus',            xp: 100 },
-  { id: 'completionist', icon: '🏆', label: 'Completionniste',   desc: 'Tous les exercices terminés',    xp: 250 },
-  { id: 'bookworm',      icon: '📚', label: 'Bibliothécaire',    desc: 'Tous les cours lus',             xp: 150 },
-  { id: 'k8s_full',      icon: '⎈',  label: 'Full Kubernetes',   desc: 'Cours + exercices complétés',    xp: 300 },
+  { id: 'first_deploy',  icon: '🚀', xp: 50  },
+  { id: 'bug_hunter',    icon: '🔍', xp: 100 },
+  { id: 'completionist', icon: '🏆', xp: 250 },
+  { id: 'bookworm',      icon: '📚', xp: 150 },
+  { id: 'k8s_full',      icon: '⎈',  xp: 300 },
 ];
 
 function blank() {
@@ -63,7 +67,7 @@ export function addXP(amount, s) {
   emit('xp-gained', { amount, total: state.xp });
 
   const newLvl = getLevel(state.xp).index;
-  if (newLvl > prevLvl) emit('level-up', { level: newLvl, name: LEVELS[newLvl].name });
+  if (newLvl > prevLvl) emit('level-up', { level: newLvl, key: LEVELS[newLvl].key });
 
   return state;
 }
@@ -140,7 +144,7 @@ export function refreshNav() {
   const pct  = getProgress(s.xp) * 100;
 
   const el = id => document.getElementById(id);
-  if (el('xp-label')) el('xp-label').textContent = lvl.name;
+  if (el('xp-label')) el('xp-label').textContent = t('level.' + lvl.key);
   if (el('xp-fill'))  el('xp-fill').style.width  = pct + '%';
   if (el('xp-num'))   el('xp-num').textContent    = s.xp + ' XP';
   if (el('streak-num')) el('streak-num').textContent = s.streak || 0;

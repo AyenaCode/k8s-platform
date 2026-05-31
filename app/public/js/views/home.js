@@ -1,10 +1,10 @@
 import { fetchCourses, fetchExercises } from '../api.js';
-import { load, ACHIEVEMENTS, getLevel, getProgress } from '../gamification.js';
+import { load, ACHIEVEMENTS, getLevel } from '../gamification.js';
+import { t } from '../i18n.js';
 
 export default async function renderHome() {
   const [courses, exercises] = await Promise.all([fetchCourses(), fetchExercises()]);
   const state = load();
-  const lvl   = getLevel(state.xp);
 
   const courseDone = state.courses.length;
   const exDone     = state.exercises.length;
@@ -17,11 +17,11 @@ export default async function renderHome() {
 <div class="page page-enter">
   <div class="home-hero">
     <h1>⎈ K8s<em style="font-style:normal;color:var(--k8s)">learn</em></h1>
-    <p>Ta plateforme d'apprentissage Kubernetes.<br>Lis. Déploie. Diagnostique. Répare.</p>
+    <p>${t('home.tagline')}</p>
 
     <div class="progress-ring-wrap">
-      ${ring('courses',   courseDone, totalC, '#326ce5', 'Cours')}
-      ${ring('exercises', exDone,     totalE, '#00c9a7', 'Exercices')}
+      ${ring('courses',   courseDone, totalC, '#326ce5', t('home.ringCourses'))}
+      ${ring('exercises', exDone,     totalE, '#00c9a7', t('home.ringExercises'))}
     </div>
 
     ${next ? `<p style="font-size:.8rem;color:var(--teal);font-family:var(--mono);margin-bottom:2rem">→ ${next}</p>` : ''}
@@ -30,20 +30,20 @@ export default async function renderHome() {
   <div class="home-cta">
     <a href="/cours" class="cta-card" data-link>
       <div class="cta-icon">📚</div>
-      <h2>Cours</h2>
-      <p>${totalC} chapitres — architecture, kubectl, debug. Lire dans l'ordre.</p>
-      <span class="cta-arrow">Commencer les cours →</span>
+      <h2>${t('nav.courses')}</h2>
+      <p>${t('home.ctaCoursesDesc', { n: totalC })}</p>
+      <span class="cta-arrow">${t('home.ctaCoursesArrow')}</span>
     </a>
     <a href="/exercices" class="cta-card teal" data-link>
       <div class="cta-icon">🎯</div>
-      <h2>Exercices</h2>
-      <p>${totalE} tickets d'incident. Vrais bugs, vraies commandes, pas de triche.</p>
-      <span class="cta-arrow" style="color:var(--teal)">Voir les exercices →</span>
+      <h2>${t('nav.exercises')}</h2>
+      <p>${t('home.ctaExercisesDesc', { n: totalE })}</p>
+      <span class="cta-arrow" style="color:var(--teal)">${t('home.ctaExercisesArrow')}</span>
     </a>
   </div>
 
   <div class="achievements-section">
-    <p class="section-title">Achievements</p>
+    <p class="section-title">${t('home.achievements')}</p>
     <div class="achievements-grid">
       ${ACHIEVEMENTS.map(a => {
         const unlocked = state.achievements.includes(a.id);
@@ -51,8 +51,8 @@ export default async function renderHome() {
         <div class="achievement-chip${unlocked ? ' unlocked' : ''}" data-ach="${a.id}">
           <span class="ach-icon">${a.icon}</span>
           <div>
-            <div class="ach-name">${a.label}</div>
-            <div style="font-size:.65rem;color:var(--txt-dim)">${a.desc}</div>
+            <div class="ach-name">${t('ach.' + a.id + '.label')}</div>
+            <div style="font-size:.65rem;color:var(--txt-dim)">${t('ach.' + a.id + '.desc')}</div>
           </div>
           <span class="ach-xp">+${a.xp} XP</span>
         </div>`;
@@ -86,8 +86,8 @@ function ring(cls, done, total, stroke, label) {
 
 function _nextAction(state, courses, exercises) {
   const unreadCourse = courses.find(c => !state.courses.includes(c.slug));
-  if (unreadCourse) return `Prochain cours : ${unreadCourse.title}`;
+  if (unreadCourse) return t('home.nextCourse', { title: unreadCourse.title });
   const unsolvedEx = exercises.find(e => !state.exercises.includes(e.id));
-  if (unsolvedEx) return `Prochain exercice : ${unsolvedEx.title}`;
-  return 'Tout complété — tu es prêt pour la CKA.';
+  if (unsolvedEx) return t('home.nextExercise', { title: unsolvedEx.title });
+  return t('home.allDone');
 }

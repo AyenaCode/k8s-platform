@@ -1,3 +1,5 @@
+import { t } from './i18n.js';
+
 export function escHtml(s) {
   return String(s)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -30,7 +32,7 @@ export function mdToHtml(md) {
       html += `<div class="code-block">
         <div class="code-header">
           <span class="code-lang">${lang}</span>
-          <button class="copy-btn" data-copy>Copier</button>
+          <button class="copy-btn" data-copy>${t('copy')}</button>
         </div>
         <pre><code>${escHtml(code.trimEnd())}</code></pre>
       </div>\n`;
@@ -105,9 +107,9 @@ export function setupCopyButtons(container) {
     btn.addEventListener('click', () => {
       const code = btn.closest('.code-block').querySelector('code').innerText;
       navigator.clipboard?.writeText(code).catch(() => {});
-      btn.textContent = 'Copié !';
+      btn.textContent = t('copied');
       btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 2500);
+      setTimeout(() => { btn.textContent = t('copy'); btn.classList.remove('copied'); }, 2500);
     });
   });
 }

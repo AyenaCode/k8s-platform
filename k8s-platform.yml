@@ -1,4 +1,9 @@
 apiVersion: v1
+kind: Namespace
+metadata:
+  name: courses
+---
+apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: k8s-platform
@@ -54,7 +59,9 @@ spec:
       serviceAccountName: k8s-platform
       containers:
         - name: platform
-          image: aycode1/k8s-courses:2.0.0-platform
+          # Built locally and loaded into the kind cluster by `make up` / `make build`.
+          image: k8s-platform:local
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
           readinessProbe:

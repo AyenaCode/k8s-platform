@@ -1,10 +1,23 @@
-import { init as initRouter, navigate }   from './router.js';
-import { refreshNav, load, ACHIEVEMENTS } from './gamification.js';
+import { init as initRouter, rerender }   from './router.js';
+import { refreshNav }                      from './gamification.js';
+import { t, toggleLang, applyStatic }      from './i18n.js';
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
+applyStatic();
 refreshNav();
 initRouter();
+_initLangToggle();
 _initCanvas();
+
+// ── Language toggle ─────────────────────────────────────────────────────────
+function _initLangToggle() {
+  document.getElementById('lang-toggle')?.addEventListener('click', () => {
+    toggleLang();
+    applyStatic();   // nav labels, widget titles, toggle label
+    refreshNav();    // level name in the current language
+    rerender();      // re-render the current view with new strings + content
+  });
+}
 
 // ── Gamification events ───────────────────────────────────────────────────────
 document.addEventListener('xp-gained', e => {
@@ -18,15 +31,20 @@ document.addEventListener('xp-gained', e => {
 document.addEventListener('level-up', e => {
   toast({
     icon: '⬆',
-    title: 'Level up !',
-    desc: `Tu es maintenant ${e.detail.name}`,
+    title: t('toast.levelUp.title'),
+    desc: t('toast.levelUp.desc', { name: t('level.' + e.detail.key) }),
     xp: '',
   }, 5000);
 });
 
 document.addEventListener('achievement', e => {
   const a = e.detail;
-  toast({ icon: a.icon, title: a.label, desc: a.desc, xp: '+' + a.xp + ' XP' }, 5000);
+  toast({
+    icon: a.icon,
+    title: t('ach.' + a.id + '.label'),
+    desc: t('ach.' + a.id + '.desc'),
+    xp: '+' + a.xp + ' XP',
+  }, 5000);
   // animate chip if visible
   const chip = document.querySelector(`[data-ach="${a.id}"]`);
   chip?.classList.add('unlocked', 'just-unlocked');

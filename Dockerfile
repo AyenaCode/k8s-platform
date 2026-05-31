@@ -3,20 +3,20 @@ FROM bitnami/kubectl:latest AS kubectl
 FROM node:20-alpine
 WORKDIR /app
 
-# bash : les scripts d'exercices utilisent #!/bin/bash
+# bash: the exercise scripts use #!/bin/bash
 RUN apk add --no-cache bash
 
-# kubectl : binaire copié depuis l'image officielle bitnami (pas de curl, pas de download runtime)
+# kubectl: binary copied from the official bitnami image (no curl, no runtime download)
 COPY --from=kubectl /opt/bitnami/kubectl/bin/kubectl /usr/local/bin/kubectl
 
-# Serveur + frontend statique
+# Server + static frontend
 COPY app/server.js .
 COPY app/public/ ./public/
 
-# Cours — tout le dossier (auto-découvert par le serveur)
+# Courses — whole folder, including the en/ and fr/ subfolders (auto-discovered by the server)
 COPY courses/ ./courses/
 
-# Exercices complets (mission.md + deploy.sh + reset.sh)
+# Exercises — complete (mission.<lang>.md + deploy.sh + reset.sh)
 COPY exercices/ ./exercices/
 
 EXPOSE 3000

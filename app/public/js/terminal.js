@@ -1,3 +1,5 @@
+import { t } from './i18n.js';
+
 export class Terminal {
   constructor(wrapId, outputId, titleId) {
     this.wrap   = document.getElementById(wrapId);
@@ -32,7 +34,7 @@ export class Terminal {
     this._removeCursor();
     const span = document.createElement('span');
     span.className = 'term-line-cmd';
-    span.textContent = ok ? '\n✓ terminé\n' : '\n✗ erreur\n';
+    span.textContent = ok ? '\n✓ ' + t('term.done') + '\n' : '\n✗ ' + t('term.error') + '\n';
     this.output.appendChild(span);
     this.output.scrollTop = this.output.scrollHeight;
   }

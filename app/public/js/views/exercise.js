@@ -2,8 +2,7 @@ import { fetchExercises, fetchExercise, streamDeploy, streamReset } from '../api
 import { mdToHtml, setupCopyButtons } from '../markdown.js';
 import { Terminal } from '../terminal.js';
 import { markExerciseLaunched, markExerciseComplete, load, refreshNav } from '../gamification.js';
-
-const LEVEL_CLASS = { Facile: 'badge-easy', Moyen: 'badge-med', Difficile: 'badge-hard' };
+import { t, getLang } from '../i18n.js';
 
 export default async function renderExercise(id) {
   const [exercises, data] = await Promise.all([fetchExercises(), fetchExercise(id)]);
@@ -17,20 +16,20 @@ export default async function renderExercise(id) {
   const html = `
 <div class="page-narrow page-enter">
   <div class="breadcrumb">
-    <a href="/exercices" data-link>Exercices</a> <span>›</span>
+    <a href="/exercices" data-link>${t('nav.exercises')}</a> <span>›</span>
     <span>${data.title}</span>
   </div>
 
   <div class="deploy-panel" id="deploy-panel">
     <div class="deploy-panel-header">
-      <span class="deploy-panel-label">⚙ Environnement · ${data.ns}</span>
+      <span class="deploy-panel-label">⚙ ${t('exercise.env')} · ${data.ns}</span>
       <div class="deploy-actions">
-        <span class="solved-chip${done ? ' visible' : ''}" id="solved-chip">✓ Résolu</span>
-        <button class="btn btn-launch" id="btn-launch">▶ Lancer l'exercice</button>
+        <span class="solved-chip${done ? ' visible' : ''}" id="solved-chip">✓ ${t('exercise.solved')}</span>
+        <button class="btn btn-launch" id="btn-launch">▶ ${t('exercise.launch')}</button>
         <button class="btn btn-solve${done ? ' done' : ''}" id="btn-solve">
-          ${done ? '✓ Résolu' : '✓ Marquer résolu'}
+          ${done ? '✓ ' + t('exercise.solved') : '✓ ' + t('exercise.markSolved')}
         </button>
-        <button class="btn btn-reset" id="btn-reset">⟳ Reset</button>
+        <button class="btn btn-reset" id="btn-reset">⟳ ${t('exercise.reset')}</button>
       </div>
     </div>
     <div class="terminal-wrap" id="terminal-wrap">
@@ -88,7 +87,7 @@ function _bindButtons(id, totalExercises) {
         }
       );
     } catch (e) {
-      term.chunk({ type: 'err', text: 'Erreur: ' + e.message + '\n' });
+      term.chunk({ type: 'err', text: t('common.error') + e.message + '\n' });
       term.done(false);
       btnLaunch.classList.remove('running');
       btnLaunch.disabled = false;
@@ -97,11 +96,11 @@ function _bindButtons(id, totalExercises) {
 
   btnSolve?.addEventListener('click', async () => {
     if (btnSolve.classList.contains('done')) return;
-    const totalCourses = await fetch('/api/courses').then(r => r.json()).then(c => c.length);
+    const totalCourses = await fetch('/api/courses?lang=' + getLang()).then(r => r.json()).then(c => c.length);
     markExerciseComplete(id, totalExercises, totalCourses);
     refreshNav();
     btnSolve.classList.add('done');
-    btnSolve.textContent = '✓ Résolu';
+    btnSolve.textContent = '✓ ' + t('exercise.solved');
     solvedChip?.classList.add('visible');
     panel?.classList.add('just-solved');
     setTimeout(() => panel?.classList.remove('just-solved'), 900);
@@ -109,7 +108,7 @@ function _bindButtons(id, totalExercises) {
   });
 
   btnReset?.addEventListener('click', async () => {
-    if (!confirm('Supprimer tous les namespaces exo-* ?')) return;
+    if (!confirm(t('exercise.resetConfirm'))) return;
     btnReset.disabled  = true;
     btnLaunch.disabled = true;
     term.show('./reset.sh');
@@ -123,7 +122,7 @@ function _bindButtons(id, totalExercises) {
         }
       );
     } catch (e) {
-      term.chunk({ type: 'err', text: 'Erreur: ' + e.message + '\n' });
+      term.chunk({ type: 'err', text: t('common.error') + e.message + '\n' });
       term.done(false);
       btnReset.disabled  = false;
       btnLaunch.disabled = false;
@@ -145,5 +144,5 @@ function _floatXP(anchor, text) {
 }
 
 function notFound(id) {
-  return `<div class="not-found"><div class="code">404</div><h1>Exercice introuvable</h1><p>${id}</p><a href="/exercices" data-link>← Retour</a></div>`;
+  return `<div class="not-found"><div class="code">404</div><h1>${t('exercise.notFound')}</h1><p>${id}</p><a href="/exercices" data-link>${t('exercise.back')}</a></div>`;
 }

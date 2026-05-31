@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# k8s-diag.sh — Diagnostic complet d'un namespace Kubernetes
+# k8s-diag.sh — Complete diagnostic of a Kubernetes namespace
 # Usage: ./k8s-diag.sh <namespace>
 #
-# Vérifie tout ce qui casse en prod : pods, deployments, services
-# (selector/endpoints/targetPort), configmaps/secrets référencés,
-# PVCs, ingress, events, quotas. Sort des actions concrètes à mener.
+# Checks everything that breaks in prod: pods, deployments, services
+# (selector/endpoints/targetPort), configmaps/secrets references,
+# PVCs, ingress, events, quotas. Outputs concrete actions to take.
 
 NS="${1:-}"
 if [[ -z "$NS" ]]; then
@@ -12,16 +12,16 @@ if [[ -z "$NS" ]]; then
     exit 1
 fi
 
-command -v kubectl >/dev/null || { echo "kubectl requis"; exit 1; }
-command -v jq      >/dev/null || { echo "jq requis"; exit 1; }
+command -v kubectl >/dev/null || { echo "kubectl required"; exit 1; }
+command -v jq      >/dev/null || { echo "jq required"; exit 1; }
 
-kubectl get ns "$NS" >/dev/null 2>&1 || { echo "Namespace '$NS' introuvable"; exit 1; }
+kubectl get ns "$NS" >/dev/null 2>&1 || { echo "Namespace '$NS' not found"; exit 1; }
 
-# --- Couleurs ---
+# --- Colors ---
 R='\033[0;31m'; G='\033[0;32m'; Y='\033[1;33m'
 B='\033[0;34m'; C='\033[0;36m'; BOLD='\033[1m'; N='\033[0m'
 
-# --- Compteurs (via fichier pour survivre aux subshells) ---
+# --- Counters (via file to survive subshells) ---
 TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
 echo 0 > "$TMP/errors"
 echo 0 > "$TMP/warns"
@@ -42,16 +42,16 @@ PODS=$(kubectl get pods -n "$NS" -o json)
 PCOUNT=$(echo "$PODS" | jq '.items | length')
 
 if [[ "$PCOUNT" -eq 0 ]]; then
-    warn "Aucun pod dans le namespace"
+    warn "No pod in the namespace"
 else
-    info "$PCOUNT pod(s) trouvé(s)"
+    info "$PCOUNT pod(s) found"
 
-    # Pods avec phase ≠ Running/Succeeded
+    # Pods with phase ≠ Running/Succeeded
     while IFS=$'\t' read -r name phase; do
         [[ -z "$name" ]] && continue
         err "Pod '$name' phase=$phase"
 
-        # Raison container waiting
+        # Container waiting reason
         reason=$(kubectl get pod "$name" -n "$NS" -o jsonpath='{.status.containerStatuses[0].state.waiting.reason}' 2>/dev/null)
         msg=$(kubectl get pod "$name" -n "$NS" -o jsonpath='{.status.containerStatuses[0].state.waiting.message}' 2>/dev/null)
         [[ -n "$reason" ]] && echo "    reason: $reason"
@@ -59,52 +59,52 @@ else
 
         case "$reason" in
             ImagePullBackOff|ErrImagePull|InvalidImageName)
-                hint "Image introuvable/typo. Vérifier: kubectl describe pod $name -n $NS"
-                hint "Si registry privé: il faut un imagePullSecret"
+                hint "Image not found / typo. Check: kubectl describe pod $name -n $NS"
+                hint "If private registry: an imagePullSecret is required"
                 ;;
             CrashLoopBackOff)
-                hint "Logs du crash précédent: kubectl logs $name -n $NS --previous"
-                hint "Souvent: commande qui sort, probe mal configurée, config invalide"
+                hint "Previous crash logs: kubectl logs $name -n $NS --previous"
+                hint "Common causes: exiting command, misconfigured probe, invalid config"
                 ;;
             CreateContainerConfigError|CreateContainerError)
-                hint "ConfigMap/Secret manquant ou clé inexistante. Vérifier envFrom/volumes"
+                hint "Missing ConfigMap/Secret or non-existent key. Check envFrom/volumes"
                 ;;
             RunContainerError)
-                hint "Commande/entrypoint invalide. kubectl describe pod $name -n $NS"
+                hint "Invalid command/entrypoint. kubectl describe pod $name -n $NS"
                 ;;
             ContainerCreating)
-                hint "Peut-être un volume (PVC) non Bound ou un secret en cours de mount"
+                hint "Possibly a volume (PVC) not Bound or a secret being mounted"
                 ;;
             "")
-                # Phase Pending sans reason container = scheduling
+                # Phase Pending with no container reason = scheduling
                 if [[ "$phase" == "Pending" ]]; then
                     hint "Scheduling failure. kubectl describe pod $name -n $NS | grep -A5 Events"
-                    hint "Causes: ressources insuffisantes, taints, nodeSelector, PVC pending"
+                    hint "Causes: insufficient resources, taints, nodeSelector, PVC pending"
                 fi
                 ;;
         esac
     done < <(echo "$PODS" | jq -r '.items[] | select(.status.phase!="Running" and .status.phase!="Succeeded") | [.metadata.name, .status.phase] | @tsv')
 
-    # Pods Running mais pas ready (probe)
+    # Running pods but not ready (probe)
     while read -r name; do
         [[ -z "$name" ]] && continue
-        warn "Pod '$name' Running mais pas Ready (readinessProbe fail probable)"
+        warn "Pod '$name' Running but not Ready (readinessProbe likely failing)"
         hint "kubectl describe pod $name -n $NS | grep -A5 Readiness"
         hint "kubectl logs $name -n $NS"
     done < <(echo "$PODS" | jq -r '.items[] | select(.status.phase=="Running") | select([.status.containerStatuses[]?.ready] | any(.==false)) | .metadata.name')
 
-    # RestartCount élevé
+    # High RestartCount
     while IFS=$'\t' read -r pod cont count; do
         [[ -z "$pod" ]] && continue
-        warn "Pod '$pod' container '$cont' a redémarré $count fois"
+        warn "Pod '$pod' container '$cont' has restarted $count times"
         hint "kubectl logs $pod -c $cont -n $NS --previous"
     done < <(echo "$PODS" | jq -r '.items[] | .metadata.name as $n | .status.containerStatuses[]? | select(.restartCount>3) | [$n, .name, .restartCount] | @tsv')
 
-    # OOMKilled dans last state
+    # OOMKilled in last state
     while IFS=$'\t' read -r pod cont; do
         [[ -z "$pod" ]] && continue
-        err "Pod '$pod' container '$cont' a été OOMKilled (mémoire insuffisante)"
-        hint "Augmenter resources.limits.memory ou chercher une fuite mémoire"
+        err "Pod '$pod' container '$cont' was OOMKilled (insufficient memory)"
+        hint "Increase resources.limits.memory or look for a memory leak"
     done < <(echo "$PODS" | jq -r '.items[] | .metadata.name as $n | .status.containerStatuses[]? | select(.lastState.terminated.reason=="OOMKilled") | [$n, .name] | @tsv')
 fi
 
@@ -116,7 +116,7 @@ DEPS=$(kubectl get deploy -n "$NS" -o json)
 DCOUNT=$(echo "$DEPS" | jq '.items | length')
 
 if [[ "$DCOUNT" -eq 0 ]]; then
-    info "Aucun deployment"
+    info "No deployment"
 else
     while IFS=$'\t' read -r name desired ready avail; do
         [[ -z "$name" ]] && continue
@@ -136,14 +136,14 @@ else
 fi
 
 # ═══════════════════════════════════════════════════════════
-# 3. SERVICES (le plus critique — selector/targetPort/endpoints)
+# 3. SERVICES (most critical — selector/targetPort/endpoints)
 # ═══════════════════════════════════════════════════════════
 section "SERVICES"
 SVCS=$(kubectl get svc -n "$NS" -o json)
 SCOUNT=$(echo "$SVCS" | jq '.items | length')
 
 if [[ "$SCOUNT" -eq 0 ]]; then
-    info "Aucun service"
+    info "No service"
 else
     while read -r svc; do
         [[ -z "$svc" ]] && continue
@@ -158,7 +158,7 @@ else
         selector=$(echo "$sj" | jq -r '.spec.selector // {} | to_entries | map("\(.key)=\(.value)") | join(",")')
 
         if [[ -z "$selector" ]]; then
-            warn "Service '$svc' sans selector (headless ou géré manuellement)"
+            warn "Service '$svc' has no selector (headless or manually managed)"
             continue
         fi
 
@@ -167,20 +167,20 @@ else
         ep_count=${ep_count:-0}
 
         if [[ "$ep_count" -eq 0 ]]; then
-            err "Service '$svc' a 0 endpoints (selector: $selector)"
+            err "Service '$svc' has 0 endpoints (selector: $selector)"
             matching=$(kubectl get pods -n "$NS" -l "$selector" -o json | jq '.items | length')
             if [[ "$matching" -eq 0 ]]; then
-                hint "Selector ne matche AUCUN pod. Labels existants:"
+                hint "Selector matches NO pod. Existing labels:"
                 kubectl get pods -n "$NS" -o json | jq -r '.items[] | "    \(.metadata.name): \(.metadata.labels)"' | head -5
-                hint "Corriger: kubectl label pod <pod> -n $NS <key>=<value>"
-                hint "Ou corriger le service: kubectl edit svc $svc -n $NS"
+                hint "Fix: kubectl label pod <pod> -n $NS <key>=<value>"
+                hint "Or fix the service: kubectl edit svc $svc -n $NS"
             else
-                hint "$matching pod(s) matchent mais aucun Ready. readinessProbe failing?"
+                hint "$matching pod(s) match but none are Ready. readinessProbe failing?"
             fi
             continue
         fi
 
-        # Vérifier targetPort vs containerPort des pods sélectionnés
+        # Check targetPort vs containerPort of selected pods
         first_pod=$(kubectl get pods -n "$NS" -l "$selector" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
         if [[ -n "$first_pod" ]]; then
             cports=$(kubectl get pod "$first_pod" -n "$NS" -o jsonpath='{.spec.containers[*].ports[*].containerPort}' 2>/dev/null)
@@ -192,14 +192,14 @@ else
                 if [[ "$tport" =~ ^[0-9]+$ ]]; then
                     # Numeric targetPort
                     if [[ -n "$cports" ]] && ! echo " $cports " | grep -q " $tport "; then
-                        err "Service '$svc' port $sport→$tport: aucun container n'expose $tport (dispo: ${cports:-aucun déclaré})"
-                        hint "kubectl patch svc $svc -n $NS --type=json -p='[{\"op\":\"replace\",\"path\":\"/spec/ports/0/targetPort\",\"value\":<BON_PORT>}]'"
+                        err "Service '$svc' port $sport→$tport: no container exposes $tport (available: ${cports:-none declared})"
+                        hint "kubectl patch svc $svc -n $NS --type=json -p='[{\"op\":\"replace\",\"path\":\"/spec/ports/0/targetPort\",\"value\":<CORRECT_PORT>}]'"
                         mismatch=1
                     fi
                 else
                     # Named targetPort
                     if [[ -n "$cnames" ]] && ! echo " $cnames " | grep -q " $tport "; then
-                        err "Service '$svc' targetPort nommé '$tport' introuvable (noms dispo: ${cnames:-aucun})"
+                        err "Service '$svc' named targetPort '$tport' not found (available names: ${cnames:-none})"
                         mismatch=1
                     fi
                 fi
@@ -211,13 +211,13 @@ else
 fi
 
 # ═══════════════════════════════════════════════════════════
-# 4. CONFIGMAPS & SECRETS — références fantômes
+# 4. CONFIGMAPS & SECRETS — ghost references
 # ═══════════════════════════════════════════════════════════
-section "CONFIGMAPS & SECRETS (références)"
+section "CONFIGMAPS & SECRETS (references)"
 CMS=$(kubectl get cm -n "$NS" -o jsonpath='{.items[*].metadata.name}' 2>/dev/null)
 SECS=$(kubectl get secret -n "$NS" -o jsonpath='{.items[*].metadata.name}' 2>/dev/null)
 
-# Collecter toutes les références depuis les pods
+# Collect all references from pods
 REFS=$(echo "$PODS" | jq -r '
     .items[] | .metadata.name as $p |
     (.spec.containers[]?.envFrom[]? |
@@ -239,19 +239,19 @@ while IFS=$'\t' read -r pod kind name type; do
     [[ -z "$name" ]] && continue
     if [[ "$type" == "cm" ]]; then
         if ! echo " $CMS " | grep -q " $name "; then
-            err "Pod '$pod' ($kind) référence ConfigMap '$name' → INEXISTANT"
+            err "Pod '$pod' ($kind) references ConfigMap '$name' → DOES NOT EXIST"
             hint "kubectl create cm $name -n $NS --from-literal=key=value"
             missing=1
         fi
     else
         if ! echo " $SECS " | grep -q " $name "; then
-            err "Pod '$pod' ($kind) référence Secret '$name' → INEXISTANT"
+            err "Pod '$pod' ($kind) references Secret '$name' → DOES NOT EXIST"
             hint "kubectl create secret generic $name -n $NS --from-literal=key=value"
             missing=1
         fi
     fi
 done <<< "$REFS"
-[[ $missing -eq 0 ]] && ok "Toutes les références CM/Secret sont résolues"
+[[ $missing -eq 0 ]] && ok "All CM/Secret references are resolved"
 
 # ═══════════════════════════════════════════════════════════
 # 5. PVCs
@@ -260,14 +260,14 @@ section "PERSISTENT VOLUME CLAIMS"
 PVCS=$(kubectl get pvc -n "$NS" -o json 2>/dev/null)
 PVCCOUNT=$(echo "$PVCS" | jq '.items | length')
 if [[ "$PVCCOUNT" -eq 0 ]]; then
-    info "Aucun PVC"
+    info "No PVC"
 else
     while IFS=$'\t' read -r name phase sc; do
         [[ -z "$name" ]] && continue
         if [[ "$phase" != "Bound" ]]; then
-            err "PVC '$name' en statut $phase (storageClass: $sc)"
+            err "PVC '$name' status $phase (storageClass: $sc)"
             hint "kubectl describe pvc $name -n $NS"
-            hint "Vérifier qu'une StorageClass '$sc' existe et provisionne"
+            hint "Check that a StorageClass '$sc' exists and provisions"
         else
             ok "PVC '$name' Bound"
         fi
@@ -281,16 +281,16 @@ section "INGRESS"
 ING=$(kubectl get ingress -n "$NS" -o json 2>/dev/null)
 ICOUNT=$(echo "$ING" | jq '.items | length')
 if [[ "$ICOUNT" -eq 0 ]]; then
-    info "Aucun ingress"
+    info "No ingress"
 else
     while IFS=$'\t' read -r ing host svc port; do
         [[ -z "$ing" ]] && continue
         if ! kubectl get svc "$svc" -n "$NS" >/dev/null 2>&1; then
-            err "Ingress '$ing' host='$host' → service '$svc' INEXISTANT"
+            err "Ingress '$ing' host='$host' → service '$svc' DOES NOT EXIST"
         else
             svc_ports=$(kubectl get svc "$svc" -n "$NS" -o jsonpath='{.spec.ports[*].port}')
             if [[ "$port" =~ ^[0-9]+$ ]] && ! echo " $svc_ports " | grep -q " $port "; then
-                err "Ingress '$ing' → $svc:$port mais service expose: $svc_ports"
+                err "Ingress '$ing' → $svc:$port but service exposes: $svc_ports"
             else
                 ok "Ingress '$ing' ($host) → $svc:$port"
             fi
@@ -306,56 +306,56 @@ QUOTA=$(kubectl get resourcequota -n "$NS" -o json 2>/dev/null)
 QCOUNT=$(echo "$QUOTA" | jq '.items | length')
 if [[ "$QCOUNT" -gt 0 ]]; then
     echo "$QUOTA" | jq -r '.items[] | .metadata.name as $n | .status | "  \($n): used=\(.used) hard=\(.hard)"'
-    # Detecter saturation
+    # Detect saturation
     while IFS=$'\t' read -r qname resource used hard; do
         [[ -z "$qname" ]] && continue
-        # Comparaison basique string (suffit pour détecter le =)
+        # Basic string comparison (enough to detect equality)
         if [[ "$used" == "$hard" ]]; then
-            warn "Quota '$qname' saturé: $resource = $used/$hard"
+            warn "Quota '$qname' saturated: $resource = $used/$hard"
         fi
     done < <(echo "$QUOTA" | jq -r '.items[] | .metadata.name as $n | .status.hard | to_entries[] | [$n, .key, (.value|tostring), (.value|tostring)] | @tsv' 2>/dev/null)
 else
-    info "Aucun ResourceQuota"
+    info "No ResourceQuota"
 fi
 
 # ═══════════════════════════════════════════════════════════
-# 8. NETWORK POLICIES (informatif)
+# 8. NETWORK POLICIES (informational)
 # ═══════════════════════════════════════════════════════════
 section "NETWORK POLICIES"
 NP=$(kubectl get networkpolicy -n "$NS" -o json 2>/dev/null)
 NPCOUNT=$(echo "$NP" | jq '.items | length')
 if [[ "$NPCOUNT" -gt 0 ]]; then
-    warn "$NPCOUNT NetworkPolicy active(s) — peut bloquer le trafic"
+    warn "$NPCOUNT active NetworkPolicy(ies) — may block traffic"
     echo "$NP" | jq -r '.items[] | "  - \(.metadata.name) (pods: \(.spec.podSelector.matchLabels // "all"))"'
-    hint "Si un service est injoignable, vérifier les règles ingress/egress"
+    hint "If a service is unreachable, check the ingress/egress rules"
 else
-    info "Aucune NetworkPolicy"
+    info "No NetworkPolicy"
 fi
 
 # ═══════════════════════════════════════════════════════════
 # 9. EVENTS WARNING
 # ═══════════════════════════════════════════════════════════
-section "ÉVÉNEMENTS RÉCENTS (Warning)"
+section "RECENT EVENTS (Warning)"
 EVENTS=$(kubectl get events -n "$NS" --field-selector type=Warning --sort-by='.lastTimestamp' 2>/dev/null | tail -10)
 if [[ -n "$EVENTS" ]] && [[ "$(echo "$EVENTS" | wc -l)" -gt 1 ]]; then
     echo "$EVENTS"
 else
-    ok "Aucun event Warning récent"
+    ok "No recent Warning events"
 fi
 
 # ═══════════════════════════════════════════════════════════
-# RÉSUMÉ
+# SUMMARY
 # ═══════════════════════════════════════════════════════════
 ERRORS=$(cat "$TMP/errors")
 WARNS=$(cat "$TMP/warns")
 
-section "RÉSUMÉ"
+section "SUMMARY"
 echo "Namespace: $NS"
 if [[ "$ERRORS" -eq 0 && "$WARNS" -eq 0 ]]; then
-    echo -e "${G}✓ Tout est OK${N}"
+    echo -e "${G}✓ Everything is OK${N}"
     exit 0
 else
-    [[ "$ERRORS" -gt 0 ]] && echo -e "${R}✗ $ERRORS erreur(s) critique(s)${N}"
-    [[ "$WARNS"  -gt 0 ]] && echo -e "${Y}⚠ $WARNS avertissement(s)${N}"
+    [[ "$ERRORS" -gt 0 ]] && echo -e "${R}✗ $ERRORS critical error(s)${N}"
+    [[ "$WARNS"  -gt 0 ]] && echo -e "${Y}⚠ $WARNS warning(s)${N}"
     exit 1
 fi

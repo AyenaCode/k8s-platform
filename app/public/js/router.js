@@ -3,6 +3,7 @@ import renderCourses   from './views/courses.js';
 import renderCourse    from './views/course.js';
 import renderExercises from './views/exercises.js';
 import renderExercise  from './views/exercise.js';
+import { t }           from './i18n.js';
 
 const app = () => document.getElementById('app');
 
@@ -32,18 +33,23 @@ async function render(path) {
         window.scrollTo(0, 0);
         return;
       } catch (err) {
-        app().innerHTML = `<div class="not-found"><div class="code">500</div><h1>Erreur</h1><p>${err.message}</p></div>`;
+        app().innerHTML = `<div class="not-found"><div class="code">500</div><h1>${t('error.title')}</h1><p>${err.message}</p></div>`;
         return;
       }
     }
   }
 
-  app().innerHTML = `<div class="not-found"><div class="code">404</div><h1>Page introuvable</h1><p>${path}</p><a href="/" data-link>← Accueil</a></div>`;
+  app().innerHTML = `<div class="not-found"><div class="code">404</div><h1>${t('notFound.title')}</h1><p>${path}</p><a href="/" data-link>${t('notFound.home')}</a></div>`;
 }
 
 export function navigate(path) {
   history.pushState({}, '', path);
   render(path);
+}
+
+// Re-render the current route (used when the language changes).
+export function rerender() {
+  render(location.pathname);
 }
 
 export function init() {

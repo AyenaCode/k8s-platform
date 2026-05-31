@@ -1,9 +1,14 @@
+import { getLang } from './i18n.js';
+
 const get = url => fetch(url).then(r => { if (!r.ok) throw r; return r.json(); });
 
-export const fetchCourses   = ()     => get('/api/courses');
-export const fetchCourse    = slug   => get('/api/courses/' + slug);
-export const fetchExercises = ()     => get('/api/exercises');
-export const fetchExercise  = id     => get('/api/exercises/' + id);
+// Append the current language so the server returns localized content.
+const withLang = url => url + (url.includes('?') ? '&' : '?') + 'lang=' + getLang();
+
+export const fetchCourses   = ()   => get(withLang('/api/courses'));
+export const fetchCourse    = slug => get(withLang('/api/courses/' + slug));
+export const fetchExercises = ()   => get(withLang('/api/exercises'));
+export const fetchExercise  = id   => get(withLang('/api/exercises/' + id));
 
 export function streamDeploy(id, onChunk, onDone) {
   return _stream('/api/deploy/' + id, onChunk, onDone);
@@ -15,7 +20,7 @@ export function streamReset(onChunk, onDone) {
 
 async function _stream(url, onChunk, onDone) {
   const res = await fetch(url, { method: 'POST' });
-  if (!res.body) throw new Error('Pas de stream');
+  if (!res.body) throw new Error('No stream');
   const reader  = res.body.getReader();
   const decoder = new TextDecoder();
   let buf = '';

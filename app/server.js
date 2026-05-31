@@ -1,6 +1,6 @@
 /**
- * K8s Learn — Serveur API + fichiers statiques
- * Toute la logique UI est dans public/
+ * K8s Learn — API + static file server.
+ * All UI logic lives in public/. Content is bilingual (en / fr).
  */
 const http  = require('http');
 const fs    = require('fs');
@@ -8,7 +8,7 @@ const path  = require('path');
 const { spawn } = require('child_process');
 
 const PUBLIC_DIR    = path.join(__dirname, 'public');
-const EXERCICES_DIR = (() => {
+const EXERCISES_DIR = (() => {
   const d = path.join(__dirname, 'exercices');
   return fs.existsSync(d) ? d : path.join(__dirname, '..', 'exercices');
 })();
@@ -16,7 +16,10 @@ const COURSES_DIR = (() => {
   const d = path.join(__dirname, 'courses');
   return fs.existsSync(d) ? d : path.join(__dirname, '..', 'courses');
 })();
-const RESET_SCRIPT = path.join(EXERCICES_DIR, 'reset.sh');
+const RESET_SCRIPT = path.join(EXERCISES_DIR, 'reset.sh');
+
+const LANGS        = ['en', 'fr'];
+const DEFAULT_LANG = 'en';
 
 const MIME = {
   '.html':  'text/html; charset=utf-8',
@@ -53,16 +56,29 @@ function json(res, data, status = 200) {
   res.end(JSON.stringify(data));
 }
 
-// ─── Données ──────────────────────────────────────────────────────────────────
+// Read the ?lang= query param; fall back to the default language.
+function langOf(reqUrl) {
+  const pair = (reqUrl.split('?')[1] || '')
+    .split('&')
+    .map(kv => kv.split('='))
+    .find(([k]) => k === 'lang');
+  const lang = pair ? pair[1] : '';
+  return LANGS.includes(lang) ? lang : DEFAULT_LANG;
+}
 
-function loadCourses() {
-  if (!fs.existsSync(COURSES_DIR)) return [];
-  return fs.readdirSync(COURSES_DIR)
+// ─── Data ───────────────────────────────────────────────────────────────────
+
+// Read every .md file in courses/<lang>/ and build a course list.
+// The card title comes from the first `# H1`; the description from the first `>` blockquote.
+function loadCourses(lang) {
+  const dir = path.join(COURSES_DIR, lang);
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir)
     .filter(f => f.endsWith('.md'))
     .sort()
     .map(file => {
       const slug  = file.slice(0, -3);
-      const raw   = fs.readFileSync(path.join(COURSES_DIR, file), 'utf8');
+      const raw   = fs.readFileSync(path.join(dir, file), 'utf8');
       const lines = raw.split('\n');
       const h1    = lines.find(l => l.startsWith('# ')) || '';
       const title = h1.slice(2).trim().replace(/^\d+\s*[—–-]\s*/, '');
@@ -73,20 +89,35 @@ function loadCourses() {
     });
 }
 
-const COURSES = loadCourses();
+const COURSES = Object.fromEntries(LANGS.map(l => [l, loadCourses(l)]));
 
+// Exercise catalog. title/concept are bilingual; level is a stable key the UI localizes.
 const EXERCISES = [
-  { id: 'ticket-001', title: 'App injoignable',             level: 'Facile',    concept: 'Selector typo',        ns: 'exo-001' },
-  { id: 'ticket-002', title: 'Déploiement bloqué',          level: 'Facile',    concept: 'ImagePullBackOff',     ns: 'exo-002' },
-  { id: 'ticket-003', title: 'Connection refused',          level: 'Moyen',     concept: 'targetPort mismatch',  ns: 'exo-003' },
-  { id: 'ticket-004', title: 'Pods en crash loop',          level: 'Moyen',     concept: 'ConfigMap manquant',   ns: 'exo-004' },
-  { id: 'ticket-005', title: 'Mise en prod catastrophique', level: 'Difficile', concept: 'Stack multi-services', ns: 'exo-005' },
-  { id: 'ticket-006', title: 'Pods jamais Ready',           level: 'Moyen',     concept: 'Probe mal configurée', ns: 'exo-006' },
-  { id: 'ticket-007', title: 'Cache qui meurt en boucle',   level: 'Moyen',     concept: 'OOMKilled',            ns: 'exo-007' },
-  { id: 'ticket-008', title: 'Service paiement HS',         level: 'Moyen',     concept: 'Secret manquant',      ns: 'exo-008' },
-  { id: 'ticket-009', title: 'Worker qui ne démarre pas',   level: 'Facile',    concept: 'Mauvais args/command', ns: 'exo-009' },
-  { id: 'ticket-010', title: 'Application bloquée (Init)',  level: 'Moyen',     concept: 'Init container',       ns: 'exo-010' },
+  { id: 'ticket-001', ns: 'exo-001', level: 'easy',   title: { en: 'App unreachable',               fr: 'App injoignable' },             concept: { en: 'Selector typo',       fr: 'Selector typo' } },
+  { id: 'ticket-002', ns: 'exo-002', level: 'easy',   title: { en: 'Deployment stuck',              fr: 'Déploiement bloqué' },          concept: { en: 'ImagePullBackOff',    fr: 'ImagePullBackOff' } },
+  { id: 'ticket-003', ns: 'exo-003', level: 'medium', title: { en: 'Connection refused',            fr: 'Connection refused' },          concept: { en: 'targetPort mismatch', fr: 'targetPort mismatch' } },
+  { id: 'ticket-004', ns: 'exo-004', level: 'medium', title: { en: 'Pods in a crash loop',          fr: 'Pods en crash loop' },          concept: { en: 'Missing ConfigMap',   fr: 'ConfigMap manquant' } },
+  { id: 'ticket-005', ns: 'exo-005', level: 'hard',   title: { en: 'Disastrous production rollout', fr: 'Mise en prod catastrophique' }, concept: { en: 'Multi-service stack', fr: 'Stack multi-services' } },
+  { id: 'ticket-006', ns: 'exo-006', level: 'medium', title: { en: 'Pods never become Ready',       fr: 'Pods jamais Ready' },           concept: { en: 'Misconfigured probe', fr: 'Probe mal configurée' } },
+  { id: 'ticket-007', ns: 'exo-007', level: 'medium', title: { en: 'Cache keeps dying',             fr: 'Cache qui meurt en boucle' },   concept: { en: 'OOMKilled',           fr: 'OOMKilled' } },
+  { id: 'ticket-008', ns: 'exo-008', level: 'medium', title: { en: 'Payment service down',          fr: 'Service paiement HS' },         concept: { en: 'Missing Secret',      fr: 'Secret manquant' } },
+  { id: 'ticket-009', ns: 'exo-009', level: 'easy',   title: { en: "Worker won't start",            fr: 'Worker qui ne démarre pas' },   concept: { en: 'Wrong args/command',  fr: 'Mauvais args/command' } },
+  { id: 'ticket-010', ns: 'exo-010', level: 'medium', title: { en: 'App stuck on Init',             fr: 'Application bloquée (Init)' },  concept: { en: 'Init container',      fr: 'Init container' } },
 ];
+
+function exerciseForLang(ex, lang) {
+  return { id: ex.id, ns: ex.ns, level: ex.level, title: ex.title[lang], concept: ex.concept[lang] };
+}
+
+// Resolve a mission file for the requested language, falling back to any available one.
+function missionFile(id, lang) {
+  const candidates = [
+    path.join(EXERCISES_DIR, id, `mission.${lang}.md`),
+    ...LANGS.map(l => path.join(EXERCISES_DIR, id, `mission.${l}.md`)),
+    path.join(EXERCISES_DIR, id, 'mission.md'),
+  ];
+  return candidates.find(fs.existsSync) || null;
+}
 
 // ─── SSE stream ───────────────────────────────────────────────────────────────
 
@@ -102,7 +133,7 @@ function sseStream(res, script, cwd, timeout) {
   const timer = setTimeout(() => child.kill(), timeout);
   child.on('error', err => {
     clearTimeout(timer);
-    send({ type: 'err', text: 'Erreur: ' + err.message + '\n' });
+    send({ type: 'err', text: 'Error: ' + err.message + '\n' });
     send({ type: 'done', ok: false });
     res.end();
   });
@@ -115,55 +146,56 @@ function sseStream(res, script, cwd, timeout) {
   });
 }
 
-// ─── Serveur ──────────────────────────────────────────────────────────────────
+// ─── Server ───────────────────────────────────────────────────────────────────
 
 http.createServer((req, res) => {
-  const url = req.url.split('?')[0];
+  const url  = req.url.split('?')[0];
+  const lang = langOf(req.url);
 
-  // API JSON
-  if (url === '/api/courses') return json(res, COURSES);
+  // JSON API
+  if (url === '/api/courses') return json(res, COURSES[lang]);
 
   if (url.startsWith('/api/courses/')) {
     const slug = url.slice(13);
-    const file = path.join(COURSES_DIR, slug + '.md');
+    const file = path.join(COURSES_DIR, lang, slug + '.md');
     if (!fs.existsSync(file)) return json(res, { error: 'not found' }, 404);
     return json(res, { markdown: fs.readFileSync(file, 'utf8') });
   }
 
-  if (url === '/api/exercises') return json(res, EXERCISES);
+  if (url === '/api/exercises') return json(res, EXERCISES.map(e => exerciseForLang(e, lang)));
 
   if (req.method === 'GET' && url.startsWith('/api/exercises/')) {
-    const id   = url.slice(15);
-    const ex   = EXERCISES.find(e => e.id === id);
+    const id = url.slice(15);
+    const ex = EXERCISES.find(e => e.id === id);
     if (!ex) return json(res, { error: 'not found' }, 404);
-    const file = path.join(EXERCICES_DIR, id, 'mission.md');
-    if (!fs.existsSync(file)) return json(res, { error: 'mission.md introuvable' }, 404);
-    return json(res, { ...ex, markdown: fs.readFileSync(file, 'utf8') });
+    const file = missionFile(id, lang);
+    if (!file) return json(res, { error: 'mission not found' }, 404);
+    return json(res, { ...exerciseForLang(ex, lang), markdown: fs.readFileSync(file, 'utf8') });
   }
 
-  // API SSE
+  // SSE API
   if (req.method === 'POST' && url.startsWith('/api/deploy/')) {
     const id     = url.slice(12);
     const ex     = EXERCISES.find(e => e.id === id);
     if (!ex) return json(res, { error: 'not found' }, 404);
-    const script = path.join(EXERCICES_DIR, id, 'deploy.sh');
-    if (!fs.existsSync(script)) return json(res, { error: 'deploy.sh introuvable' }, 404);
-    return sseStream(res, script, EXERCICES_DIR, 30000);
+    const script = path.join(EXERCISES_DIR, id, 'deploy.sh');
+    if (!fs.existsSync(script)) return json(res, { error: 'deploy.sh not found' }, 404);
+    return sseStream(res, script, EXERCISES_DIR, 30000);
   }
 
   if (req.method === 'POST' && url === '/api/reset') {
-    if (!fs.existsSync(RESET_SCRIPT)) return json(res, { error: 'reset.sh introuvable' }, 404);
-    return sseStream(res, RESET_SCRIPT, EXERCICES_DIR, 60000);
+    if (!fs.existsSync(RESET_SCRIPT)) return json(res, { error: 'reset.sh not found' }, 404);
+    return sseStream(res, RESET_SCRIPT, EXERCISES_DIR, 60000);
   }
 
-  // Crash demo (liveness probe)
+  // Crash demo (used to show the liveness probe restarting the pod)
   if (url === '/error') {
     res.writeHead(500, { 'Content-Type': 'text/plain' });
     res.end('Internal Server Error\n');
     process.exit(1);
   }
 
-  // Fichiers statiques
+  // Static files
   const ext = path.extname(url);
   if (ext) return serveFile(res, path.join(PUBLIC_DIR, url));
 

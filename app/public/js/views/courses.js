@@ -1,5 +1,6 @@
 import { fetchCourses } from '../api.js';
 import { load } from '../gamification.js';
+import { t } from '../i18n.js';
 
 export default async function renderCourses() {
   const courses = await fetchCourses();
@@ -15,15 +16,15 @@ export default async function renderCourses() {
         <span class="card-number">${String(i+1).padStart(2,'0')}</span>
       </div>
       <h2>${c.title}</h2>
-      <p>${c.desc || 'Chapitre ' + (i+1)}</p>
+      <p>${c.desc || t('courses.chapter', { n: i + 1 })}</p>
     </a>`;
   }).join('');
 
   return `
 <div class="page page-enter">
   <div class="section-header">
-    <h1>Cours</h1>
-    <p>Lire dans l'ordre. ${courses.length} chapitres — environ 1h45 au total.</p>
+    <h1>${t('nav.courses')}</h1>
+    <p>${t('courses.subtitle', { n: courses.length })}</p>
   </div>
   <div class="cards-grid">${cards}</div>
 </div>`;

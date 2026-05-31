@@ -663,6 +663,22 @@ button { cursor: pointer; font-family: inherit; }
 .not-found p  { color: var(--txt-muted); margin-bottom: 1.5rem; font-size: .875rem; }
 .not-found a  { color: var(--k8s); font-size: .875rem; }
 
+/* ── Language toggle ───────────────────────────────────────────────────────── */
+.lang-toggle {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--txt-muted);
+  font-family: var(--mono);
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  padding: .3rem .55rem;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.lang-toggle:hover { color: var(--k8s-hi); border-color: var(--k8s); background: rgba(50,108,229,.12); }
+
 /* ── Responsive ────────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .home-cta { grid-template-columns: 1fr; }

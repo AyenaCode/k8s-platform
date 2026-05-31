@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,18 +19,19 @@
       <span class="logo-text">K8s<em>learn</em></span>
     </a>
     <div class="nav-links">
-      <a href="/cours" class="nav-link" data-link>Cours</a>
-      <a href="/exercices" class="nav-link" data-link>Exercices</a>
+      <a href="/cours" class="nav-link" data-link data-i18n="nav.courses">Courses</a>
+      <a href="/exercices" class="nav-link" data-link data-i18n="nav.exercises">Exercises</a>
     </div>
     <div class="nav-right">
-      <div class="xp-widget" id="xp-widget" title="Tes points d'expérience">
-        <span class="xp-label" id="xp-label">Apprenti</span>
+      <button class="lang-toggle" id="lang-toggle" title="Switch language">FR</button>
+      <div class="xp-widget" id="xp-widget" data-i18n-title="xp.title">
+        <span class="xp-label" id="xp-label">Apprentice</span>
         <div class="xp-track">
           <div class="xp-fill" id="xp-fill"></div>
         </div>
         <span class="xp-num" id="xp-num">0 XP</span>
       </div>
-      <div class="streak-badge" id="streak-badge" title="Jours de pratique consécutifs">
+      <div class="streak-badge" id="streak-badge" data-i18n-title="streak.title">
         <span class="streak-icon">🔥</span>
         <span id="streak-num">0</span>
       </div>
@@ -41,7 +42,7 @@
     <div class="boot-screen">
       <div class="boot-helm">⎈</div>
       <div class="boot-bar"><div class="boot-fill"></div></div>
-      <p class="boot-text">Connexion au cluster...</p>
+      <p class="boot-text" data-i18n="boot">Connecting to the cluster...</p>
     </div>
   </main>
 

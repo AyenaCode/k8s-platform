@@ -1,6 +1,7 @@
 import { fetchCourses, fetchCourse } from '../api.js';
 import { mdToHtml, setupCopyButtons } from '../markdown.js';
 import { markCourseRead, load, refreshNav } from '../gamification.js';
+import { t, getLang } from '../i18n.js';
 
 export default async function renderCourse(slug) {
   const [courses, data] = await Promise.all([fetchCourses(), fetchCourse(slug)]);
@@ -15,7 +16,7 @@ export default async function renderCourse(slug) {
 <div class="page-narrow page-enter">
   <div class="read-progress" id="read-progress"></div>
   <div class="breadcrumb">
-    <a href="/cours" data-link>Cours</a> <span>›</span>
+    <a href="/cours" data-link>${t('nav.courses')}</a> <span>›</span>
     <span>${courses[idx]?.title || slug}</span>
   </div>
   <div class="article" id="article-content">
@@ -59,13 +60,14 @@ export default async function renderCourse(slug) {
 }
 
 async function _getCounts() {
+  const lang = getLang();
   const [courses, exercises] = await Promise.all([
-    fetch('/api/courses').then(r => r.json()),
-    fetch('/api/exercises').then(r => r.json()),
+    fetch('/api/courses?lang=' + lang).then(r => r.json()),
+    fetch('/api/exercises?lang=' + lang).then(r => r.json()),
   ]);
   return { courses: courses.length, exercises: exercises.length };
 }
 
 function notFound(slug) {
-  return `<div class="not-found"><div class="code">404</div><h1>Cours introuvable</h1><p>${slug}</p><a href="/cours" data-link>← Retour aux cours</a></div>`;
+  return `<div class="not-found"><div class="code">404</div><h1>${t('course.notFound')}</h1><p>${slug}</p><a href="/cours" data-link>${t('course.back')}</a></div>`;
 }

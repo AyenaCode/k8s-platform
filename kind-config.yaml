@@ -1,0 +1,12 @@
+# kind cluster for the K8s Learn platform.
+# Maps the platform Service's NodePort (30080) to localhost:8088 on your machine,
+# so the app is reachable at http://localhost:8088 without any port-forward.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 30080   # must match the Service's nodePort in k8s-platform.yml
+        hostPort: 8088
+        listenAddress: "127.0.0.1"
+        protocol: TCP
