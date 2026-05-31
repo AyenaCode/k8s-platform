@@ -2,8 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { coursesListQuery } from '@/features/courses/api/courses.queries'
 import { completedCourseSlugs, useProgressSummary } from '@/features/progress/hooks'
+import { useLang } from '@/core/i18n/lang'
 
-export function CoursesListPage({ lang = 'en' }: { lang?: string }) {
+export function CoursesListPage() {
+  const { lang } = useLang()
   const { data, isLoading, error } = useQuery(coursesListQuery(lang))
   const summary = useProgressSummary()
   const done = completedCourseSlugs(summary.data)

@@ -10,8 +10,10 @@ import { RewardToast, type Reward } from '@/features/gamification/RewardToast'
 import { progressSummaryQuery } from '@/features/progress/api/progress.queries'
 import { useProgressSummary, useSolveExercise } from '@/features/progress/hooks'
 import { MarkdownView } from '@/shared/components/Markdown/Markdown'
+import { useLang } from '@/core/i18n/lang'
 
-export function ExercisePage({ id, lang = 'en' }: { id: string; lang?: string }) {
+export function ExercisePage({ id }: { id: string }) {
+  const { lang } = useLang()
   const { data, isLoading, error } = useQuery(exerciseDetailQuery(id, lang))
   const summary = useProgressSummary()
   const solve = useSolveExercise()

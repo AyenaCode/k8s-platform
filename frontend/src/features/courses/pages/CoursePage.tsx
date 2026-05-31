@@ -1,18 +1,23 @@
 // CoursePage is the left (content) pane of the lab for a course. It splits the
 // markdown into steps and walks the learner through them; the persistent terminal
 // lives in LabLayout to the right. Finishing the last step awards course XP.
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { courseDetailQuery } from '@/features/courses/api/courses.queries'
 import { MarkdownView } from '@/shared/components/Markdown/Markdown'
 import { splitSteps } from '@/shared/lib/splitSteps'
 import { completedCourseSlugs, useCompleteCourse, useProgressSummary } from '@/features/progress/hooks'
+import { useLang } from '@/core/i18n/lang'
 
-export function CoursePage({ slug, lang = 'en' }: { slug: string; lang?: string }) {
+export function CoursePage({ slug }: { slug: string }) {
+  const { lang } = useLang()
   const { data, isLoading, error } = useQuery(courseDetailQuery(slug, lang))
   const summary = useProgressSummary()
   const complete = useCompleteCourse()
   const [idx, setIdx] = useState(0)
+
+  // Restart at step 0 when the course or language changes (step lists may differ).
+  useEffect(() => setIdx(0), [slug, lang])
 
   const steps = useMemo(() => (data ? splitSteps(data.markdown) : []), [data])
 

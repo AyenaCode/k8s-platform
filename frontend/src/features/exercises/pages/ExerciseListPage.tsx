@@ -2,8 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { exercisesListQuery } from '@/features/exercises/api/exercises.queries'
 import { solvedExerciseIds, useProgressSummary } from '@/features/progress/hooks'
+import { useLang } from '@/core/i18n/lang'
 
-export function ExerciseListPage({ lang = 'en' }: { lang?: string }) {
+export function ExerciseListPage() {
+  const { lang } = useLang()
   const { data, isLoading, error } = useQuery(exercisesListQuery(lang))
   const summary = useProgressSummary()
   const solved = solvedExerciseIds(summary.data)

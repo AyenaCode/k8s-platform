@@ -7,8 +7,10 @@ import { exercisesListQuery } from '@/features/exercises/api/exercises.queries'
 import { BadgeGrid } from '@/features/gamification/BadgeGrid'
 import { XpBar } from '@/features/gamification/XpBar'
 import { completedCourseSlugs, solvedExerciseIds, useProgressSummary } from '@/features/progress/hooks'
+import { useLang } from '@/core/i18n/lang'
 
-export function DashboardPage({ lang = 'en' }: { lang?: string }) {
+export function DashboardPage() {
+  const { lang } = useLang()
   const summary = useProgressSummary()
   const courses = useQuery(coursesListQuery(lang))
   const exercises = useQuery(exercisesListQuery(lang))
