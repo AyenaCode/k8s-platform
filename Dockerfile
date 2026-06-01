@@ -7,7 +7,7 @@
 # with zero config. Build Go + React happen here, so a learner needs only Docker.
 
 # ── 1) Build the frontend (Tier 1) ───────────────────────────────────────────
-FROM node:20-alpine AS frontend
+FROM node:24-alpine AS frontend
 WORKDIR /fe
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
