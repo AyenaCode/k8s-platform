@@ -23,6 +23,41 @@ export function PtyTerminal() {
     })
     const fit = new FitAddon()
     term.loadAddon(fit)
+
+    // Make this behave like a real terminal in the browser: route control keys to
+    // the PTY instead of letting the browser act on them (Ctrl+R reloading the
+    // page, Ctrl+L focusing the address bar, Ctrl+Shift+C opening the inspector…),
+    // and wire the conventional Ctrl+Shift+C / Ctrl+Shift+V for copy & paste.
+    term.attachCustomKeyEventHandler((e) => {
+      if (e.type !== 'keydown') return true
+
+      // Copy the selection. (Plain Ctrl+C stays SIGINT, the terminal convention.)
+      if (e.ctrlKey && e.shiftKey && e.code === 'KeyC') {
+        const sel = term.getSelection()
+        if (sel) void navigator.clipboard?.writeText(sel)
+        e.preventDefault()
+        return false
+      }
+      // Paste from the clipboard into the shell.
+      if (e.ctrlKey && e.shiftKey && e.code === 'KeyV') {
+        void navigator.clipboard?.readText().then((text) => {
+          if (text) term.paste(text)
+        })
+        e.preventDefault()
+        return false
+      }
+      // Any other Ctrl/Alt combo (without Shift): block the browser shortcut and
+      // let xterm send the control sequence to the shell — Ctrl+R history search,
+      // Ctrl+L clear, Ctrl+A/E line nav, Ctrl+U/K/W kill, Ctrl+C interrupt, etc.
+      // Shift is left alone so the few unblockable combos (Ctrl+Shift+I/J devtools)
+      // aren't fought with.
+      if ((e.ctrlKey || e.altKey) && !e.shiftKey) {
+        e.preventDefault()
+        return true
+      }
+      return true
+    })
+
     term.open(container)
     fit.fit()
 
