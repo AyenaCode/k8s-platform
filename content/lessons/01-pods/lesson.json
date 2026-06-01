@@ -1,0 +1,40 @@
+{
+  "slug": "01-pods",
+  "title": { "en": "Pods & kubectl", "fr": "Pods & kubectl" },
+  "summary": {
+    "en": "The smallest deployable unit in Kubernetes. Create one, inspect it, read its logs, get a shell inside.",
+    "fr": "La plus petite unité déployable de Kubernetes. Créez-en un, inspectez-le, lisez ses logs, ouvrez un shell dedans."
+  },
+  "estMinutes": 12,
+  "xp": 150,
+  "steps": [
+    {
+      "id": "intro",
+      "title": { "en": "What is a Pod?", "fr": "Qu'est-ce qu'un Pod ?" },
+      "md": { "en": "steps/en/01-intro.md", "fr": "steps/fr/01-intro.md" },
+      "xp": 0
+    },
+    {
+      "id": "create",
+      "title": { "en": "Create your first Pod", "fr": "Créez votre premier Pod" },
+      "md": { "en": "steps/en/02-create.md", "fr": "steps/fr/02-create.md" },
+      "verify": "scripts/02-verify.sh",
+      "hint": {
+        "en": "Run: kubectl run web --image=nginx — then wait until it is Running with `kubectl get pods -w`.",
+        "fr": "Lancez : kubectl run web --image=nginx — puis attendez l'état Running avec `kubectl get pods -w`."
+      },
+      "xp": 60
+    },
+    {
+      "id": "inspect",
+      "title": { "en": "Inspect, logs & exec", "fr": "Inspecter, logs & exec" },
+      "md": { "en": "steps/en/03-inspect.md", "fr": "steps/fr/03-inspect.md" },
+      "verify": "scripts/03-verify.sh",
+      "hint": {
+        "en": "Add a label so the platform can detect your work: kubectl label pod web seen=true",
+        "fr": "Ajoutez un label pour que la plateforme détecte votre travail : kubectl label pod web seen=true"
+      },
+      "xp": 60
+    }
+  ]
+}

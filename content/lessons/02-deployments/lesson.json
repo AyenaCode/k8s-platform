@@ -1,0 +1,54 @@
+{
+  "slug": "02-deployments",
+  "title": { "en": "Deployments & ReplicaSets", "fr": "Deployments & ReplicaSets" },
+  "summary": {
+    "en": "Run apps the real way: declare a desired state and let Kubernetes keep it. Scale, self-heal, roll out and roll back.",
+    "fr": "Lancez vos apps comme en vrai : déclarez un état désiré et laissez Kubernetes le maintenir. Scale, auto-réparation, déploiement et rollback."
+  },
+  "estMinutes": 18,
+  "xp": 200,
+  "steps": [
+    {
+      "id": "intro",
+      "title": { "en": "Why Deployments?", "fr": "Pourquoi les Deployments ?" },
+      "md": { "en": "steps/en/01-intro.md", "fr": "steps/fr/01-intro.md" },
+      "xp": 0
+    },
+    {
+      "id": "create",
+      "title": { "en": "Create a Deployment", "fr": "Créer un Deployment" },
+      "md": { "en": "steps/en/02-create.md", "fr": "steps/fr/02-create.md" },
+      "verify": "scripts/02-verify.sh",
+      "hint": {
+        "en": "kubectl create deployment web --image=nginx --replicas=3",
+        "fr": "kubectl create deployment web --image=nginx --replicas=3"
+      },
+      "xp": 70
+    },
+    {
+      "id": "scale",
+      "title": { "en": "Scale it", "fr": "Scaler" },
+      "md": { "en": "steps/en/03-scale.md", "fr": "steps/fr/03-scale.md" },
+      "verify": "scripts/03-verify.sh",
+      "hint": { "en": "kubectl scale deployment web --replicas=5", "fr": "kubectl scale deployment web --replicas=5" },
+      "xp": 60
+    },
+    {
+      "id": "selfheal",
+      "title": { "en": "Self-healing", "fr": "Auto-réparation" },
+      "md": { "en": "steps/en/04-selfheal.md", "fr": "steps/fr/04-selfheal.md" },
+      "xp": 0
+    },
+    {
+      "id": "rollout",
+      "title": { "en": "Rolling update & rollback", "fr": "Rolling update & rollback" },
+      "md": { "en": "steps/en/05-rollout.md", "fr": "steps/fr/05-rollout.md" },
+      "verify": "scripts/05-verify.sh",
+      "hint": {
+        "en": "kubectl set image deployment/web nginx=nginx:1.27 — the container name is 'nginx'.",
+        "fr": "kubectl set image deployment/web nginx=nginx:1.27 — le conteneur s'appelle 'nginx'."
+      },
+      "xp": 70
+    }
+  ]
+}

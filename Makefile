@@ -1,63 +1,37 @@
-# K8s Learn — local kind cluster + bilingual learning platform.
-# Run `make up` to go from zero to a running app at http://localhost:8088.
+# K8s Lab — Docker is the only dependency. `make up`, then open the URL.
 
-CLUSTER ?= k8s-learn
-IMAGE   ?= k8s-platform:local
-NS      ?= courses
+COMPOSE ?= docker compose
 URL     ?= http://localhost:8088
 
 .DEFAULT_GOAL := help
-
-.PHONY: help up down cluster build load deploy status logs open redeploy reset check
+.PHONY: help up down logs ps shell reset clean
 
 help: ## Show this help
-	@echo "K8s Learn — available commands:"
+	@echo "K8s Lab — available commands:"
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | sort | \
-		awk 'BEGIN{FS=":.*## "}{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
+		awk 'BEGIN{FS=":.*## "}{printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 	@echo "Quick start:  make up   then open $(URL)"
 
-check: ## Check that required tools are installed
-	@for t in docker kind kubectl; do \
-		command -v $$t >/dev/null 2>&1 || { echo "Missing required tool: $$t"; exit 1; }; \
-	done
-	@docker info >/dev/null 2>&1 || { echo "Docker daemon is not running."; exit 1; }
-	@echo "All required tools are present."
-
-up: check cluster build load deploy ## Create cluster, build + load image, deploy the platform
+up: ## Build + start the whole lab (k3s + postgres + app)
+	$(COMPOSE) up -d --build
 	@echo ""
-	@echo "✓ Platform is up. Open $(URL)"
+	@echo "✓ Lab is starting (k3s takes ~30s on first boot). Open $(URL)"
 
-cluster: ## Create the kind cluster if it does not exist
-	@if kind get clusters 2>/dev/null | grep -qx $(CLUSTER); then \
-		echo "kind cluster '$(CLUSTER)' already exists."; \
-	else \
-		echo "Creating kind cluster '$(CLUSTER)'..."; \
-		kind create cluster --name $(CLUSTER) --config kind-config.yaml; \
-	fi
+down: ## Stop the lab (keeps your progress + cluster data)
+	$(COMPOSE) down
 
-build: ## Build the app Docker image
-	docker build -t $(IMAGE) .
+clean: ## Stop and DELETE all volumes (cluster + progress wiped)
+	$(COMPOSE) down -v
 
-load: ## Load the local image into the kind cluster
-	kind load docker-image $(IMAGE) --name $(CLUSTER)
+logs: ## Tail the app logs
+	$(COMPOSE) logs -f app
 
-deploy: ## Apply the manifest and wait for the rollout
-	kubectl apply -f k8s-platform.yml
-	kubectl -n $(NS) rollout status deploy/k8s-platform --timeout=120s
+ps: ## Show service status
+	$(COMPOSE) ps
 
-redeploy: build load ## Rebuild the image and restart the deployment
-	kubectl -n $(NS) rollout restart deploy/k8s-platform
-	kubectl -n $(NS) rollout status deploy/k8s-platform --timeout=120s
+shell: ## Open a shell in the lab container (same as the in-app terminal)
+	$(COMPOSE) exec app bash
 
-status: ## Show the platform resources
-	kubectl -n $(NS) get all
-
-logs: ## Tail the platform logs
-	kubectl -n $(NS) logs deploy/k8s-platform -f
-
-reset: ## Clean up all exercise namespaces (exo-*)
-	bash exercices/reset.sh
-
-down: ## Delete the kind cluster
-	kind delete cluster --name $(CLUSTER)
+reset: ## Wipe the learner's scratch cluster state
+	$(COMPOSE) exec app bash /app/content/reset.sh

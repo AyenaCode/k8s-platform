@@ -1,15 +1,13 @@
-// Code-based TanStack Router tree (type-safe, no codegen). The catalog/dashboard
-// pages render full-width under RootLayout. Course and incident pages render under
-// a pathless LAYOUT route (`_lab`) that keeps a single persistent terminal mounted
-// while their <Outlet/> content swaps — so the shell session survives navigation.
+// Code-based TanStack Router tree (type-safe, no codegen). The dashboard and the
+// lesson catalog render full-width under RootLayout. A lesson renders under a
+// pathless LAYOUT route (`_lab`) that keeps a single persistent terminal mounted
+// while its <Outlet/> content swaps — so the shell session survives navigation.
 import { createRootRoute, createRoute, createRouter } from '@tanstack/react-router'
 import { RootLayout } from '@/app/RootLayout'
 import { LabLayout } from '@/app/LabLayout'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
-import { CoursesListPage } from '@/features/courses/pages/CoursesListPage'
-import { CoursePage } from '@/features/courses/pages/CoursePage'
-import { ExerciseListPage } from '@/features/exercises/pages/ExerciseListPage'
-import { ExercisePage } from '@/features/exercises/pages/ExercisePage'
+import { LessonsListPage } from '@/features/lessons/pages/LessonsListPage'
+import { LessonPage } from '@/features/lessons/pages/LessonPage'
 
 const rootRoute = createRootRoute({ component: RootLayout })
 
@@ -19,49 +17,32 @@ const dashboardRoute = createRoute({
   component: () => <DashboardPage />,
 })
 
-const coursesRoute = createRoute({
+const lessonsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/courses',
-  component: () => <CoursesListPage />,
+  path: '/lessons',
+  component: () => <LessonsListPage />,
 })
 
-const exercisesRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/exercises',
-  component: () => <ExerciseListPage />,
-})
-
-// Pathless layout route: declared with `id` (not `path`). Its children keep their
-// own absolute paths; the layout component is not remounted between them.
+// Pathless layout route (declared with `id`, not `path`): persistent terminal.
 const labRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: '_lab',
   component: LabLayout,
 })
 
-const courseDetailRoute = createRoute({
+const lessonDetailRoute = createRoute({
   getParentRoute: () => labRoute,
-  path: '/courses/$slug',
-  component: function CourseDetailRoute() {
-    const { slug } = courseDetailRoute.useParams()
-    return <CoursePage slug={slug} />
-  },
-})
-
-const exerciseDetailRoute = createRoute({
-  getParentRoute: () => labRoute,
-  path: '/exercises/$id',
-  component: function ExerciseDetailRoute() {
-    const { id } = exerciseDetailRoute.useParams()
-    return <ExercisePage id={id} />
+  path: '/lessons/$slug',
+  component: function LessonDetailRoute() {
+    const { slug } = lessonDetailRoute.useParams()
+    return <LessonPage slug={slug} />
   },
 })
 
 const routeTree = rootRoute.addChildren([
   dashboardRoute,
-  coursesRoute,
-  exercisesRoute,
-  labRoute.addChildren([courseDetailRoute, exerciseDetailRoute]),
+  lessonsRoute,
+  labRoute.addChildren([lessonDetailRoute]),
 ])
 
 export const router = createRouter({ routeTree, defaultPreload: 'intent' })

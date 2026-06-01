@@ -51,25 +51,30 @@ func (s *sse) reject(msg string) {
 	s.done(false)
 }
 
+// Result reports how a streamed script ended, so callers can act on success
+// (e.g. award XP) after the stream has been written.
+type Result struct{ OK bool }
+
 // streamChild runs cmd and streams its stdout (out) and stderr (err) over SSE,
-// then a final done event. The command is killed after timeout.
-func streamChild(ctx context.Context, s *sse, cmd *exec.Cmd, timeout time.Duration) {
+// then a final done event. The command is killed after timeout. Returns whether
+// the command exited 0.
+func streamChild(ctx context.Context, s *sse, cmd *exec.Cmd, timeout time.Duration) bool {
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		s.reject("Error: " + err.Error())
-		return
+		return false
 	}
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		s.reject("Error: " + err.Error())
-		return
+		return false
 	}
 	if err := cmd.Start(); err != nil {
 		s.reject("Error: " + err.Error())
-		return
+		return false
 	}
 
 	// Kill the process if the deadline passes or the client disconnects.
@@ -93,15 +98,23 @@ func streamChild(ctx context.Context, s *sse, cmd *exec.Cmd, timeout time.Durati
 	go pump(bufio.NewScanner(stderr), s.err)
 	wg.Wait()
 
-	s.done(cmd.Wait() == nil)
+	ok := cmd.Wait() == nil
+	s.done(ok)
+	return ok
 }
 
-// StreamScript runs `bash <script> [args...]` from dir and streams it. Used by
-// the deploy / reset / check buttons. Interactive shell access is handled by the
-// PTY terminal (package terminal), which is the single full-access lab terminal.
+// StreamScript runs `bash <script> [args...]` from dir and streams it over SSE.
+// Used for fire-and-forget tasks (setup / reset) where the exit code is not acted on.
 func StreamScript(w http.ResponseWriter, r *http.Request, script, dir string, timeout time.Duration, args ...string) {
+	StreamScriptResult(w, r, script, dir, timeout, args...)
+}
+
+// StreamScriptResult is like StreamScript but reports whether the script exited 0,
+// so the caller can react (e.g. award XP when a verify step passes). The SSE
+// stream — including the final done frame — is fully written before returning.
+func StreamScriptResult(w http.ResponseWriter, r *http.Request, script, dir string, timeout time.Duration, args ...string) Result {
 	s, _ := newSSE(w)
 	cmd := exec.Command("bash", append([]string{script}, args...)...)
 	cmd.Dir = dir
-	streamChild(r.Context(), s, cmd, timeout)
+	return Result{OK: streamChild(r.Context(), s, cmd, timeout)}
 }

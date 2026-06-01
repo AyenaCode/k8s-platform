@@ -34,21 +34,16 @@ func NewRouter(d Deps) http.Handler {
 
 	r.Route("/api", func(r chi.Router) {
 		// Content (JSON)
-		r.Get("/courses", h.listCourses)
-		r.Get("/courses/{slug}", h.getCourse)
-		r.Post("/courses/{slug}/complete", h.completeCourse)
-		r.Get("/exercises", h.listExercises)
-		r.Get("/exercises/{id}", h.getExercise)
+		r.Get("/lessons", h.listLessons)
+		r.Get("/lessons/{slug}", h.getLesson)
 
-		// SSE streams
-		r.Post("/deploy/{id}", h.deploy)
+		// Interactive step tasks (SSE)
+		r.Post("/lessons/{slug}/steps/{stepId}/setup", h.setupStep)
+		r.Post("/lessons/{slug}/steps/{stepId}/verify", h.verifyStep)
 		r.Post("/reset", h.reset)
-		r.Post("/check/{id}", h.check)
 
 		// Progress (data tier)
-		r.Get("/progress", h.listProgress)
 		r.Get("/progress/summary", h.summary)
-		r.Post("/progress/{id}/solve", h.solve)
 	})
 
 	// Interactive PTY terminal (WebSocket).

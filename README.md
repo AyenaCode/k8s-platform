@@ -1,99 +1,96 @@
-# K8s Learn — a hands-on Kubernetes learning platform
+# K8s Lab — learn Kubernetes by doing
 
-A self-hosted, **bilingual (English / French)** web app to learn Kubernetes by doing:
-short courses plus **incident-style debugging exercises**, all running on a local
-[kind](https://kind.sigs.k8s.io/) cluster you spin up with a single command.
+A self-hosted, **bilingual (EN/FR)** interactive lab to learn Kubernetes the way
+Killercoda / KodeKloud do: **read a concept, then practise it immediately** in a
+**real cluster**, from a terminal that lives right next to the lesson — earning
+**XP and badges** as you go.
 
-```
+> **The only thing you need is Docker.** No `kind`, no `kubectl`, no Go, no Node to
+> install. One command boots a real (lightweight) Kubernetes cluster, the app, and
+> a database.
+
+```bash
 git clone <this-repo> && cd k8s-platform
-make up          # create the kind cluster, build + load the image, deploy the app
-# open http://localhost:8088
+docker compose up --build        # or: make up
+# open http://localhost:8088   (k3s takes ~30s on first boot)
 ```
-
-No external registry, no cloud account — everything is local.
-
-> **3-tier architecture.** The platform is a scalable, strongly typed **3-tier**
-> stack: a **Go 1.26** backend (`backend/`), a **React 19 + TanStack +
-> TypeScript 6** SPA (`frontend/`), and a **Postgres** data tier. It uses a
-> single **full-access lab terminal** (kubectl, vim, `kubectl edit` —
-> Killercoda-style) over a WebSocket-driven PTY. The legacy vanilla-JS app has
-> been removed; some pages (courses, i18n, gamification) are still being ported.
-> See **[ARCHITECTURE.md](ARCHITECTURE.md)** for the full design and run guide.
 
 ---
 
-## Prerequisites
+## How it works
 
-| Tool | Why |
+Three containers, started by `docker-compose.yml`:
+
+| Service | Role |
 |---|---|
-| [Docker](https://docs.docker.com/get-docker/) | builds and runs the cluster nodes + app image |
-| [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) | runs Kubernetes inside Docker |
-| [kubectl](https://kubernetes.io/docs/tasks/tools/) | talks to the cluster |
-| `make` | runs the workflow |
-| [Go](https://go.dev/dl/) ≥ 1.26 | builds the new backend (Tier 2) |
-| [Node](https://nodejs.org/) ≥ 20 + npm | builds the new frontend (Tier 1) |
+| **k3s** | a real, lightweight Kubernetes cluster (in a container) |
+| **postgres** | stores your progress / XP |
+| **app** | Go backend + React SPA + the interactive terminal |
 
-Check the cluster tooling at once: `make check`
+The **app shares k3s's network namespace** (`network_mode: service:k3s`), so the
+in-browser terminal *is* the cluster node: `kubectl`, Pod IPs, ClusterIPs and
+`localhost:<nodePort>` all work with **zero config**. The terminal is a complete
+learning host — `bash`, `kubectl`, `helm`, `vim`, `jq`, `curl`, `git`.
+
+---
+
+## Doing the lessons
+
+Open **http://localhost:8088** and pick a lesson. Each lesson is a sequence of
+**steps**: a concept on the left, the live terminal on the right.
+
+1. Read the concept.
+2. Run the suggested commands in the terminal.
+3. Hit **Verify** — a script checks your cluster. Pass → **+XP**, a step ✓, and
+   maybe a new **badge**. Stuck? Reveal the **Hint**.
+4. Finish every task in a lesson → it's marked complete (🎉 confetti).
+
+Track your **level, XP, streak and badges** on the **Dashboard**. Switch the UI and
+content language anytime with the **EN/FR** toggle.
+
+**Reset** (button in any lesson, or `make reset`) wipes your scratch cluster state
+so you can start a task clean.
+
+### Lessons in v1
+
+1. **Pods & kubectl** — create, inspect, logs, exec.
+2. **Deployments & ReplicaSets** — declarative, scale, self-healing, rollout/rollback.
+3. **Services & networking** — ClusterIP, NodePort, endpoints, DNS discovery.
+
+More concepts and troubleshooting modules will be added — see *Adding a lesson*.
 
 ---
 
 ## Make commands
 
 ```
-make up        Create cluster, build + load image, deploy the platform
-make down      Delete the kind cluster
-make redeploy  Rebuild the image and restart the deployment
-make status    Show the platform resources
-make logs      Tail the platform logs
-make reset     Clean up all exercise namespaces (exo-*)
-make check     Verify Docker / kind / kubectl are installed
+make up      Build + start the whole lab
+make down    Stop (keeps progress + cluster data)
+make clean   Stop and DELETE all volumes (fresh start)
+make logs    Tail the app logs
+make shell   Shell into the lab container (same as the in-app terminal)
+make reset   Wipe the learner's scratch cluster state
 ```
 
 ---
 
-## Running the new 3-tier stack
+## Adding a lesson (no code change)
 
-The kind cluster above is the substrate the exercises run against. The new app
-that talks to it lives in `backend/` (Go) and `frontend/` (React).
+The curriculum is **manifest-driven** — drop a directory under `content/lessons/`:
 
-**Dev — two processes, hot reload:**
-
-```bash
-cd backend  && go run ./cmd/server          # :8080  (in-memory store, no DB needed)
-cd frontend && npm install && npm run dev    # :5173  (proxies /api and /ws to :8080)
+```
+content/lessons/04-configmaps/
+  lesson.json                 # title, summary, ordered steps, XP (bilingual)
+  steps/en/01-intro.md        # step prose (en + fr)
+  steps/fr/01-intro.md
+  scripts/02-setup.sh         # optional: pre-seed cluster state for a step
+  scripts/02-verify.sh        # optional: exit 0 => step solved, awards XP
 ```
 
-**Prod — one Go binary serves the built SPA:**
-
-```bash
-cd frontend && npm run build                          # -> frontend/dist
-cd backend  && STATIC_DIR=../frontend/dist go run ./cmd/server
-# open http://localhost:8080  (single origin, no CORS)
-```
-
-**Optional Postgres data tier** (progress / XP): `cd backend && docker compose up -d`,
-then set `DATABASE_URL` and run the migrations — see
-[ARCHITECTURE.md](ARCHITECTURE.md#with-the-postgres-data-tier).
-
-> The new terminal is an unauthenticated interactive shell — **local use only**
-> until auth lands. See the Security section of [ARCHITECTURE.md](ARCHITECTURE.md#security--read-before-exposing-this).
-
----
-
-## Doing the exercises
-
-Each exercise is a production "incident ticket", and you run them entirely from the
-web app at **http://localhost:8088**:
-
-1. Open **Exercises** and pick an incident ticket.
-2. Click **Launch exercise** — it deploys the deliberately broken setup into its own
-   namespace and streams the output into an in-browser terminal.
-3. Read the ticket, then diagnose and fix it in the **persistent terminal** on the right
-   (`kubectl`, `vim`, `kubectl edit` — a real shell, KodeKloud/KillerCoda style).
-4. Click **Check** to verify the fix — solving it awards **XP** and unlocks **badges**.
-5. Click **Reset** when you're done to clean up before the next one.
-
-Track your level, XP and badges on the **Dashboard**.
+`lesson.json` lists the steps and points each at its markdown and optional
+`setup`/`verify` scripts. Rebuild the image (`make up`) and it appears
+automatically — ordered by directory name. See `content/lessons/01-pods/` as the
+canonical example.
 
 ---
 

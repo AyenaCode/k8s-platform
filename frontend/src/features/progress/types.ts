@@ -26,5 +26,6 @@ export interface ProgressSummary {
   records: ProgressRecord[]
   totalXp: number
   level: LevelInfo
+  streak: number
   badges: Badge[]
 }

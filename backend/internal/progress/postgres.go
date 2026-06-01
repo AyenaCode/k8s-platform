@@ -13,13 +13,32 @@ type PostgresStore struct {
 	pool *pgxpool.Pool
 }
 
-// NewPostgresStore opens a connection pool. Caller closes via Close().
+// schemaDDL is the idempotent schema, applied in-process on startup so the only
+// runtime dependency stays Docker (no separate `migrate` binary in the image).
+// Mirrors internal/db/migrations/0001_init.up.sql.
+const schemaDDL = `
+CREATE TABLE IF NOT EXISTS progress (
+    user_id     TEXT        NOT NULL,
+    exercise_id TEXT        NOT NULL,
+    solved      BOOLEAN     NOT NULL DEFAULT false,
+    xp          INTEGER     NOT NULL DEFAULT 0,
+    solved_at   TIMESTAMPTZ,
+    PRIMARY KEY (user_id, exercise_id)
+);
+CREATE INDEX IF NOT EXISTS idx_progress_user ON progress (user_id);`
+
+// NewPostgresStore opens a connection pool and ensures the schema exists.
+// Caller closes via Close().
 func NewPostgresStore(ctx context.Context, databaseURL string) (*PostgresStore, error) {
 	pool, err := pgxpool.New(ctx, databaseURL)
 	if err != nil {
 		return nil, err
 	}
 	if err := pool.Ping(ctx); err != nil {
+		pool.Close()
+		return nil, err
+	}
+	if _, err := pool.Exec(ctx, schemaDDL); err != nil {
 		pool.Close()
 		return nil, err
 	}

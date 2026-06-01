@@ -9,8 +9,9 @@ frontend/dist
 # Backend: built inside the image.
 backend/bin
 
-# Docs / local files.
-*.md
+# Docs / local files. Anchor *.md to the repo root so lesson content under
+# content/lessons/**/*.md is NOT excluded from the build context.
+/*.md
 *.log
 *.local.*
 .env

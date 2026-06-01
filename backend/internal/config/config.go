@@ -11,10 +11,12 @@ import (
 type Config struct {
 	Addr string // host:port the HTTP server binds to
 
-	// Content tier (markdown + scripts). These are files, not database rows.
-	ContentRoot  string // root holding courses/ and exercices/
-	CoursesDir   string
-	ExercisesDir string
+	// Content tier (lesson manifests + markdown + scripts), files on disk.
+	ContentRoot string // root holding content/
+	LessonsDir  string // content/lessons
+
+	// Working directory the interactive PTY terminal starts in.
+	WorkDir string
 
 	// Where the built frontend SPA lives (dist/). Empty disables static serving.
 	StaticDir string
@@ -22,8 +24,8 @@ type Config struct {
 	// Data tier. Empty DatabaseURL => in-memory progress repo (no Postgres needed).
 	DatabaseURL string
 
-	// Terminal limits.
-	PTYShell string // shell spawned for the interactive PTY terminal
+	// Shell spawned for the interactive PTY terminal.
+	PTYShell string
 }
 
 func getenv(key, def string) string {
@@ -36,13 +38,13 @@ func getenv(key, def string) string {
 func Load() Config {
 	contentRoot := getenv("CONTENT_ROOT", "..")
 	cfg := Config{
-		Addr:         getenv("ADDR", ":8080"),
-		ContentRoot:  contentRoot,
-		CoursesDir:   getenv("COURSES_DIR", filepath.Join(contentRoot, "courses")),
-		ExercisesDir: getenv("EXERCISES_DIR", filepath.Join(contentRoot, "exercices")),
-		StaticDir:    getenv("STATIC_DIR", filepath.Join("..", "frontend", "dist")),
-		DatabaseURL:  os.Getenv("DATABASE_URL"),
-		PTYShell:     getenv("PTY_SHELL", "/bin/bash"),
+		Addr:        getenv("ADDR", ":8080"),
+		ContentRoot: contentRoot,
+		LessonsDir:  getenv("LESSONS_DIR", filepath.Join(contentRoot, "content", "lessons")),
+		WorkDir:     getenv("WORK_DIR", "."),
+		StaticDir:   getenv("STATIC_DIR", filepath.Join("..", "frontend", "dist")),
+		DatabaseURL: os.Getenv("DATABASE_URL"),
+		PTYShell:    getenv("PTY_SHELL", "/bin/bash"),
 	}
 	return cfg
 }

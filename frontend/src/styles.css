@@ -121,7 +121,28 @@ button:hover:not(:disabled) { border-color: var(--accent); }
 button:disabled { opacity: 0.5; cursor: default; }
 button.primary { background: var(--accent); border-color: var(--accent); color: #06101f; font-weight: 600; }
 
+button.ghost { background: transparent; color: var(--muted); }
+button.ghost:hover:not(:disabled) { color: var(--fg); }
+
+.dot--done { background: var(--good); border-color: var(--good); }
+
 .actions { display: flex; gap: 0.6rem; margin: 0.75rem 0; }
+
+/* Interactive task controls (setup / verify / hint) */
+.task { display: flex; align-items: center; gap: 0.6rem; margin: 1rem 0 0.5rem; flex-wrap: wrap; }
+.task__solved { color: var(--good); font-size: 0.85rem; }
+.hint {
+  margin: 0.5rem 0; padding: 0.6rem 0.9rem; border-radius: 8px;
+  background: rgba(210, 153, 34, 0.12); border: 1px solid var(--warn); color: #f0d28a; font-size: 0.9rem;
+}
+.card-meta { color: var(--muted); font-size: 0.78rem; margin-top: 0.15rem; }
+.lesson__nav .ghost { margin: 0 auto; }
+
+/* Dashboard hero (XP + streak) */
+.dashboard__hero { display: flex; align-items: center; gap: 1.5rem; }
+.dashboard__hero .xpbar { flex: 1; }
+.streak { font-size: 0.95rem; color: var(--fg); white-space: nowrap; }
+.streak strong { color: var(--warn); font-size: 1.2rem; }
 .run-output {
   background: #000; border: 1px solid var(--border); border-radius: 8px;
   padding: 0.7rem; max-height: 220px; overflow: auto; white-space: pre-wrap;
@@ -184,6 +205,18 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .toast strong { color: var(--good); }
 .toast__badge { color: var(--accent); font-size: 0.85rem; }
 @keyframes toast-in { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* ---------- Confetti (lesson completion) ---------- */
+.confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 60; }
+.confetti__piece {
+  position: absolute; top: -12px; width: 9px; height: 14px; border-radius: 2px;
+  opacity: 0.9; animation-name: confetti-fall; animation-timing-function: linear;
+  animation-iteration-count: 1;
+}
+@keyframes confetti-fall {
+  0%   { transform: translateY(-12px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(102vh) rotate(720deg); opacity: 0.9; }
+}
 
 .error { color: var(--bad); }
 

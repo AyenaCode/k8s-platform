@@ -1,0 +1,78 @@
+# K8s Lab — the whole stack. The ONLY dependency on your machine is Docker.
+#
+#   docker compose up --build      then open http://localhost:8080
+#
+# Three services:
+#   k3s      a real (lightweight) Kubernetes cluster, in a container
+#   postgres progress / XP storage
+#   app      the Go backend + React SPA + the learner's interactive terminal
+#
+# The app shares k3s's network namespace (network_mode: service:k3s) so the
+# terminal IS the node: `kubectl`, pod IPs, ClusterIPs and `localhost:<nodePort>`
+# all work with zero config. Because of that, the app has no ports of its own —
+# its :8080 is published on the k3s service below.
+
+services:
+  k3s:
+    image: rancher/k3s:v1.36.1-k3s1
+    command: server --disable traefik --disable metrics-server
+    privileged: true
+    restart: unless-stopped
+    tmpfs:
+      - /run
+      - /var/run
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+    environment:
+      - K3S_TOKEN=${K3S_TOKEN:-labtoken}
+      - K3S_KUBECONFIG_OUTPUT=/kubeconfig/k3s.yaml
+      - K3S_KUBECONFIG_MODE=666
+    volumes:
+      - k3s-data:/var/lib/rancher/k3s
+      - kubeconfig:/kubeconfig
+    ports:
+      - "8088:8080"        # the app (shares this netns) is reachable on the host here
+      - "6443:6443"        # k8s API (optional, for host kubectl)
+    healthcheck:
+      test: ["CMD", "kubectl", "get", "nodes"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: k8s
+      POSTGRES_PASSWORD: k8s
+      POSTGRES_DB: k8s_platform
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U k8s -d k8s_platform"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    network_mode: "service:k3s"     # share the cluster node's network stack
+    depends_on:
+      k3s:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgres://k8s:k8s@postgres:5432/k8s_platform?sslmode=disable
+    volumes:
+      - kubeconfig:/kubeconfig:ro
+
+volumes:
+  k3s-data: {}
+  kubeconfig: {}
+  pgdata: {}

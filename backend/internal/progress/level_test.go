@@ -1,6 +1,9 @@
 package progress
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 func TestLevel(t *testing.T) {
 	cases := []struct {
@@ -9,11 +12,11 @@ func TestLevel(t *testing.T) {
 		wantTitle string
 		wantNext  int
 	}{
-		{0, 1, "Intern", 300},
-		{299, 1, "Intern", 300},
-		{300, 2, "Junior SRE", 700},
-		{1500, 4, "Senior SRE", 2000},
-		{5000, 6, "K8s Wizard", 0}, // max tier => no next
+		{0, 1, "Beginner", 200},
+		{199, 1, "Beginner", 200},
+		{200, 2, "Apprentice", 500},
+		{1000, 4, "Practitioner", 1800},
+		{5000, 6, "K8s Expert", 0}, // top tier => no next
 	}
 	for _, c := range cases {
 		got := Level(c.xp)
@@ -24,46 +27,66 @@ func TestLevel(t *testing.T) {
 	}
 }
 
-func TestBadgesFiltersCoursePrefix(t *testing.T) {
+func TestBadgesSeparatesStepsAndLessons(t *testing.T) {
 	recs := []Record{
-		{ExerciseID: "ticket-001", Solved: true, XP: 100},
-		{ExerciseID: "ticket-002", Solved: true, XP: 100},
-		{ExerciseID: "ticket-003", Solved: true, XP: 200},
-		{ExerciseID: CourseKey("01-architecture"), Solved: true, XP: 50},
+		{ExerciseID: StepKey("01-pods", "create"), Solved: true, XP: 50},
+		{ExerciseID: StepKey("01-pods", "inspect"), Solved: true, XP: 50},
+		{ExerciseID: LessonKey("01-pods"), Solved: true, XP: 150},
 	}
-	badges := byID(Badges(recs, 10, 7))
+	badges := byID(Badges(recs, 3, 0))
 
-	// 3 exercises solved (course record must NOT inflate the exercise tally).
-	if !badges["first-blood"].Earned || !badges["triage"].Earned {
-		t.Error("first-blood and triage should be earned with 3 exercises solved")
+	if !badges["first-step"].Earned {
+		t.Error("first-step should be earned with >=1 step")
 	}
-	if badges["incident-commander"].Earned {
-		t.Error("incident-commander must not be earned with 3/10 exercises (course record must not count)")
+	if badges["apprentice"].Earned {
+		t.Error("apprentice needs 5 steps; only 2 solved")
 	}
-	if !badges["scholar"].Earned {
-		t.Error("scholar should be earned with 1 course finished")
+	if !badges["first-lesson"].Earned {
+		t.Error("first-lesson should be earned with 1 lesson")
 	}
-	if badges["completionist"].Earned {
-		t.Error("completionist must not be earned with 1/7 courses")
-	}
-	if badges["half-way"].Earned {
-		t.Error("half-way must not be earned with 3/10 exercises")
+	if badges["graduate"].Earned {
+		t.Error("graduate needs all 3 lessons; only 1 done (lesson record must not be counted as a step either)")
 	}
 }
 
-func TestBadgesAllSolved(t *testing.T) {
+func TestBadgesGraduateAndStreak(t *testing.T) {
 	recs := []Record{
-		{ExerciseID: "ticket-001", Solved: true, XP: 100},
-		{ExerciseID: "ticket-002", Solved: true, XP: 100},
-		{ExerciseID: CourseKey("a"), Solved: true, XP: 50},
-		{ExerciseID: CourseKey("b"), Solved: true, XP: 50},
+		{ExerciseID: LessonKey("a"), Solved: true, XP: 150},
+		{ExerciseID: LessonKey("b"), Solved: true, XP: 150},
 	}
-	badges := byID(Badges(recs, 2, 2))
-	if !badges["incident-commander"].Earned {
-		t.Error("incident-commander should be earned when all exercises solved")
+	badges := byID(Badges(recs, 2, 7))
+	if !badges["graduate"].Earned {
+		t.Error("graduate should be earned when all lessons finished")
 	}
-	if !badges["completionist"].Earned {
-		t.Error("completionist should be earned when all courses finished")
+	if !badges["on-fire"].Earned || !badges["dedicated"].Earned {
+		t.Error("on-fire (>=3) and dedicated (>=7) should be earned at streak 7")
+	}
+}
+
+func TestStreak(t *testing.T) {
+	now := time.Date(2026, 5, 31, 12, 0, 0, 0, time.UTC)
+	day := 24 * time.Hour
+	at := func(d time.Duration) *time.Time { tt := now.Add(-d); return &tt }
+
+	// today, yesterday, 2 days ago => streak 3
+	recs := []Record{
+		{ExerciseID: StepKey("l", "a"), Solved: true, SolvedAt: at(0)},
+		{ExerciseID: StepKey("l", "b"), Solved: true, SolvedAt: at(day)},
+		{ExerciseID: StepKey("l", "c"), Solved: true, SolvedAt: at(2 * day)},
+		{ExerciseID: StepKey("l", "old"), Solved: true, SolvedAt: at(10 * day)}, // gap, ignored
+	}
+	if s := Streak(recs, now); s != 3 {
+		t.Errorf("Streak = %d; want 3", s)
+	}
+
+	if s := Streak(nil, now); s != 0 {
+		t.Errorf("empty Streak = %d; want 0", s)
+	}
+
+	// Only yesterday (none today) still counts as an active 1-day streak.
+	only := []Record{{ExerciseID: StepKey("l", "a"), Solved: true, SolvedAt: at(day)}}
+	if s := Streak(only, now); s != 1 {
+		t.Errorf("yesterday-only Streak = %d; want 1", s)
 	}
 }
 

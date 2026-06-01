@@ -28,8 +28,7 @@ export function RootLayout() {
         <Link to="/" className="app__brand">
           K8s Lab
         </Link>
-        <Link to="/courses">Courses</Link>
-        <Link to="/exercises">Incidents</Link>
+        <Link to="/lessons">Lessons</Link>
         <div className="app__nav-spacer" />
         <LangToggle />
         <LevelChip />

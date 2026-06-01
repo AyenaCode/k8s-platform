@@ -1,13 +1,23 @@
-// Package content is the content-tier repository: it reads bilingual courses and
-// exercises from the filesystem (markdown + shell scripts). This is a faithful
-// port of the data logic that used to live in app/server.js.
+// Package content is the content tier. It loads a manifest-driven curriculum from
+// the filesystem: each lesson is a directory under content/lessons/ holding a
+// lesson.json manifest, per-step markdown (bilingual), and optional setup/verify
+// shell scripts. Adding a lesson is purely additive — drop a new directory, no
+// code change — which is the whole point of the schema.
+//
+// On-disk layout:
+//
+//	content/lessons/01-pods/
+//	  lesson.json                  manifest (source of truth, ordered steps)
+//	  steps/en/01-intro.md         step prose, per language
+//	  steps/fr/01-intro.md
+//	  scripts/02-setup.sh          optional: pre-seed cluster state
+//	  scripts/02-verify.sh         optional: exit 0 => step solved
 package content
 
 import (
-	"fmt"
+	"encoding/json"
 	"os"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
 )
@@ -25,186 +35,245 @@ func validLang(lang string) string {
 	return DefaultLang
 }
 
-// Course is a card in the catalog, derived from the first H1 and blockquote of
-// each markdown file.
-type Course struct {
-	Slug     string `json:"slug"`
-	Title    string `json:"title"`
-	Desc     string `json:"desc"`
-	Duration string `json:"duration"`
+// i18n is a bilingual string in a manifest: {"en": "...", "fr": "..."}.
+type i18n struct {
+	En string `json:"en"`
+	Fr string `json:"fr"`
 }
-
-// Exercise is one debugging ticket. Title/Concept are localized at read time.
-type Exercise struct {
-	ID       string `json:"id"`
-	NS       string `json:"ns"`
-	Level    string `json:"level"`
-	Title    string `json:"title"`
-	Concept  string `json:"concept"`
-	Markdown string `json:"markdown,omitempty"`
-}
-
-type i18n struct{ en, fr string }
 
 func (s i18n) get(lang string) string {
-	if lang == "fr" {
-		return s.fr
+	if lang == "fr" && s.Fr != "" {
+		return s.Fr
 	}
-	return s.en
+	return s.En
 }
 
-type exerciseDef struct {
-	id, ns, level  string
-	title, concept i18n
+// --- on-disk manifest types (lesson.json) ---
+
+type stepManifest struct {
+	ID     string            `json:"id"`
+	Title  i18n              `json:"title"`
+	Md     map[string]string `json:"md"`     // lang -> path relative to the lesson dir
+	Setup  string            `json:"setup"`  // optional script path, relative to lesson dir
+	Verify string            `json:"verify"` // optional script path, relative to lesson dir
+	Hint   i18n              `json:"hint"`
+	XP     int               `json:"xp"`
 }
 
-// catalog mirrors the EXERCISES array from server.js. Order is significant.
-var catalog = []exerciseDef{
-	{"ticket-001", "exo-001", "easy", i18n{"App unreachable", "App injoignable"}, i18n{"Selector typo", "Selector typo"}},
-	{"ticket-002", "exo-002", "easy", i18n{"Deployment stuck", "Déploiement bloqué"}, i18n{"ImagePullBackOff", "ImagePullBackOff"}},
-	{"ticket-003", "exo-003", "medium", i18n{"Connection refused", "Connection refused"}, i18n{"targetPort mismatch", "targetPort mismatch"}},
-	{"ticket-004", "exo-004", "medium", i18n{"Pods in a crash loop", "Pods en crash loop"}, i18n{"Missing ConfigMap", "ConfigMap manquant"}},
-	{"ticket-005", "exo-005", "hard", i18n{"Disastrous production rollout", "Mise en prod catastrophique"}, i18n{"Multi-service stack", "Stack multi-services"}},
-	{"ticket-006", "exo-006", "medium", i18n{"Pods never become Ready", "Pods jamais Ready"}, i18n{"Misconfigured probe", "Probe mal configurée"}},
-	{"ticket-007", "exo-007", "medium", i18n{"Cache keeps dying", "Cache qui meurt en boucle"}, i18n{"OOMKilled", "OOMKilled"}},
-	{"ticket-008", "exo-008", "medium", i18n{"Payment service down", "Service paiement HS"}, i18n{"Missing Secret", "Secret manquant"}},
-	{"ticket-009", "exo-009", "easy", i18n{"Worker won't start", "Worker qui ne démarre pas"}, i18n{"Wrong args/command", "Mauvais args/command"}},
-	{"ticket-010", "exo-010", "medium", i18n{"App stuck on Init", "Application bloquée (Init)"}, i18n{"Init container", "Init container"}},
+type lessonManifest struct {
+	Slug       string         `json:"slug"`
+	Title      i18n           `json:"title"`
+	Summary    i18n           `json:"summary"`
+	EstMinutes int            `json:"estMinutes"`
+	XP         int            `json:"xp"` // awarded once when the lesson is completed
+	Steps      []stepManifest `json:"steps"`
 }
 
-// Repo serves content from the configured directories.
+// --- API types returned to the frontend ---
+
+// Step is one localized step: the concept prose plus whether it carries an
+// interactive setup/verify task.
+type Step struct {
+	ID        string `json:"id"`
+	Title     string `json:"title"`
+	Markdown  string `json:"markdown,omitempty"`
+	Hint      string `json:"hint,omitempty"`
+	HasSetup  bool   `json:"hasSetup"`
+	HasVerify bool   `json:"hasVerify"`
+	XP        int    `json:"xp"`
+}
+
+// LessonCard is a catalog entry (no step prose).
+type LessonCard struct {
+	Slug        string `json:"slug"`
+	Title       string `json:"title"`
+	Summary     string `json:"summary"`
+	EstMinutes  int    `json:"estMinutes"`
+	XP          int    `json:"xp"`
+	StepCount   int    `json:"stepCount"`
+	VerifyCount int    `json:"verifyCount"` // number of steps that must be verified to complete
+}
+
+// Lesson is a full localized lesson: the card plus its ordered steps.
+type Lesson struct {
+	LessonCard
+	Steps []Step `json:"steps"`
+}
+
+// Repo serves lessons from the configured directory.
 type Repo struct {
-	coursesDir   string
-	exercisesDir string
+	lessonsDir string
 }
 
-func NewRepo(coursesDir, exercisesDir string) *Repo {
-	return &Repo{coursesDir: coursesDir, exercisesDir: exercisesDir}
-}
+func NewRepo(lessonsDir string) *Repo { return &Repo{lessonsDir: lessonsDir} }
 
-func (e exerciseDef) localize(lang string) Exercise {
-	return Exercise{ID: e.id, NS: e.ns, Level: e.level, Title: e.title.get(lang), Concept: e.concept.get(lang)}
-}
+// LessonsDir exposes the root so the exec layer can run setup/verify scripts.
+func (r *Repo) LessonsDir() string { return r.lessonsDir }
 
-// Exercises returns the catalog localized to lang (without mission markdown).
-func (r *Repo) Exercises(lang string) []Exercise {
-	lang = validLang(lang)
-	out := make([]Exercise, len(catalog))
-	for i, d := range catalog {
-		out[i] = d.localize(lang)
-	}
-	return out
-}
-
-// Exercise returns one localized exercise plus its mission markdown.
-func (r *Repo) Exercise(id, lang string) (Exercise, bool) {
-	lang = validLang(lang)
-	for _, d := range catalog {
-		if d.id == id {
-			ex := d.localize(lang)
-			if md, ok := r.mission(id, lang); ok {
-				ex.Markdown = md
-			}
-			return ex, true
-		}
-	}
-	return Exercise{}, false
-}
-
-// NamespaceFor maps an exercise id to its cluster namespace, used by deploy/check.
-func (r *Repo) NamespaceFor(id string) (string, bool) {
-	for _, d := range catalog {
-		if d.id == id {
-			return d.ns, true
-		}
-	}
-	return "", false
-}
-
-// mission resolves the mission file for a language, falling back to any available.
-func (r *Repo) mission(id, lang string) (string, bool) {
-	candidates := []string{filepath.Join(r.exercisesDir, id, fmt.Sprintf("mission.%s.md", lang))}
-	for _, l := range Langs {
-		candidates = append(candidates, filepath.Join(r.exercisesDir, id, fmt.Sprintf("mission.%s.md", l)))
-	}
-	candidates = append(candidates, filepath.Join(r.exercisesDir, id, "mission.md"))
-	for _, c := range candidates {
-		if b, err := os.ReadFile(c); err == nil {
-			return string(b), true
-		}
-	}
-	return "", false
-}
-
-// ExercisesDir exposes the root for the exec layer (deploy.sh / check.sh / reset.sh).
-func (r *Repo) ExercisesDir() string { return r.exercisesDir }
-
-var (
-	durationNum = regexp.MustCompile(`^\d+\s*[—–-]\s*`)
-	boldLabel   = regexp.MustCompile(`\*\*[^*]+\*\*\s*:\s*`)
-	italic      = regexp.MustCompile(`\*([^*]+)\*`)
-)
-
-// Courses reads every .md in courses/<lang>/ and builds the catalog. Title comes
-// from the first "# H1"; description from the first "> blockquote".
-func (r *Repo) Courses(lang string) []Course {
-	lang = validLang(lang)
-	dir := filepath.Join(r.coursesDir, lang)
-	entries, err := os.ReadDir(dir)
+// readManifest loads and decodes one lesson.json.
+func (r *Repo) readManifest(slug string) (lessonManifest, bool) {
+	b, err := os.ReadFile(filepath.Join(r.lessonsDir, slug, "lesson.json"))
 	if err != nil {
-		return []Course{}
+		return lessonManifest{}, false
+	}
+	var m lessonManifest
+	if err := json.Unmarshal(b, &m); err != nil {
+		return lessonManifest{}, false
+	}
+	if m.Slug == "" {
+		m.Slug = slug
+	}
+	return m, true
+}
+
+func (m lessonManifest) verifyCount() int {
+	n := 0
+	for _, s := range m.Steps {
+		if s.Verify != "" {
+			n++
+		}
+	}
+	return n
+}
+
+func (m lessonManifest) card(lang string) LessonCard {
+	return LessonCard{
+		Slug:        m.Slug,
+		Title:       m.Title.get(lang),
+		Summary:     m.Summary.get(lang),
+		EstMinutes:  m.EstMinutes,
+		XP:          m.XP,
+		StepCount:   len(m.Steps),
+		VerifyCount: m.verifyCount(),
+	}
+}
+
+// Lessons returns the catalog, ordered by directory name (so a 01-/02- prefix
+// drives ordering). Directories without a valid lesson.json are skipped.
+func (r *Repo) Lessons(lang string) []LessonCard {
+	lang = validLang(lang)
+	entries, err := os.ReadDir(r.lessonsDir)
+	if err != nil {
+		return []LessonCard{}
 	}
 	names := make([]string, 0, len(entries))
 	for _, e := range entries {
-		if !e.IsDir() && strings.HasSuffix(e.Name(), ".md") {
+		if e.IsDir() {
 			names = append(names, e.Name())
 		}
 	}
 	sort.Strings(names)
 
-	out := make([]Course, 0, len(names))
-	for _, file := range names {
-		raw, err := os.ReadFile(filepath.Join(dir, file))
-		if err != nil {
-			continue
+	out := make([]LessonCard, 0, len(names))
+	for _, slug := range names {
+		if m, ok := r.readManifest(slug); ok {
+			out = append(out, m.card(lang))
 		}
-		text := string(raw)
-		lines := strings.Split(text, "\n")
-		slug := strings.TrimSuffix(file, ".md")
-
-		title := slug
-		for _, l := range lines {
-			if strings.HasPrefix(l, "# ") {
-				title = durationNum.ReplaceAllString(strings.TrimSpace(l[2:]), "")
-				break
-			}
-		}
-		desc := ""
-		for _, l := range lines {
-			if strings.HasPrefix(l, ">") {
-				d := strings.TrimSpace(strings.TrimPrefix(l, ">"))
-				d = boldLabel.ReplaceAllString(d, "")
-				d = italic.ReplaceAllString(d, "$1")
-				desc = strings.TrimSpace(d)
-				break
-			}
-		}
-		words := len(strings.Fields(text))
-		mins := words / 200
-		if mins < 1 {
-			mins = 1
-		}
-		out = append(out, Course{Slug: slug, Title: title, Desc: desc, Duration: fmt.Sprintf("%d min", mins)})
 	}
 	return out
 }
 
-// CourseMarkdown returns the raw markdown for a course slug in a language.
-func (r *Repo) CourseMarkdown(slug, lang string) (string, bool) {
+// Lesson returns one localized lesson with its steps and resolved prose.
+func (r *Repo) Lesson(slug, lang string) (Lesson, bool) {
 	lang = validLang(lang)
-	b, err := os.ReadFile(filepath.Join(r.coursesDir, lang, slug+".md"))
-	if err != nil {
+	m, ok := r.readManifest(slug)
+	if !ok {
+		return Lesson{}, false
+	}
+	lesson := Lesson{LessonCard: m.card(lang), Steps: make([]Step, 0, len(m.Steps))}
+	for _, s := range m.Steps {
+		lesson.Steps = append(lesson.Steps, Step{
+			ID:        s.ID,
+			Title:     s.Title.get(lang),
+			Markdown:  r.stepMarkdown(slug, s, lang),
+			Hint:      s.Hint.get(lang),
+			HasSetup:  s.Setup != "",
+			HasVerify: s.Verify != "",
+			XP:        s.XP,
+		})
+	}
+	return lesson, true
+}
+
+// stepMarkdown resolves a step's prose file for a language, falling back to the
+// default language then any available language.
+func (r *Repo) stepMarkdown(slug string, s stepManifest, lang string) string {
+	tryLangs := append([]string{lang, DefaultLang}, Langs...)
+	for _, l := range tryLangs {
+		rel, ok := s.Md[l]
+		if !ok || rel == "" {
+			continue
+		}
+		if b, err := os.ReadFile(filepath.Join(r.lessonsDir, slug, rel)); err == nil {
+			return string(b)
+		}
+	}
+	return ""
+}
+
+// StepScript returns the absolute path to a step's setup or verify script
+// (kind = "setup" | "verify"), if the manifest declares it and the file exists.
+func (r *Repo) StepScript(slug, stepID, kind string) (string, bool) {
+	m, ok := r.readManifest(slug)
+	if !ok {
 		return "", false
 	}
-	return string(b), true
+	for _, s := range m.Steps {
+		if s.ID != stepID {
+			continue
+		}
+		var rel string
+		switch kind {
+		case "setup":
+			rel = s.Setup
+		case "verify":
+			rel = s.Verify
+		}
+		if rel == "" {
+			return "", false
+		}
+		path := filepath.Join(r.lessonsDir, slug, rel)
+		if _, err := os.Stat(path); err != nil {
+			return "", false
+		}
+		return path, true
+	}
+	return "", false
+}
+
+// LessonXP returns the completion XP for a lesson and whether the slug exists.
+func (r *Repo) LessonXP(slug string) (int, bool) {
+	m, ok := r.readManifest(slug)
+	if !ok {
+		return 0, false
+	}
+	return m.XP, true
+}
+
+// VerifyStepIDs returns the ids of every step that has a verify script. The
+// lesson is "complete" once all of these are solved.
+func (r *Repo) VerifyStepIDs(slug string) []string {
+	m, ok := r.readManifest(slug)
+	if !ok {
+		return nil
+	}
+	ids := make([]string, 0)
+	for _, s := range m.Steps {
+		if s.Verify != "" {
+			ids = append(ids, s.ID)
+		}
+	}
+	return ids
+}
+
+// Exists reports whether a lesson slug resolves to a manifest.
+func (r *Repo) Exists(slug string) bool {
+	_, ok := r.readManifest(slug)
+	return ok
+}
+
+// SafeID guards path components used to build script/markdown paths from URL
+// params (defence in depth against traversal); ids are simple slugs.
+func SafeID(id string) bool {
+	return id != "" && !strings.ContainsAny(id, "/\\.")
 }

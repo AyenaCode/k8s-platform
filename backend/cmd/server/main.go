@@ -32,12 +32,12 @@ func main() {
 	}
 	defer store.Close()
 
-	repo := content.NewRepo(cfg.CoursesDir, cfg.ExercisesDir)
+	repo := content.NewRepo(cfg.LessonsDir)
 
 	router := httpapi.NewRouter(httpapi.Deps{
 		Content:   repo,
 		Progress:  store,
-		Terminal:  terminal.NewHandler(cfg.PTYShell, cfg.ExercisesDir, nil, log),
+		Terminal:  terminal.NewHandler(cfg.PTYShell, cfg.WorkDir, nil, log),
 		StaticDir: staticDirIfExists(cfg.StaticDir),
 		Log:       log,
 	})
