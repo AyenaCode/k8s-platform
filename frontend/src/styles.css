@@ -165,8 +165,24 @@ button.ghost:hover:not(:disabled) { color: var(--fg); }
   background: var(--panel-2); border: 1px solid var(--border); border-radius: 5px;
   padding: 0.1rem 0.35rem; font-size: 0.85em; font-family: ui-monospace, monospace;
 }
-.md-code { border-radius: 8px; margin: 0.7rem 0; font-size: 0.82rem; overflow: auto; }
-.md-code pre { margin: 0; padding: 0.8rem !important; border-radius: 8px; }
+.md-code { margin: 0; font-size: 0.82rem; overflow: auto; }
+.md-code pre { margin: 0; padding: 0.8rem !important; border-radius: 0; }
+
+/* Code block with a Run / Copy toolbar (Killercoda-style click-to-run). */
+.codeblock {
+  margin: 0.7rem 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+}
+.codeblock__bar {
+  display: flex; justify-content: flex-end; gap: 0.35rem;
+  padding: 0.3rem 0.4rem; background: var(--panel); border-bottom: 1px solid var(--border);
+}
+.cb-btn {
+  font-size: 0.72rem; padding: 0.18rem 0.5rem; border-radius: 6px;
+  background: var(--panel-2); border: 1px solid var(--border); color: var(--muted); cursor: pointer;
+}
+.cb-btn:hover { color: var(--fg); border-color: var(--accent); }
+.cb-btn--run { color: var(--good); }
+.cb-btn--run:hover { border-color: var(--good); }
 
 /* ---------- Gamification ---------- */
 .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
