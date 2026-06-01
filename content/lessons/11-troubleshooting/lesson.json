@@ -1,0 +1,54 @@
+{
+  "slug": "11-troubleshooting",
+  "title": { "en": "Troubleshooting clinic", "fr": "Clinique de dépannage" },
+  "summary": {
+    "en": "Three Pods are broken on purpose. Diagnose each from its symptoms — ImagePullBackOff, CrashLoopBackOff, a Service with no endpoints — and fix it.",
+    "fr": "Trois Pods sont cassés exprès. Diagnostiquez chacun à partir de ses symptômes — ImagePullBackOff, CrashLoopBackOff, un Service sans endpoints — et réparez-le."
+  },
+  "estMinutes": 22,
+  "xp": 280,
+  "steps": [
+    {
+      "id": "intro",
+      "title": { "en": "The debugging method", "fr": "La méthode de débogage" },
+      "md": { "en": "steps/en/01-intro.md", "fr": "steps/fr/01-intro.md" },
+      "xp": 0
+    },
+    {
+      "id": "imagepull",
+      "title": { "en": "Case 1: ImagePullBackOff", "fr": "Cas 1 : ImagePullBackOff" },
+      "md": { "en": "steps/en/02-imagepull.md", "fr": "steps/fr/02-imagepull.md" },
+      "setup": "scripts/02-setup.sh",
+      "verify": "scripts/02-verify.sh",
+      "hint": {
+        "en": "kubectl describe pod shows 'Failed to pull image'. The tag does not exist. Re-apply the Deployment with a real image like nginx:1.27.",
+        "fr": "kubectl describe pod montre 'Failed to pull image'. Le tag n'existe pas. Ré-appliquez le Deployment avec une vraie image comme nginx:1.27."
+      },
+      "xp": 90
+    },
+    {
+      "id": "crashloop",
+      "title": { "en": "Case 2: CrashLoopBackOff", "fr": "Cas 2 : CrashLoopBackOff" },
+      "md": { "en": "steps/en/03-crashloop.md", "fr": "steps/fr/03-crashloop.md" },
+      "setup": "scripts/03-setup.sh",
+      "verify": "scripts/03-verify.sh",
+      "hint": {
+        "en": "The container command exits 1 immediately, so the kubelet keeps restarting it. Re-apply with a command that stays alive.",
+        "fr": "La commande du conteneur sort en 1 immédiatement, donc le kubelet le redémarre sans cesse. Ré-appliquez avec une commande qui reste vivante."
+      },
+      "xp": 90
+    },
+    {
+      "id": "endpoints",
+      "title": { "en": "Case 3: Service has no endpoints", "fr": "Cas 3 : Service sans endpoints" },
+      "md": { "en": "steps/en/04-endpoints.md", "fr": "steps/fr/04-endpoints.md" },
+      "setup": "scripts/04-setup.sh",
+      "verify": "scripts/04-verify.sh",
+      "hint": {
+        "en": "kubectl get endpoints api shows <none>. The Service selector (app=api-v2) does not match the Pod labels (app=api). Fix the selector.",
+        "fr": "kubectl get endpoints api affiche <none>. Le sélecteur du Service (app=api-v2) ne correspond pas aux labels des Pods (app=api). Corrigez le sélecteur."
+      },
+      "xp": 100
+    }
+  ]
+}

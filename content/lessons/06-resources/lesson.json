@@ -1,0 +1,40 @@
+{
+  "slug": "06-resources",
+  "title": { "en": "Resources & QoS", "fr": "Ressources & QoS" },
+  "summary": {
+    "en": "Requests reserve capacity; limits cap it. Together they set a Pod's Quality of Service — and decide who gets OOMKilled first.",
+    "fr": "Les requests réservent de la capacité ; les limits la plafonnent. Ensemble elles fixent la Quality of Service d'un Pod — et décident qui est OOMKilled en premier."
+  },
+  "estMinutes": 16,
+  "xp": 220,
+  "steps": [
+    {
+      "id": "intro",
+      "title": { "en": "Requests, limits & QoS classes", "fr": "Requests, limits & classes QoS" },
+      "md": { "en": "steps/en/01-intro.md", "fr": "steps/fr/01-intro.md" },
+      "xp": 0
+    },
+    {
+      "id": "guaranteed",
+      "title": { "en": "Build a Guaranteed Pod", "fr": "Construire un Pod Guaranteed" },
+      "md": { "en": "steps/en/02-guaranteed.md", "fr": "steps/fr/02-guaranteed.md" },
+      "verify": "scripts/02-verify.sh",
+      "hint": {
+        "en": "A Pod is Guaranteed only when every container sets BOTH cpu and memory, and limits == requests for each.",
+        "fr": "Un Pod est Guaranteed seulement quand chaque conteneur définit cpu ET memory, avec limits == requests pour chacun."
+      },
+      "xp": 90
+    },
+    {
+      "id": "oomkilled",
+      "title": { "en": "Hit a memory limit (OOMKilled)", "fr": "Dépasser une limite mémoire (OOMKilled)" },
+      "md": { "en": "steps/en/03-oomkilled.md", "fr": "steps/fr/03-oomkilled.md" },
+      "verify": "scripts/03-verify.sh",
+      "hint": {
+        "en": "Apply the hog Pod (a 20Mi limit while it allocates without bound). Wait, then check: kubectl get pod hog -o jsonpath='{.status.containerStatuses[0].lastState.terminated.reason}'",
+        "fr": "Appliquez le Pod hog (limite 20Mi alors qu'il alloue sans limite). Attendez, puis vérifiez : kubectl get pod hog -o jsonpath='{.status.containerStatuses[0].lastState.terminated.reason}'"
+      },
+      "xp": 90
+    }
+  ]
+}

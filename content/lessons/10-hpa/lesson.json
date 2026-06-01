@@ -1,0 +1,30 @@
+{
+  "slug": "10-hpa",
+  "title": { "en": "Autoscaling (HPA)", "fr": "Autoscaling (HPA)" },
+  "summary": {
+    "en": "Let the cluster size itself. A HorizontalPodAutoscaler watches CPU and adds or removes replicas to hit a target — hands-off scaling.",
+    "fr": "Laissez le cluster se dimensionner seul. Un HorizontalPodAutoscaler surveille le CPU et ajoute ou retire des replicas pour viser une cible — du scaling automatique."
+  },
+  "estMinutes": 16,
+  "xp": 240,
+  "steps": [
+    {
+      "id": "intro",
+      "title": { "en": "How autoscaling works", "fr": "Comment marche l'autoscaling" },
+      "md": { "en": "steps/en/01-intro.md", "fr": "steps/fr/01-intro.md" },
+      "xp": 0
+    },
+    {
+      "id": "hpa",
+      "title": { "en": "Attach a HorizontalPodAutoscaler", "fr": "Attacher un HorizontalPodAutoscaler" },
+      "md": { "en": "steps/en/02-hpa.md", "fr": "steps/fr/02-hpa.md" },
+      "setup": "scripts/02-setup.sh",
+      "verify": "scripts/02-verify.sh",
+      "hint": {
+        "en": "The 'web-hpa' Deployment (with cpu requests) is pre-created. Run: kubectl autoscale deployment web-hpa --cpu=50% --min=1 --max=5 — then wait ~30s for metrics.",
+        "fr": "Le Deployment 'web-hpa' (avec cpu requests) est déjà créé. Lancez : kubectl autoscale deployment web-hpa --cpu=50% --min=1 --max=5 — puis attendez ~30s pour les métriques."
+      },
+      "xp": 150
+    }
+  ]
+}

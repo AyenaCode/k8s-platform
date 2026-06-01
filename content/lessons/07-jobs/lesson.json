@@ -1,0 +1,40 @@
+{
+  "slug": "07-jobs",
+  "title": { "en": "Jobs & CronJobs", "fr": "Jobs & CronJobs" },
+  "summary": {
+    "en": "Not everything is a long-running server. A Job runs a task to completion; a CronJob runs one on a schedule. Batch work, the Kubernetes way.",
+    "fr": "Tout n'est pas un serveur permanent. Un Job exécute une tâche jusqu'au bout ; un CronJob en lance une selon un planning. Le batch, façon Kubernetes."
+  },
+  "estMinutes": 15,
+  "xp": 200,
+  "steps": [
+    {
+      "id": "intro",
+      "title": { "en": "Run-to-completion workloads", "fr": "Charges qui s'exécutent jusqu'au bout" },
+      "md": { "en": "steps/en/01-intro.md", "fr": "steps/fr/01-intro.md" },
+      "xp": 0
+    },
+    {
+      "id": "job",
+      "title": { "en": "Run a Job to completion", "fr": "Exécuter un Job jusqu'au bout" },
+      "md": { "en": "steps/en/02-job.md", "fr": "steps/fr/02-job.md" },
+      "verify": "scripts/02-verify.sh",
+      "hint": {
+        "en": "kubectl create job hello --image=busybox:1.36 -- /bin/sh -c \"echo hello; sleep 2\" — then: kubectl wait --for=condition=complete job/hello",
+        "fr": "kubectl create job hello --image=busybox:1.36 -- /bin/sh -c \"echo hello; sleep 2\" — puis : kubectl wait --for=condition=complete job/hello"
+      },
+      "xp": 90
+    },
+    {
+      "id": "cronjob",
+      "title": { "en": "Schedule it with a CronJob", "fr": "Le planifier avec un CronJob" },
+      "md": { "en": "steps/en/03-cronjob.md", "fr": "steps/fr/03-cronjob.md" },
+      "verify": "scripts/03-verify.sh",
+      "hint": {
+        "en": "Create a CronJob 'report' on schedule \"*/1 * * * *\", then trigger one run now: kubectl create job report-now --from=cronjob/report",
+        "fr": "Créez un CronJob 'report' au planning \"*/1 * * * *\", puis déclenchez une exécution maintenant : kubectl create job report-now --from=cronjob/report"
+      },
+      "xp": 90
+    }
+  ]
+}

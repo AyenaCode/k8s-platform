@@ -1,0 +1,46 @@
+{
+  "slug": "04-config",
+  "title": { "en": "ConfigMaps & Secrets", "fr": "ConfigMaps & Secrets" },
+  "summary": {
+    "en": "Stop baking config into images. Inject settings with ConfigMaps and sensitive values with Secrets — as env vars and as mounted files.",
+    "fr": "Arrêtez de figer la config dans l'image. Injectez vos réglages avec des ConfigMaps et vos valeurs sensibles avec des Secrets — en variables d'env et en fichiers montés."
+  },
+  "estMinutes": 18,
+  "xp": 220,
+  "steps": [
+    {
+      "id": "intro",
+      "title": { "en": "Why ConfigMaps & Secrets?", "fr": "Pourquoi ConfigMaps & Secrets ?" },
+      "md": { "en": "steps/en/01-intro.md", "fr": "steps/fr/01-intro.md" },
+      "xp": 0
+    },
+    {
+      "id": "configmap",
+      "title": { "en": "Inject config as env vars", "fr": "Injecter la config en variables d'env" },
+      "md": { "en": "steps/en/02-configmap.md", "fr": "steps/fr/02-configmap.md" },
+      "verify": "scripts/02-verify.sh",
+      "hint": {
+        "en": "kubectl create configmap app-config --from-literal=LOG_LEVEL=debug --from-literal=GREETING=hello — then run a Pod that uses envFrom.",
+        "fr": "kubectl create configmap app-config --from-literal=LOG_LEVEL=debug --from-literal=GREETING=hello — puis lancez un Pod qui utilise envFrom."
+      },
+      "xp": 80
+    },
+    {
+      "id": "secret",
+      "title": { "en": "Mount a Secret as a file", "fr": "Monter un Secret en fichier" },
+      "md": { "en": "steps/en/03-secret.md", "fr": "steps/fr/03-secret.md" },
+      "verify": "scripts/03-verify.sh",
+      "hint": {
+        "en": "kubectl create secret generic app-secret --from-literal=API_KEY=s3cr3t — then mount it at /etc/secret in a Pod.",
+        "fr": "kubectl create secret generic app-secret --from-literal=API_KEY=s3cr3t — puis montez-le sur /etc/secret dans un Pod."
+      },
+      "xp": 90
+    },
+    {
+      "id": "recap",
+      "title": { "en": "base64 ≠ encryption", "fr": "base64 ≠ chiffrement" },
+      "md": { "en": "steps/en/04-recap.md", "fr": "steps/fr/04-recap.md" },
+      "xp": 0
+    }
+  ]
+}

@@ -15,7 +15,9 @@
 services:
   k3s:
     image: rancher/k3s:v1.36.1-k3s1
-    command: server --disable traefik --disable metrics-server
+    # traefik (Ingress) and metrics-server (HPA / `kubectl top`) are k3s built-ins,
+    # left ENABLED so the intermediate Ingress + autoscaling labs work out of the box.
+    command: server
     privileged: true
     restart: unless-stopped
     tmpfs:
