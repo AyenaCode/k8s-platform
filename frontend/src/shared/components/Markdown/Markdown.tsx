@@ -2,7 +2,7 @@
 // task items) via remark-gfm, and syntax-highlighted code blocks via react-shiki.
 // Every code block gets a toolbar: "Copy", and — for shell blocks — "Run", which
 // types the command straight into the live terminal (see core/terminal/bus).
-import { useState, type ComponentPropsWithoutRef } from 'react'
+import { memo, useState, type ComponentPropsWithoutRef } from 'react'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 // /web uses the JS RegExp engine (no wasm/oniguruma chunk) — lighter & faster
@@ -73,7 +73,11 @@ function Code({ className, children, node, ...props }: CodeProps) {
   )
 }
 
-export function MarkdownView({ children }: { children: string }) {
+// Memoized on the markdown string: re-parsing + Shiki re-highlighting every code
+// block is expensive, and LessonPage re-renders on every SSE frame / button click
+// while `step.markdown` stays the same. Without this, those re-renders make the
+// page lag during verify streaming.
+export const MarkdownView = memo(function MarkdownView({ children }: { children: string }) {
   return (
     <div className="md">
       <Markdown
@@ -84,4 +88,4 @@ export function MarkdownView({ children }: { children: string }) {
       </Markdown>
     </div>
   )
-}
+})

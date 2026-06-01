@@ -30,6 +30,10 @@ services:
       - K3S_TOKEN=${K3S_TOKEN:-labtoken}
       - K3S_KUBECONFIG_OUTPUT=/kubeconfig/k3s.yaml
       - K3S_KUBECONFIG_MODE=666
+      # Pin a STABLE node name. Without this, k3s uses the container hostname
+      # (a random container ID), so every recreate registers a NEW node and
+      # leaves the old one as a "NotReady" ghost node in the datastore.
+      - K3S_NODE_NAME=k3s-lab
     volumes:
       - k3s-data:/var/lib/rancher/k3s
       - kubeconfig:/kubeconfig

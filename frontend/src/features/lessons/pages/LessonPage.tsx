@@ -71,23 +71,26 @@ export function LessonPage({ slug }: { slug: string }) {
     const before = summary.data
     const earnedBefore = new Set(before?.badges.filter((b) => b.earned).map((b) => b.id))
     const xpBefore = before?.totalXp ?? 0
-    const wasComplete = completedLessonSlugs(before).has(slug)
 
     const ok = await runStream(`/api/lessons/${slug}/steps/${step.id}/verify`, `verify ${step.id}`)
     if (!ok) {
       setShowHint(true)
       return
     }
-    // Backend awarded XP; refetch the summary and celebrate the delta.
-    const fresh = await qc.fetchQuery(progressSummaryQuery())
-    await qc.invalidateQueries({ queryKey: progressSummaryQuery().queryKey })
+    // Backend awarded XP; force a fresh refetch (staleTime: 0 — otherwise the
+    // global 30s staleTime makes fetchQuery resolve from cache, so the delta is
+    // always 0 and neither the reward toast nor the confetti ever fire). This
+    // also updates the cache + notifies observers, so no invalidate is needed.
+    const fresh = await qc.fetchQuery({ ...progressSummaryQuery(), staleTime: 0 })
     const gained = Math.max(0, fresh.totalXp - xpBefore)
     const newBadge = fresh.badges.find((b) => b.earned && !earnedBefore.has(b.id))
     if (gained > 0 || newBadge) {
       setReward(newBadge ? { xp: gained, badge: newBadge.name } : { xp: gained })
     }
-    // Big celebration the moment the whole lesson is completed.
-    if (!wasComplete && completedLessonSlugs(fresh).has(slug)) setCelebrate(true)
+    // Confetti on every successful verify. (The reward toast still only shows
+    // when XP or a badge was actually gained — re-verifying a solved step still
+    // celebrates but won't claim fake XP.)
+    setCelebrate(true)
     // Gentle auto-advance to keep momentum.
     if (!isLast) setTimeout(() => setIdx((i) => Math.min(data.steps.length - 1, i + 1)), 1200)
   }
