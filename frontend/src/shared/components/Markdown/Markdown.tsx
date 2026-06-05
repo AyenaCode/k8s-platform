@@ -12,6 +12,48 @@ import { runInTerminal } from '@/core/terminal/bus'
 
 const RUNNABLE = new Set(['bash', 'sh', 'shell', 'console', 'zsh'])
 
+// GitHub-style alert callouts: a blockquote whose first line is `[!NOTE]`,
+// `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]` or `[!CAUTION]` renders as a coloured
+// callout box (styled in styles.css). Implemented as a tiny inline remark
+// transform — no extra dependency — by walking the mdast tree, stripping the
+// marker, and retargeting the blockquote to a <div class="callout callout--TYPE">.
+const ALERT_RE = /^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*\n?/i
+
+interface MdNode {
+  type: string
+  value?: string
+  children?: MdNode[]
+  data?: { hName?: string; hProperties?: Record<string, unknown> }
+}
+
+function remarkAlerts() {
+  return (tree: MdNode) => {
+    const walk = (node: MdNode) => {
+      if (!node.children) return
+      for (const child of node.children) {
+        if (child.type === 'blockquote' && child.children) {
+          const para = child.children[0]
+          const first = para?.children?.[0]
+          if (para && para.type === 'paragraph' && para.children && first?.type === 'text' && first.value) {
+            const m = ALERT_RE.exec(first.value)
+            if (m) {
+              const type = (m[1] ?? '').toLowerCase()
+              first.value = first.value.slice(m[0].length)
+              if (first.value === '') para.children.shift()
+              child.data = {
+                hName: 'div',
+                hProperties: { className: `callout callout--${type}` },
+              }
+            }
+          }
+        }
+        walk(child)
+      }
+    }
+    walk(tree)
+  }
+}
+
 function CopyButton({ code }: { code: string }) {
   const [copied, setCopied] = useState(false)
   return (
@@ -63,6 +105,7 @@ function Code({ className, children, node, ...props }: CodeProps) {
   return (
     <div className="codeblock">
       <div className="codeblock__bar">
+        <span className="codeblock__lang">{RUNNABLE.has(lang) ? '$' : lang}</span>
         {RUNNABLE.has(lang) && <RunButton code={code} />}
         <CopyButton code={code} />
       </div>
@@ -81,7 +124,7 @@ export const MarkdownView = memo(function MarkdownView({ children }: { children:
   return (
     <div className="md">
       <Markdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={[remarkGfm, remarkAlerts]}
         components={{ code: Code, pre: ({ children }) => <>{children}</> }}
       >
         {children}

@@ -1,0 +1,47 @@
+{
+  "slug": "00-architecture",
+  "title": { "en": "How Kubernetes Works", "fr": "Comment fonctionne Kubernetes" },
+  "summary": {
+    "en": "Start here. What Kubernetes really is, the control plane vs the worker nodes, and the components that keep your apps alive — then map a live cluster yourself.",
+    "fr": "Commencez ici. Ce qu'est vraiment Kubernetes, le control plane face aux nœuds, et les composants qui maintiennent vos apps en vie — puis cartographiez un cluster réel."
+  },
+  "estMinutes": 15,
+  "xp": 120,
+  "steps": [
+    {
+      "id": "why",
+      "title": { "en": "Why Kubernetes exists", "fr": "Pourquoi Kubernetes existe" },
+      "md": { "en": "steps/en/01-why.md", "fr": "steps/fr/01-why.md" },
+      "xp": 0
+    },
+    {
+      "id": "bigpicture",
+      "title": { "en": "Control plane & nodes", "fr": "Control plane & nœuds" },
+      "md": { "en": "steps/en/02-bigpicture.md", "fr": "steps/fr/02-bigpicture.md" },
+      "xp": 0
+    },
+    {
+      "id": "controlplane",
+      "title": { "en": "The control plane", "fr": "Le control plane" },
+      "md": { "en": "steps/en/03-controlplane.md", "fr": "steps/fr/03-controlplane.md" },
+      "xp": 0
+    },
+    {
+      "id": "nodes",
+      "title": { "en": "The worker nodes", "fr": "Les nœuds de travail" },
+      "md": { "en": "steps/en/04-nodes.md", "fr": "steps/fr/04-nodes.md" },
+      "xp": 0
+    },
+    {
+      "id": "recon",
+      "title": { "en": "Recon: your live cluster", "fr": "Reconnaissance : votre cluster" },
+      "md": { "en": "steps/en/05-recon.md", "fr": "steps/fr/05-recon.md" },
+      "verify": "scripts/05-verify.sh",
+      "hint": {
+        "en": "Run: kubectl create namespace recon — then confirm with kubectl get namespaces.",
+        "fr": "Lancez : kubectl create namespace recon — puis confirmez avec kubectl get namespaces."
+      },
+      "xp": 60
+    }
+  ]
+}

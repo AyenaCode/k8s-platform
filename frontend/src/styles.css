@@ -454,6 +454,30 @@ kbd {
   margin: 1rem 0; padding: 0.5rem 1rem; border-left: 3px solid var(--cyan);
   background: var(--ink-700); color: var(--muted); border-radius: 0 var(--r-sm) var(--r-sm) 0;
 }
+
+/* GitHub-style alert callouts (see remarkAlerts in Markdown.tsx) — the "new
+   style" for the architecture course: a labelled, colour-coded box. */
+.md .callout {
+  margin: 1.1rem 0; padding: 0.8rem 1rem 0.85rem; border-radius: var(--r-sm);
+  border: 1px solid var(--line); border-left: 3px solid var(--muted);
+  background: var(--ink-700); color: var(--fg);
+}
+.md .callout > :first-child { margin-top: 0; }
+.md .callout > :last-child { margin-bottom: 0; }
+.md .callout::before {
+  display: block; margin-bottom: 0.45rem;
+  font-family: var(--font-mono); font-weight: 700; font-size: 0.7rem; letter-spacing: 0.14em;
+}
+.md .callout--note { border-left-color: var(--cyan); }
+.md .callout--note::before { content: 'ⓘ  NOTE'; color: var(--cyan); }
+.md .callout--tip { border-left-color: var(--signal); }
+.md .callout--tip::before { content: '✦  TIP'; color: var(--signal); }
+.md .callout--important { border-left-color: #b69cff; }
+.md .callout--important::before { content: '★  IMPORTANT'; color: #b69cff; }
+.md .callout--warning { border-left-color: var(--amber); }
+.md .callout--warning::before { content: '⚠  WARNING'; color: var(--amber); }
+.md .callout--caution { border-left-color: var(--coral); }
+.md .callout--caution::before { content: '⚠  CAUTION'; color: var(--coral); }
 .md-inline {
   background: var(--ink-600); border: 1px solid var(--line); border-radius: 5px;
   padding: 0.1rem 0.38rem; font-size: 0.85em; font-family: var(--font-mono); color: #d7f5cf;
@@ -464,9 +488,9 @@ kbd {
 /* code block with Run / Copy toolbar */
 .codeblock { margin: 0.9rem 0; border: 1px solid var(--line); border-radius: var(--r-sm); overflow: hidden; box-shadow: var(--shadow-sm); }
 .codeblock__bar { display: flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.45rem; background: var(--ink-700); border-bottom: 1px solid var(--line); }
-.codeblock__bar::before {
-  content: '$'; margin-right: auto; padding-left: 0.4rem;
-  font-family: var(--font-mono); font-size: 0.78rem; color: var(--faint);
+.codeblock__lang {
+  margin-right: auto; padding-left: 0.5rem;
+  font-family: var(--font-mono); font-size: 0.72rem; color: var(--faint); letter-spacing: 0.04em;
 }
 .cb-btn {
   font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600;
