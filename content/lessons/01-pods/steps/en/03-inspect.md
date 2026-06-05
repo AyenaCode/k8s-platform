@@ -1,40 +1,45 @@
-## Inspect, logs & exec — your debugging toolkit
+## Inspect, logs & exec — the daily toolkit
 
-These four commands are the ones you'll type every single day. Try each against
-your `web` Pod:
+When something misbehaves, these are the commands you reach for first. Run each
+against your `web` Pod.
 
-**1. Describe** — config + recent **Events** (your goldmine when something breaks):
+### Drills
+
+**1. Describe** — full config plus recent **Events** (your first stop when a Pod
+won't start):
 
 ```bash
 kubectl describe pod web
 ```
 
-**2. Logs** — what the container printed to stdout/stderr:
+**2. Logs** — whatever the container wrote to stdout/stderr:
 
 ```bash
-kubectl logs web
+kubectl logs web          # add -f to stream live, --previous after a crash
 ```
 
-**3. Exec** — get a shell *inside* the container:
+**3. Exec** — drop into a shell *inside* the container:
 
 ```bash
 kubectl exec -it web -- bash
-# you are now inside nginx; try:  ls /usr/share/nginx/html  then  exit
+# you're inside nginx now:  ls /usr/share/nginx/html   then  exit
 ```
 
-**4. YAML** — see the full object as the cluster stores it:
+**4. Raw object** — the Pod exactly as the cluster stores it:
 
 ```bash
 kubectl get pod web -o yaml | less
 ```
 
+> **Pro tip.** `kubectl events --for pod/web` (add `--watch`) is the cleaner,
+> modern way to read a Pod's events without scrolling through `describe`.
+
 ### Your task
 
-To complete this step, **label** your Pod so the platform can confirm you got
-here:
+Prove you worked the Pod: **label** it so the platform can confirm your run.
 
 ```bash
 kubectl label pod web seen=true
 ```
 
-Then click **Verify**. ✅
+Then hit **Verify**. ✅

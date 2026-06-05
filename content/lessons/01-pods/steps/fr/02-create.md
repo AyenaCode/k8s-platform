@@ -1,33 +1,34 @@
-## Créez votre premier Pod
+## Lancez votre premier Pod
 
-Lançons un seul Pod nginx nommé **`web`**. Dans le terminal à droite :
+Place à une vraie charge sur le cluster : un seul Pod nginx nommé **`web`**.
+
+### Votre tâche
+
+**1. Créez le Pod.** Dans le terminal à droite :
 
 ```bash
 kubectl run web --image=nginx
 ```
 
-Kubernetes télécharge l'image `nginx` et place le Pod sur un nœud. Observez-le
-démarrer :
+Le scheduler le place sur un nœud ; le kubelet télécharge `nginx` et le démarre.
+
+**2. Observez son démarrage** jusqu'à l'état `Running` :
 
 ```bash
-kubectl get pods
-# NAME   READY   STATUS              RESTARTS   AGE
-# web    0/1     ContainerCreating   0          3s
-
-kubectl get pods -w        # mises à jour en direct ; Ctrl-C pour arrêter
+kubectl get pods -w        # mises à jour en direct — Ctrl-C pour arrêter
 ```
 
-Attendez d'atteindre :
+Ce que « bon » donne :
 
 ```
-web    1/1     Running   0    20s
+NAME   READY   STATUS    RESTARTS   AGE
+web    1/1     Running    0         20s
 ```
 
-- `READY 1/1` → l'unique conteneur est démarré.
-- `STATUS Running` → le processus du conteneur tourne.
+- `READY 1/1` — le conteneur est prêt et passe ses checks.
+- `STATUS Running` — le processus a démarré.
 
-> S'il reste bloqué sur `ContainerCreating`, l'image se télécharge encore —
-> patientez quelques secondes.
+> **Bloqué sur `ContainerCreating` ?** L'image se télécharge encore (premier
+> pull). Patientez quelques secondes et réobservez — c'est normal, pas une erreur.
 
-Quand votre Pod est **Running**, cliquez sur **Vérifier** ci-dessous pour gagner
-de l'XP. ✅
+Quand `web` est **Running**, cliquez sur **Vérifier**. ✅

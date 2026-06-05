@@ -1,28 +1,28 @@
 ## What is a Pod?
 
-A **Pod** is the smallest thing you can deploy in Kubernetes. It wraps **one or
-more containers** that always run together, on the same node, sharing:
+A **Pod** is the smallest unit you deploy in Kubernetes: a wrapper around **one or
+more containers** that always run together on one node and share:
 
-- the same **network** (one IP, the containers reach each other on `localhost`)
+- one **network identity** — a single Pod IP; containers talk over `localhost`
 - the same **storage volumes**
 
-> Think of a Pod as a *logical host* for a tightly-coupled set of containers.
-> 99% of the time you'll run **one container per Pod**.
+> **Field note.** Run one container per Pod ~99% of the time. A Pod is *ephemeral*
+> — if it dies it is **not** recreated (a Deployment does that, next mission), and
+> its name and IP are not stable. The **kubelet** on the node pulls the image and
+> starts the container.
 
-You almost never create Pods by hand in production — a **Deployment** does it for
-you (next lesson). But understanding the Pod is the foundation for everything else.
+You rarely create Pods by hand in production — but every higher-level object
+(Deployments, Jobs, StatefulSets) ultimately runs Pods. Master this and the rest
+falls into place.
 
-A few facts to keep in mind:
+### Recon
 
-- A Pod is **ephemeral**: if it dies, it is *not* automatically recreated (that's
-  the Deployment's job). Its name and IP are not stable.
-- Each Pod gets its **own IP** inside the cluster network.
-- The container image is pulled and started by the **kubelet** on the node.
-
-In the next step you'll create a real Pod in your live cluster — the terminal on
-the right is a full shell with `kubectl` already connected. Try it now:
+The terminal on the right is a real shell with `kubectl` already wired to a live
+cluster. Survey it:
 
 ```bash
-kubectl get pods
-kubectl get nodes
+kubectl get nodes      # the machines that run your workloads
+kubectl get pods       # what's running right now (probably nothing yet)
 ```
+
+Next, you'll put a Pod on one of those nodes. **Continue →**

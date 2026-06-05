@@ -16,7 +16,7 @@
     },
     {
       "id": "create",
-      "title": { "en": "Create your first Pod", "fr": "Créez votre premier Pod" },
+      "title": { "en": "Launch your first Pod", "fr": "Lancez votre premier Pod" },
       "md": { "en": "steps/en/02-create.md", "fr": "steps/fr/02-create.md" },
       "verify": "scripts/02-verify.sh",
       "hint": {

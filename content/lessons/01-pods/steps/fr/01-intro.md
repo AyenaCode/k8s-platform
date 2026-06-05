@@ -1,30 +1,29 @@
 ## Qu'est-ce qu'un Pod ?
 
-Un **Pod** est la plus petite chose déployable dans Kubernetes. Il enveloppe
-**un ou plusieurs conteneurs** qui tournent toujours ensemble, sur le même nœud,
-en partageant :
+Un **Pod** est la plus petite unité que vous déployez dans Kubernetes : une
+enveloppe autour d'**un ou plusieurs conteneurs** qui tournent toujours ensemble
+sur un même nœud et partagent :
 
-- le même **réseau** (une seule IP, les conteneurs se joignent via `localhost`)
+- une **identité réseau** unique — une seule IP de Pod ; les conteneurs dialoguent via `localhost`
 - les mêmes **volumes** de stockage
 
-> Voyez un Pod comme un *hôte logique* pour un ensemble de conteneurs fortement
-> couplés. Dans 99 % des cas, vous aurez **un seul conteneur par Pod**.
+> **Note de terrain.** Un seul conteneur par Pod dans ~99 % des cas. Un Pod est
+> *éphémère* : s'il meurt, il n'est **pas** recréé (c'est le rôle d'un Deployment,
+> prochaine mission), et son nom comme son IP ne sont pas stables. Le **kubelet**
+> du nœud récupère l'image et démarre le conteneur.
 
-En production, on ne crée presque jamais les Pods à la main — c'est un
-**Deployment** qui s'en charge (leçon suivante). Mais comprendre le Pod est la
-base de tout le reste.
+En production, on crée rarement les Pods à la main — mais tout objet de plus haut
+niveau (Deployments, Jobs, StatefulSets) finit par exécuter des Pods. Maîtrisez
+ceci et le reste suivra.
 
-Quelques faits à retenir :
+### Reconnaissance
 
-- Un Pod est **éphémère** : s'il meurt, il n'est *pas* recréé automatiquement
-  (c'est le rôle du Deployment). Son nom et son IP ne sont pas stables.
-- Chaque Pod reçoit sa **propre IP** dans le réseau du cluster.
-- L'image est récupérée et démarrée par le **kubelet** sur le nœud.
-
-À l'étape suivante, vous créerez un vrai Pod dans votre cluster — le terminal à
-droite est un shell complet avec `kubectl` déjà connecté. Essayez :
+Le terminal à droite est un vrai shell, avec `kubectl` déjà connecté à un cluster
+en direct. Faites le tour :
 
 ```bash
-kubectl get pods
-kubectl get nodes
+kubectl get nodes      # les machines qui exécutent vos charges
+kubectl get pods       # ce qui tourne maintenant (sans doute rien encore)
 ```
+
+Ensuite, vous placerez un Pod sur l'un de ces nœuds. **Continuer →**
