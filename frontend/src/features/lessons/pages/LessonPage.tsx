@@ -5,9 +5,10 @@
 // backend awards XP on success, so we just refetch the summary and celebrate.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { streamSSE } from '@/core/api/sse'
 import { useLang } from '@/core/i18n/lang'
-import { lessonDetailQuery } from '@/features/lessons/api/lessons.queries'
+import { lessonDetailQuery, lessonsListQuery } from '@/features/lessons/api/lessons.queries'
 import { Confetti } from '@/features/gamification/Confetti'
 import { RewardToast, type Reward } from '@/features/gamification/RewardToast'
 import { progressSummaryQuery } from '@/features/progress/api/progress.queries'
@@ -17,8 +18,10 @@ import { MarkdownView } from '@/shared/components/Markdown/Markdown'
 export function LessonPage({ slug }: { slug: string }) {
   const { lang } = useLang()
   const { data, isLoading, error } = useQuery(lessonDetailQuery(slug, lang))
+  const lessons = useQuery(lessonsListQuery(lang))
   const summary = useProgressSummary()
   const qc = useQueryClient()
+  const navigate = useNavigate()
 
   const [idx, setIdx] = useState(0)
   const [out, setOut] = useState<string[]>([])
@@ -27,12 +30,35 @@ export function LessonPage({ slug }: { slug: string }) {
   const [reward, setReward] = useState<Reward | null>(null)
   const [celebrate, setCelebrate] = useState(false)
   const outRef = useRef<HTMLPreElement>(null)
+  // Pending auto-advance timer (next step or next lesson) — cleared on unmount
+  // and on any manual navigation so a deferred jump never fires out of context.
+  const advanceTimer = useRef<number | null>(null)
+  const clearAdvance = () => {
+    if (advanceTimer.current) {
+      clearTimeout(advanceTimer.current)
+      advanceTimer.current = null
+    }
+  }
+
+  // The next lesson in catalog order, so finishing a lesson rolls straight on.
+  const nextSlug = useMemo(() => {
+    const items = lessons.data
+    if (!items) return undefined
+    const here = items.findIndex((l) => l.slug === slug)
+    return here >= 0 ? items[here + 1]?.slug : undefined
+  }, [lessons.data, slug])
+
+  const goNextLesson = () => {
+    if (nextSlug) navigate({ to: '/lessons/$slug', params: { slug: nextSlug } })
+  }
 
   useEffect(() => setIdx(0), [slug, lang])
   useEffect(() => {
     setOut([])
     setShowHint(false)
+    clearAdvance()
   }, [idx, slug])
+  useEffect(() => clearAdvance, [])
   useEffect(() => {
     outRef.current?.scrollTo({ top: outRef.current.scrollHeight })
   }, [out])
@@ -91,8 +117,18 @@ export function LessonPage({ slug }: { slug: string }) {
     // when XP or a badge was actually gained — re-verifying a solved step still
     // celebrates but won't claim fake XP.)
     setCelebrate(true)
-    // Gentle auto-advance to keep momentum.
-    if (!isLast) setTimeout(() => setIdx((i) => Math.min(data.steps.length - 1, i + 1)), 1200)
+    // Gentle auto-advance to keep momentum: next step within the lesson, or — once
+    // the last step is verified — straight on to the next lesson (a touch slower so
+    // the reward toast is seen first). Stops at the end of the course.
+    clearAdvance()
+    if (!isLast) {
+      advanceTimer.current = window.setTimeout(
+        () => setIdx((i) => Math.min(data.steps.length - 1, i + 1)),
+        1200,
+      )
+    } else if (nextSlug) {
+      advanceTimer.current = window.setTimeout(goNextLesson, 1800)
+    }
   }
 
   const onReset = () => {
@@ -161,19 +197,40 @@ export function LessonPage({ slug }: { slug: string }) {
       )}
 
       <div className="lesson__nav">
-        <button disabled={idx === 0} onClick={() => setIdx((i) => Math.max(0, i - 1))}>
+        <button
+          disabled={idx === 0}
+          onClick={() => {
+            clearAdvance()
+            setIdx((i) => Math.max(0, i - 1))
+          }}
+        >
           ← Previous
         </button>
         <button className="ghost" disabled={busy} onClick={onReset}>
           Reset cluster
         </button>
-        <button
-          className="primary"
-          disabled={isLast}
-          onClick={() => setIdx((i) => Math.min(data.steps.length - 1, i + 1))}
-        >
-          Next →
-        </button>
+        {isLast ? (
+          <button
+            className="primary"
+            disabled={!nextSlug}
+            onClick={() => {
+              clearAdvance()
+              goNextLesson()
+            }}
+          >
+            {nextSlug ? 'Next lesson →' : 'Course complete 🎉'}
+          </button>
+        ) : (
+          <button
+            className="primary"
+            onClick={() => {
+              clearAdvance()
+              setIdx((i) => Math.min(data.steps.length - 1, i + 1))
+            }}
+          >
+            Next →
+          </button>
+        )}
       </div>
 
       {reward && <RewardToast reward={reward} onDismiss={() => setReward(null)} />}
