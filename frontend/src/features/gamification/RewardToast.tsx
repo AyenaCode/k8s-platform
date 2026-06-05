@@ -14,7 +14,7 @@ export function RewardToast({ reward, onDismiss }: { reward: Reward; onDismiss: 
 
   return (
     <div className="toast" role="status" onClick={onDismiss}>
-      <strong>Incident resolved! +{reward.xp} XP</strong>
+      <strong>✓ Verified · +{reward.xp} XP</strong>
       {reward.badge && <span className="toast__badge">🏅 New badge: {reward.badge}</span>}
     </div>
   )

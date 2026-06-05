@@ -3,7 +3,7 @@
 // from the piece index so it stays deterministic and cheap.
 import { useEffect } from 'react'
 
-const COLORS = ['#4c8dff', '#3fb950', '#d29922', '#ff6b6b', '#a371f7', '#56d4dd']
+const COLORS = ['#b6f23a', '#57d98a', '#56d6e0', '#f0b429', '#ff5d5d', '#e9f0ea']
 const PIECES = Array.from({ length: 90 }, (_, i) => i)
 
 export function Confetti({ onDone }: { onDone: () => void }) {

@@ -13,7 +13,12 @@ export function LabLayout() {
         <Outlet />
       </section>
       <aside className="lab__terminal">
-        <div className="lab__terminal-bar">Terminal · live cluster · Ctrl+Shift+C / V to copy &amp; paste</div>
+        <div className="lab__terminal-bar">
+          <span className="dotled" aria-hidden="true" />
+          <span>live cluster</span>
+          <span className="spacer" />
+          <span className="keyhint">Ctrl+Shift+C / V to copy &amp; paste</span>
+        </div>
         <div className="lab__terminal-body">
           <PtyTerminal />
         </div>
