@@ -16,9 +16,3 @@ export async function apiGet<T>(path: string): Promise<T> {
   if (!res.ok) throw new ApiError(res.status, `GET ${path} failed`)
   return (await res.json()) as T
 }
-
-export async function apiPost<T>(path: string): Promise<T> {
-  const res = await fetch(path, { method: 'POST', headers: { Accept: 'application/json' } })
-  if (!res.ok) throw new ApiError(res.status, `POST ${path} failed`)
-  return (await res.json()) as T
-}

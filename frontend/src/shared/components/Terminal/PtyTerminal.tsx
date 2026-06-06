@@ -7,7 +7,6 @@ import { FitAddon } from '@xterm/addon-fit'
 import { AttachAddon } from '@xterm/addon-attach'
 import '@xterm/xterm/css/xterm.css'
 import { encodeResize, terminalSocketURL } from '@/core/api/ws'
-import { setTerminalSink } from '@/core/terminal/bus'
 
 export function PtyTerminal() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -74,18 +73,10 @@ export function PtyTerminal() {
 
     ws.addEventListener('open', () => {
       term.loadAddon(new AttachAddon(ws))
-      // Let lesson "Run" buttons inject commands straight into this shell.
-      setTerminalSink({
-        send: (data) => {
-          if (ws.readyState === WebSocket.OPEN) ws.send(data)
-        },
-        focus: () => term.focus(),
-      })
       sendResize()
       term.focus()
     })
     ws.addEventListener('close', () => {
-      setTerminalSink(null)
       term.write('\r\n\x1b[90m[terminal closed]\x1b[0m\r\n')
     })
 
@@ -94,7 +85,6 @@ export function PtyTerminal() {
 
     return () => {
       observer.disconnect()
-      setTerminalSink(null)
       ws.close()
       term.dispose()
     }

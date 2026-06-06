@@ -499,8 +499,6 @@ kbd {
   transition: color 0.15s, border-color 0.15s;
 }
 .cb-btn:hover { color: var(--fg); border-color: var(--faint); }
-.cb-btn--run { color: var(--signal); }
-.cb-btn--run:hover { border-color: var(--signal); box-shadow: 0 0 14px -4px var(--signal-glow); }
 
 /* ============================== Toast =================================== */
 .toast {

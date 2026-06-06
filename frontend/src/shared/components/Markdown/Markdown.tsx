@@ -1,16 +1,16 @@
 // MarkdownView renders trusted lesson/mission markdown: GFM (tables, lists,
 // task items) via remark-gfm, and syntax-highlighted code blocks via react-shiki.
-// Every code block gets a toolbar: "Copy", and — for shell blocks — "Run", which
-// types the command straight into the live terminal (see core/terminal/bus).
+// Code blocks get a "Copy" button only — deliberately NO "Run": the learner types
+// each command into the live terminal themselves (you learn kubectl by typing it).
 import { memo, useState, type ComponentPropsWithoutRef } from 'react'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 // /web uses the JS RegExp engine (no wasm/oniguruma chunk) — lighter & faster
 // startup, plenty for our bash/yaml/text snippets.
 import ShikiHighlighter, { isInlineCode, type Element } from 'react-shiki/web'
-import { runInTerminal } from '@/core/terminal/bus'
 
-const RUNNABLE = new Set(['bash', 'sh', 'shell', 'console', 'zsh'])
+// Shell languages get a "$" prompt label (a cue to type it), others show the lang.
+const SHELL = new Set(['bash', 'sh', 'shell', 'console', 'zsh'])
 
 // GitHub-style alert callouts: a blockquote whose first line is `[!NOTE]`,
 // `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]` or `[!CAUTION]` renders as a coloured
@@ -71,24 +71,6 @@ function CopyButton({ code }: { code: string }) {
   )
 }
 
-function RunButton({ code }: { code: string }) {
-  const [ran, setRan] = useState(false)
-  return (
-    <button
-      className="cb-btn cb-btn--run"
-      title="Run in the terminal"
-      onClick={() => {
-        if (runInTerminal(code)) {
-          setRan(true)
-          setTimeout(() => setRan(false), 1400)
-        }
-      }}
-    >
-      {ran ? '✓ Sent' : '▶ Run'}
-    </button>
-  )
-}
-
 type CodeProps = ComponentPropsWithoutRef<'code'> & { node?: unknown }
 
 function Code({ className, children, node, ...props }: CodeProps) {
@@ -105,8 +87,7 @@ function Code({ className, children, node, ...props }: CodeProps) {
   return (
     <div className="codeblock">
       <div className="codeblock__bar">
-        <span className="codeblock__lang">{RUNNABLE.has(lang) ? '$' : lang}</span>
-        {RUNNABLE.has(lang) && <RunButton code={code} />}
+        <span className="codeblock__lang">{SHELL.has(lang) ? '$' : lang}</span>
         <CopyButton code={code} />
       </div>
       <ShikiHighlighter language={lang} theme="github-dark" className="md-code">
