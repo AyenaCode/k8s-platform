@@ -10,13 +10,13 @@
   "steps": [
     {
       "id": "intro",
-      "title": { "en": "Why Services?", "fr": "Pourquoi les Services ?" },
+      "title": { "en": "Why Services exist", "fr": "Pourquoi les Services existent" },
       "md": { "en": "steps/en/01-intro.md", "fr": "steps/fr/01-intro.md" },
       "xp": 0
     },
     {
       "id": "clusterip",
-      "title": { "en": "Expose with a ClusterIP", "fr": "Exposer avec un ClusterIP" },
+      "title": { "en": "Expose a Deployment with ClusterIP", "fr": "Exposer un Deployment avec ClusterIP" },
       "md": { "en": "steps/en/02-clusterip.md", "fr": "steps/fr/02-clusterip.md" },
       "setup": "scripts/02-setup.sh",
       "verify": "scripts/02-verify.sh",
@@ -28,7 +28,7 @@
     },
     {
       "id": "nodeport",
-      "title": { "en": "Reach it from outside (NodePort)", "fr": "Y accéder de l'extérieur (NodePort)" },
+      "title": { "en": "Open it to the outside with NodePort", "fr": "L'ouvrir vers l'extérieur avec NodePort" },
       "md": { "en": "steps/en/03-nodeport.md", "fr": "steps/fr/03-nodeport.md" },
       "verify": "scripts/03-verify.sh",
       "hint": {
@@ -39,7 +39,7 @@
     },
     {
       "id": "dns",
-      "title": { "en": "Service discovery (DNS)", "fr": "Découverte de service (DNS)" },
+      "title": { "en": "Discover Services by DNS", "fr": "Découvrir les Services par DNS" },
       "md": { "en": "steps/en/04-dns.md", "fr": "steps/fr/04-dns.md" },
       "xp": 0
     }

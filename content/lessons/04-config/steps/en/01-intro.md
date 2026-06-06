@@ -1,25 +1,31 @@
-## Why ConfigMaps & Secrets?
+## Stop baking config into images
 
-A good container image is **the same everywhere** — dev, staging, prod. What
-changes between environments is *configuration*: a log level, a database URL, an
-API key. If you bake those into the image, you need a new image for every
-environment. That is the wrong way.
+A good container image is **identical across every environment** — dev, staging, prod. What changes is *configuration*: a log level, a database URL, an API key. Bake those into the image and you need a rebuild for every environment change. That is the wrong approach.
 
-Kubernetes gives you two objects to keep config **outside** the image:
+Kubernetes gives you two `core/v1` objects to keep config **outside** the image:
 
-- **ConfigMap** — non-sensitive settings (log level, feature flags, URLs).
-- **Secret** — sensitive values (passwords, tokens, keys). Same idea, but stored
-  and handled a little more carefully.
+- **ConfigMap** — non-sensitive settings (log level, feature flags, service URLs).
+- **Secret** — sensitive values (passwords, tokens, keys). Same structure, but gated by RBAC and handled separately by the kubelet.
 
-Both can be consumed by a Pod in two ways:
+Both inject into a Pod in two ways:
 
-| Way | Looks like inside the container |
+| Injection method | What it looks like inside the container |
 |---|---|
-| **Environment variables** | `echo $LOG_LEVEL` |
-| **Mounted files** | `cat /etc/config/log_level` |
+| **Environment variables** | `printenv LOG_LEVEL` |
+| **Volume-mounted files** | `cat /etc/config/log_level` |
 
-> **Key idea:** the image stays generic; the cluster injects the right config at
-> run time. Change the config, restart the Pod, done — no rebuild.
+> [!NOTE]
+> The image stays generic; the cluster injects the right config at run time.
+> Update the ConfigMap or Secret, restart the Pod — done. No rebuild, no new tag.
 
-In this lesson you will create a ConfigMap, feed it to a Pod as env vars, then do
-the same with a Secret mounted as a file. Hit **Next**. →
+### Recon
+
+Your terminal is wired to a live k3s cluster. Orient yourself:
+
+```bash
+kubectl get nodes
+kubectl get configmaps         # likely just "kube-root-ca.crt" from the system
+kubectl get secrets
+```
+
+In this lesson you will create a ConfigMap, inject it into a Pod as env vars, then create a Secret and mount it as a file. **Continue →**

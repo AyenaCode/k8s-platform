@@ -1,28 +1,54 @@
-## Cas 1 : ImagePullBackOff
+## Diagnostiquer et corriger un ImagePullBackOff
 
-Cliquez **Préparer la tâche** pour le casser. Un Deployment nommé **`broken-img`** est créé.
-Diagnostiquez :
+La plateforme vient de déployer `broken-img` avec un tag qui n'existe pas. Rien ne tournera tant que vous n'aurez pas corrigé l'image.
+
+### Diagnostiquer
+
+**1. Repérer le symptôme** — scannez la colonne STATUS :
 
 ```bash
 kubectl get pods
-# broken-img-xxxx   0/1   ImagePullBackOff   0   30s
 ```
 
-`ImagePullBackOff` signifie que le kubelet ne peut pas télécharger l'image. Lisez les Events pour
-connaître la raison exacte :
+```text
+NAME                          READY   STATUS             RESTARTS   AGE
+broken-img-7d9f6b8c5-xk2pq   0/1     ImagePullBackOff   0          30s
+```
+
+`ImagePullBackOff` — le kubelet a tenté de télécharger l'image, a échoué, et est en back-off (il attend de plus en plus longtemps entre chaque tentative).
+
+**2. Lire les Events** — trouvez la raison exacte :
 
 ```bash
-kubectl describe pod -l app=broken-img | tail -n 15
-# Warning  Failed   ... Failed to pull image "nginx:doesnotexist99999": ...
-# Warning  Failed   ... Error: ErrImagePull
-# Warning  BackOff  ... Back-off pulling image "nginx:doesnotexist99999"
+kubectl describe pod -l app=broken-img
 ```
 
-Voilà — le tag `doesnotexist99999` n'est pas un vrai tag nginx, donc le pull échoue et Kubernetes
-recule et réessaie. (Le même symptôme apparaît pour une faute de frappe dans le nom de l'image,
-un registre privé sans identifiants, ou un digest incorrect.)
+Descendez jusqu'à la section **Events** en bas :
 
-**Corrigez-le** — ré-appliquez le Deployment avec une vraie image. Même nom, tag valide :
+```text
+Warning  Failed   ...  Failed to pull image "nginx:doesnotexist99999": ...
+Warning  Failed   ...  Error: ErrImagePull
+Warning  BackOff  ...  Back-off pulling image "nginx:doesnotexist99999"
+```
+
+Le tag `doesnotexist99999` n'est pas un vrai tag nginx. Le pull échoue. Kubernetes recule et réessaie — indéfiniment, jusqu'à ce que vous corrigiez le problème.
+
+> [!NOTE]
+> Le même symptôme apparaît pour une faute de frappe dans le nom d'image, un registre privé avec des identifiants manquants, ou un digest incorrect. Le message dans **Events** vous indique lequel.
+
+**3. Vérifier les logs** — rien d'utile ici (le conteneur n'a jamais démarré), mais ça vaut la peine de confirmer :
+
+```bash
+kubectl logs -l app=broken-img
+```
+
+```text
+Error from server (BadRequest): container "app" in pod "..." is waiting to start: trying and failing to pull image
+```
+
+### Votre tâche
+
+**1. Ré-appliquer le Deployment** avec un tag d'image valide — conservez le même nom de Deployment :
 
 ```bash
 kubectl apply -f - <<'EOF'
@@ -42,14 +68,22 @@ spec:
     spec:
       containers:
       - name: app
-        image: nginx:1.27        # <- a tag that actually exists
+        image: nginx:1.27        # tag valide — celui-ci sera téléchargé
 EOF
 ```
 
-Observez la récupération :
+**2. Observer la récupération du Pod :**
 
 ```bash
-kubectl get pods -l app=broken-img -w     # -> 1/1 Running, then Ctrl-C
+kubectl get pods -l app=broken-img -w
 ```
 
-Lorsque `broken-img` a un Pod **Running**, cliquez **Vérifier**. ✅
+```text
+NAME                          READY   STATUS    RESTARTS   AGE
+broken-img-6c8d7f9b4-p9mkx   1/1     Running   0          12s
+```
+
+> [!TIP]
+> `ImagePullBackOff` s'affiche encore juste après l'apply ? Kubernetes est toujours dans la fenêtre de back-off. Patientez jusqu'à 5 minutes — l'intervalle de retry peut atteindre 5 min maximum. Faites Ctrl-C puis relancez `kubectl get pods`.
+
+Puis cliquez sur **Vérifier**. ✅

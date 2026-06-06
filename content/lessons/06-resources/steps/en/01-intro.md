@@ -1,12 +1,12 @@
-## Requests, limits & QoS classes
+## Understand requests, limits & QoS classes
 
-Every container can declare two numbers for CPU and memory:
+Every container can declare two resource numbers for CPU and memory.
 
 - **`requests`** — what the container is *guaranteed*. The scheduler uses requests
-  to pick a node with enough room. This is a **reservation**.
-- **`limits`** — the *ceiling*. Exceed the **memory** limit and the kernel
-  **kills** the container (OOMKilled). Exceed the **CPU** limit and you are merely
-  **throttled** (slowed), not killed.
+  to find a node with enough room. This is a **reservation**.
+- **`limits`** — the hard *ceiling*. Exceed the **memory** limit and the kernel
+  **OOMKills** the container (exit 137). Exceed the **CPU** limit and the container
+  is **throttled** — slowed, never killed.
 
 ```yaml
 resources:
@@ -14,17 +14,21 @@ resources:
   limits:   { cpu: "200m", memory: "128Mi" }
 ```
 
-From these numbers Kubernetes assigns each Pod a **Quality of Service class**,
-which decides who gets evicted first when a node runs out of memory:
+From those two numbers Kubernetes assigns each Pod a **Quality of Service class**,
+which determines who gets evicted first when a node runs low on memory:
 
 | QoS class | Rule | Evicted… |
 |---|---|---|
 | **Guaranteed** | every container sets cpu **and** memory, and `limits == requests` | **last** |
-| **Burstable** | has some request/limit, but not Guaranteed | in the middle |
+| **Burstable** | has some request or limit, but not Guaranteed | in the middle |
 | **BestEffort** | no requests or limits at all | **first** |
 
-> **Key idea:** requests are about *scheduling and protection*; limits are about
-> *containment*. Set memory requests = limits for anything that must not be killed.
+> [!IMPORTANT]
+> `requests` = scheduling protection — the scheduler will not place a Pod on a node
+> that cannot satisfy them. `limits` = runtime containment — the kernel enforces them
+> live. Set memory `requests == limits` for anything that must not be OOMKilled.
 
 In this lesson you will build a **Guaranteed** Pod, then deliberately blow past a
-memory limit and watch the kernel **OOMKill** it. →
+memory limit and watch the kernel kill it.
+
+**Continue →**

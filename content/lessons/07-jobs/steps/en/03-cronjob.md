@@ -1,7 +1,12 @@
-## Schedule it with a CronJob
+## Schedule work with a CronJob
 
-A CronJob runs a Job on a timer. Create one named **`report`** that fires every
-minute:
+A CronJob fires a new Job on a timer. It holds a `jobTemplate` — the blueprint
+every triggered Job is stamped from. You never touch the schedule to test it;
+you trigger a manual run instead.
+
+### Your task
+
+**1. Create the CronJob** named `report`, firing every minute:
 
 ```bash
 kubectl create cronjob report \
@@ -10,33 +15,47 @@ kubectl create cronjob report \
   -- /bin/sh -c "date; echo nightly report done"
 ```
 
-Look at it:
+**2. Confirm it registered:**
 
 ```bash
 kubectl get cronjob report
-# NAME     SCHEDULE      SUSPEND   ACTIVE   LAST SCHEDULE   AGE
-# report   */1 * * * *   False     0        <none>          5s
 ```
 
-Waiting a full minute for the schedule is slow. You can **trigger a run now** by
-creating a Job *from* the CronJob's template — exactly what an on-call engineer
-does to test a scheduled task:
+What good looks like:
+
+```text
+NAME     SCHEDULE      SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+report   */1 * * * *   False     0        <none>          5s
+```
+
+**3. Trigger a manual run now** — don't wait for the schedule. This is exactly
+what an on-call engineer does to test a scheduled task:
 
 ```bash
 kubectl create job report-now --from=cronjob/report
+```
+
+**4. Wait for it to complete and check the output:**
+
+```bash
 kubectl wait --for=condition=complete job/report-now --timeout=60s
 kubectl logs -l job-name=report-now
 ```
 
-After a minute or two, the schedule itself will also start creating Jobs named
-`report-<timestamp>`. List them:
+**5. After a minute or two, list all Jobs** — the scheduler will have fired its
+own run named `report-<timestamp>`:
 
 ```bash
 kubectl get jobs
 ```
 
-> **Note:** a CronJob keeps only the last few finished Jobs
-> (`successfulJobsHistoryLimit`, default 3) so history does not pile up forever.
+> [!NOTE]
+> A CronJob keeps only the last few finished Jobs by default
+> (`successfulJobsHistoryLimit` defaults to **3**). History never piles up
+> unboundedly.
 
-When the CronJob **`report`** exists and your **`report-now`** Job has completed,
-click **Verify**. ✅
+> [!TIP]
+> `kubectl create job <name> --from=cronjob/<name>` is the standard way to
+> trigger a one-off run from any CronJob template — no YAML editing needed.
+
+When CronJob **`report`** exists and Job **`report-now`** has completed, then hit **Verify**. ✅

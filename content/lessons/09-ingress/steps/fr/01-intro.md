@@ -1,31 +1,23 @@
-## Pourquoi un Ingress ?
+## Comprendre l'Ingress — une seule porte, plusieurs apps
 
-Vous savez déjà comment atteindre un Pod depuis l'extérieur avec un Service **NodePort**. Mais
-les NodePorts sont peu pratiques à grande échelle : un port élevé aléatoire par application, sans
-noms d'hôte, sans chemins, sans TLS. Les vrais clusters exposent le trafic **HTTP** via une
-seule porte d'entrée intelligente — un **Ingress**.
+Les Services NodePort fonctionnent, mais ils deviennent vite ingérables à grande échelle : un port élevé aléatoire par app, pas de noms d'hôte, pas de routage par chemin, pas de TLS. Les vrais clusters exposent le HTTP via une seule porte d'entrée intelligente — un **Ingress**.
 
-Un Ingress est un ensemble de **règles de routage** : « hôte `shop.example.com` → Service `shop` ;
-chemin `/api` → Service `api` ». Une seule IP, un seul port (80/443), de nombreuses applications.
+Un Ingress est un ensemble de **règles de routage L7** : on filtre sur le nom d'hôte et le chemin, puis on transmet vers un Service. Une seule IP, un seul port (80/443), un nombre illimité d'apps derrière.
 
-Les règles sont inutiles seules — elles nécessitent un **Ingress Controller** pour les appliquer
-(un reverse proxy qui surveille les objets Ingress). Ce cluster utilise **Traefik**,
-qui écoute sur le port **80**, avec un IngressClass nommé **`traefik`**.
-
-```
-                         ┌── host: shop.local ──▶ Service shop  ──▶ Pods
-client ─▶ Traefik (:80) ─┤
-                         └── host: site.local ──▶ Service site-svc ──▶ Pods
-              ▲
-        the Ingress rules tell Traefik how to route
+```text
+client ─▶ Traefik (:80)
+           ├─ site.local ─▶ svc/site-svc
+           └─ shop.local ─▶ svc/shop
 ```
 
-La chaîne est toujours **Ingress → Service → Pods**. L'Ingress ne communique jamais directement
-avec les Pods ; il transmet au Service, qui répartit la charge vers les Pods.
+La chaîne est toujours **Ingress → Service → Pods**. L'Ingress ne parle jamais directement aux Pods — il transmet au Service, qui répartit la charge vers les Pods.
 
-> **Idée clé :** un Ingress est un routage de couche 7 (HTTP). On filtre sur l'hôte et le chemin,
-> puis on envoie vers un Service. Ajoutez TLS et vous obtenez un Ingress de qualité production
-> avec un seul objet.
+> [!IMPORTANT]
+> Un Ingress n'est qu'un objet de configuration. Sans un **Ingress Controller** en cours d'exécution pour lire et appliquer ces règles, rien ne se passe. Ce cluster fait tourner **Traefik** comme contrôleur — il surveille les objets Ingress et met à jour sa table de routage en temps réel. L'IngressClass s'appelle **`traefik`** ; vous devez définir `ingressClassName: traefik` pour que Traefik prenne en charge votre Ingress.
 
-Dans cette leçon, vous allez placer un Service devant une application, puis router le trafic HTTP
-public vers lui avec un Ingress — et le prouver avec une vraie requête. →
+> [!NOTE]
+> Traefik est fourni avec k3s et écoute sur le port **80** (HTTP) et **443** (HTTPS) sur le nœud. Il n'y a rien à installer — il tourne déjà.
+
+Dans cette leçon, vous allez exposer une app via un Service, puis router le trafic HTTP public vers elle avec un Ingress — et le prouver avec une vraie requête en direct.
+
+**Continuer →**

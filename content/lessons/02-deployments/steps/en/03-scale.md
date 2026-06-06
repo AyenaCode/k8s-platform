@@ -1,22 +1,40 @@
-## Scale it
+## Scale the Deployment
 
-Scaling is changing a single number. Take `web` from 3 replicas to **5**:
+Scaling is a single command. The Deployment tells the ReplicaSet to change its target count; the ReplicaSet creates or terminates Pods immediately.
+
+### Your task
+
+**1. Scale `web` from 3 replicas to 5:**
 
 ```bash
 kubectl scale deployment web --replicas=5
 ```
 
-Watch two new Pods appear:
+**2. Watch the two new Pods come up:**
 
 ```bash
 kubectl get pods -l app=web
 ```
 
-You can scale down just as easily (`--replicas=2`) — Kubernetes terminates the
-extra Pods. The Deployment's job is simply: *make the number of running Pods
-match the desired count*, always.
+What good looks like:
 
-> In production you rarely scale by hand — a **HorizontalPodAutoscaler** watches
-> CPU/memory and scales for you. But it's the same mechanism underneath.
+```text
+NAME                READY   STATUS    RESTARTS
+web-74d9c-aaaa      1/1     Running   0
+web-74d9c-bbbb      1/1     Running   0
+web-74d9c-cccc      1/1     Running   0
+web-74d9c-dddd      1/1     Running   0
+web-74d9c-eeee      1/1     Running   0
+```
 
-Scale `web` to **5 replicas**, wait until all 5 are ready, then click **Verify**. ✅
+> [!TIP]
+> Scaling down works the same way — `--replicas=2` and Kubernetes terminates
+> the extra Pods gracefully. The Deployment's contract is simple:
+> *make the running count equal the desired count, always.*
+
+> [!NOTE]
+> In production you rarely scale by hand. A **HorizontalPodAutoscaler** (HPA)
+> watches CPU/memory and calls `scale` for you — but the underlying mechanism
+> is identical to what you just ran.
+
+When all **5 replicas are ready**, then hit **Verify**. ✅

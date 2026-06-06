@@ -28,6 +28,7 @@ web    1/1     Running    0         20s
 - `READY 1/1` — the container is up and passing its checks.
 - `STATUS Running` — the process started.
 
+> [!TIP]
 > **Stuck on `ContainerCreating`?** The image is still downloading on first pull.
 > Give it a few seconds and watch again — that's normal, not an error.
 

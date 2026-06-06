@@ -10,7 +10,7 @@
   "steps": [
     {
       "id": "intro",
-      "title": { "en": "Run-to-completion workloads", "fr": "Charges qui s'exécutent jusqu'au bout" },
+      "title": { "en": "Run-to-completion workloads", "fr": "Charges à exécution unique" },
       "md": { "en": "steps/en/01-intro.md", "fr": "steps/fr/01-intro.md" },
       "xp": 0
     },

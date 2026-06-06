@@ -1,33 +1,52 @@
-## base64 ≠ encryption
+## base64 ≠ encryption — know the truth
 
-One thing every engineer must know about Secrets: by default they are **not
-encrypted**. They are only **base64-encoded**, which is just a reversible text
-format — anyone with read access can decode them.
+Every engineer who touches Kubernetes must understand this: Secrets are **not encrypted at rest by default**. They are base64-encoded — a reversible text format anyone can decode in one command.
 
-See it yourself. The raw value in the API is base64:
+Prove it yourself:
 
 ```bash
 kubectl get secret app-secret -o jsonpath='{.data.API_KEY}'
-# -> czNjcjN0   (this is NOT encryption)
 ```
 
-Decode it in one line:
+```text
+czNjcjN0
+```
+
+Decode it:
 
 ```bash
 kubectl get secret app-secret -o jsonpath='{.data.API_KEY}' | base64 -d
-# -> s3cr3t
 ```
 
-So what makes a Secret different from a ConfigMap?
+```text
+s3cr3t
+```
 
-- It is **not** shown in plain text by `kubectl describe`.
-- Access can be locked down separately with **RBAC**.
-- The kubelet only sends a Secret to nodes that actually run a Pod using it.
-- The cluster *can* be configured for **encryption at rest** (and you should, in
-  production).
+> [!WARNING]
+> `czNjcjN0` is not ciphertext. It is the plain string `s3cr3t` with a different alphabet.
+> Any user who can run `kubectl get secret` reads your credentials instantly.
 
-> **Key idea:** a Secret is about *handling* and *access control*, not magic
-> encryption. Treat the contents as real secrets — lock down who can `get` them.
+### What actually makes a Secret safer than a ConfigMap
 
-You now know the two ways to inject config (env + files) and the truth about
-base64. This lesson is complete — hit **Next** to keep going. →
+| Property | ConfigMap | Secret |
+|---|---|---|
+| Shown in `kubectl describe` | Yes (plain) | No (omitted) |
+| Separate RBAC resource | No | Yes — lock it down |
+| kubelet delivery | All nodes | Only nodes running a consumer Pod |
+| Encrypted at rest | — | Optional — enable `EncryptionConfiguration` |
+
+> [!IMPORTANT]
+> In production: enable **encryption at rest** (`EncryptionConfiguration` in the API server), use a secrets manager (Vault, AWS Secrets Manager, Sealed Secrets), and apply tight RBAC. base64 is a transport encoding, not a security control.
+
+### Injection methods — quick reference
+
+```text
+ConfigMap / Secret → Pod
+
+  envFrom      all keys  → env vars
+  valueFrom    one key   → one var
+  volume       all keys  → files  (updates)
+  + subPath    one file  (no auto-update)
+```
+
+You now know how to keep config out of images, inject it two ways, and why Secrets demand real access control. **Continue →**

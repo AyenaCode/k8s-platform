@@ -1,25 +1,29 @@
 ## Why Deployments?
 
-You saw that a bare Pod is fragile — delete it and it's gone for good. Real
-workloads use a **Deployment**, which gives you:
+A bare Pod is fragile: delete it and it's gone. Real workloads use a **Deployment** — declare a desired state, and Kubernetes drives reality to match it, forever.
 
-- **Desired state** — you declare *"I want 3 replicas of nginx"* and Kubernetes
-  continuously makes reality match.
-- **Self-healing** — a Pod crashes or its node dies? A new one is created.
-- **Scaling** — change one number to run more or fewer copies.
-- **Rolling updates & rollback** — ship a new image with zero downtime, and undo
-  instantly if it goes wrong.
+A Deployment gives you four superpowers:
 
-The chain of objects:
+- **Desired state** — *"I want 3 replicas of nginx"*; Kubernetes enforces it continuously.
+- **Self-healing** — a Pod crashes, a node dies? A replacement appears automatically.
+- **Scaling** — change one number to run more or fewer copies instantly.
+- **Rolling updates & rollback** — ship a new image with zero downtime; undo in one command.
 
+### The ownership chain
+
+```text
+Deployment
+  └─owns─▶ ReplicaSet
+             └─owns─▶ Pod(s)
+(you edit)   (auto-created)  (containers)
 ```
-Deployment  ──manages──▶  ReplicaSet  ──manages──▶  Pods
- (you edit this)          (auto-created)            (the running containers)
-```
 
-You almost always interact with the **Deployment**. It creates a **ReplicaSet**,
-whose only job is to keep exactly N Pods alive. When you update the image, the
-Deployment creates a *new* ReplicaSet and shifts Pods over gradually.
+You interact with the **Deployment** only. It creates a **ReplicaSet** whose sole job is "keep exactly N Pods alive." When you update the image, the Deployment creates a *new* ReplicaSet and shifts Pods over gradually — that's a rolling update.
 
-In this lesson you'll create one, scale it, watch it heal itself, then roll out a
-new version — all in the live terminal on the right.
+> [!NOTE]
+> `apps/v1` is the stable API group for Deployments (and ReplicaSets).
+> You'll see `deployment.apps/web` in `kubectl get` output — that's normal.
+
+In this lesson you'll create a Deployment, scale it, watch it self-heal, then roll out a new version and explore rollback — all in the live terminal.
+
+**Continue →**

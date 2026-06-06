@@ -10,7 +10,7 @@
   "steps": [
     {
       "id": "intro",
-      "title": { "en": "The debugging method", "fr": "La méthode de débogage" },
+      "title": { "en": "Master the debugging loop", "fr": "Maîtriser la boucle de débogage" },
       "md": { "en": "steps/en/01-intro.md", "fr": "steps/fr/01-intro.md" },
       "xp": 0
     },

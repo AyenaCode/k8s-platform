@@ -1,6 +1,10 @@
-## Inject config as env vars
+## Create a ConfigMap and inject it as env vars
 
-First, create a ConfigMap named **`app-config`** with two keys:
+A ConfigMap stores key/value pairs. The fastest way to create one is `--from-literal`. You will create **`app-config`**, then run a Pod that consumes every key as environment variables using `envFrom`.
+
+### Your task
+
+**1. Create the ConfigMap** with two keys:
 
 ```bash
 kubectl create configmap app-config \
@@ -8,14 +12,25 @@ kubectl create configmap app-config \
   --from-literal=GREETING=hello
 ```
 
-Look at what you made:
+**2. Inspect what you made** — see the data section:
 
 ```bash
 kubectl get configmap app-config -o yaml
 ```
 
-Now run a Pod that loads **every** key of the ConfigMap as environment variables,
-using `envFrom`. Paste this whole block:
+What good looks like:
+
+```text
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  GREETING: hello
+  LOG_LEVEL: debug
+```
+
+**3. Run a Pod that loads all keys as env vars** using `envFrom`:
 
 ```bash
 kubectl apply -f - <<'EOF'
@@ -34,14 +49,21 @@ spec:
 EOF
 ```
 
-Wait for it to run, then read the env var from **inside** the container:
+**4. Wait for Running, then confirm the injection:**
 
 ```bash
 kubectl get pod cm-demo -w          # wait for Running, then Ctrl-C
 kubectl exec cm-demo -- printenv LOG_LEVEL GREETING
 ```
 
-You should see `debug` and `hello`. The Pod never knew these values — the cluster
-injected them from the ConfigMap.
+What good looks like:
 
-When `cm-demo` is **Running** and prints the env vars, click **Verify**. ✅
+```text
+debug
+hello
+```
+
+> [!TIP]
+> `envFrom` bulk-loads every key. If you only need one key, use `env: valueFrom: configMapKeyRef` instead — it gives you full control over the variable name.
+
+Then hit **Verify**. ✅

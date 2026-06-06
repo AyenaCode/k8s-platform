@@ -10,7 +10,7 @@
   "steps": [
     {
       "id": "intro",
-      "title": { "en": "PV, PVC & StorageClass", "fr": "PV, PVC & StorageClass" },
+      "title": { "en": "Understand PV, PVC & StorageClass", "fr": "Comprendre PV, PVC & StorageClass" },
       "md": { "en": "steps/en/01-intro.md", "fr": "steps/fr/01-intro.md" },
       "xp": 0
     },
@@ -27,7 +27,7 @@
     },
     {
       "id": "statefulset",
-      "title": { "en": "StatefulSets: stable names & disks", "fr": "StatefulSets : noms & disques stables" },
+      "title": { "en": "StatefulSets: stable names & disks", "fr": "StatefulSets : noms stables & disques dédiés" },
       "md": { "en": "steps/en/03-statefulset.md", "fr": "steps/fr/03-statefulset.md" },
       "verify": "scripts/03-verify.sh",
       "hint": {

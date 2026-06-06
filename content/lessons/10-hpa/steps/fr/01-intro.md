@@ -1,40 +1,51 @@
-## Comment fonctionne l'autoscaling
+## Comprendre la boucle de contrôle du HPA
 
-Vous avez déjà mis à l'échelle un Deployment **manuellement** avec `kubectl scale`. Mais le trafic
-n'attend pas un humain. Un **HorizontalPodAutoscaler (HPA)** ajuste le nombre de replicas
-**automatiquement**, en fonction de la charge.
+Les pics de trafic n'attendent pas un humain. Le **HorizontalPodAutoscaler (HPA)**
+ajuste automatiquement le nombre de replicas d'un Deployment toutes les ~15 secondes,
+en fonction de la charge observée.
 
-Le HPA exécute une boucle de contrôle simple, toutes les ~15 secondes :
+Le calcul est simple :
 
-```
-            current CPU usage (across pods)
-utilization = ──────────────────────────────   ×  100
-            CPU the pods REQUESTED
+```text
+         CPU consommé actuellement (tous les pods)
+util% = ──────────────────────────────────────────── × 100
+         CPU demandé par les pods (requests)
 
-if utilization > target  → add replicas (up to maxReplicas)
-if utilization < target  → remove replicas (down to minReplicas)
-```
-
-Deux prérequis rendent cela possible :
-
-1. **metrics-server** doit être en cours d'exécution — il fournit les valeurs CPU/mémoire en temps réel.
-   Vous l'avez déjà activé (c'est ce que `kubectl top pods` lit).
-2. Les Pods cibles **doivent déclarer `resources.requests.cpu`**. Toute la formule
-   divise par la demande — sans demande, il n'y a pas de dénominateur. Un HPA sur des Pods
-   sans requests affiche `<unknown>` indéfiniment et ne scale jamais.
-
-```
-   ┌──────────── HPA ────────────┐
-   │ watch CPU vs target (50%)   │
-   │ adjust replicas 1 … 5       │
-   └──────────────┬──────────────┘
-                  ▼  scales
-            Deployment web-hpa
+util% > cible  →  ajouter des replicas   (jusqu'à maxReplicas)
+util% < cible  →  supprimer des replicas  (jusqu'à minReplicas)
 ```
 
-> **Idée clé :** vous définissez une **utilisation cible** et des **limites** ; le HPA trouve le
-> nombre de replicas qui vous y maintient. Définissez les CPU requests, sinon il ne peut pas
-> fonctionner.
+Deux conditions doivent être remplies avant que le HPA puisse fonctionner :
 
-Dans cette leçon, vous allez attacher un HPA à un Deployment pré-créé (qui déclare déjà des
-CPU requests) et observer la lecture des métriques en temps réel. →
+1. **metrics-server doit tourner** — il alimente le HPA en chiffres CPU en direct.
+2. **Les Pods doivent déclarer `resources.requests.cpu`** — la formule divise par
+   la request. Sans request → pas de dénominateur → le HPA affiche `<unknown>`
+   indéfiniment et ne scale jamais.
+
+> [!NOTE]
+> k3s embarque metrics-server comme composant intégré. Il **tourne déjà** dans ce
+> cluster — aucune installation nécessaire. `kubectl top pods` fonctionne
+> immédiatement.
+
+Vue d'ensemble :
+
+```text
+┌──────────── HPA ─────────────┐
+│ cible : 50% CPU              │
+│ replicas : min 1 … max 5     │
+└──────────────┬───────────────┘
+               │ scale
+               ▼
+       Deployment/web-hpa
+       (cpu request : 100m)
+```
+
+> [!IMPORTANT]
+> `kubectl autoscale` crée un HPA **`autoscaling/v2`** — l'API stable actuelle.
+> Vous définissez une utilisation cible et des bornes ; le HPA trouve le nombre
+> de replicas qui vous y maintient.
+
+À l'étape suivante vous attacherez un HPA à un Deployment pré-créé et le
+regarderez s'animer avec de vraies métriques.
+
+**Continuer →**

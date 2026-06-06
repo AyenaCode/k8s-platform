@@ -10,7 +10,7 @@
   "steps": [
     {
       "id": "intro",
-      "title": { "en": "How autoscaling works", "fr": "Comment marche l'autoscaling" },
+      "title": { "en": "How the HPA control loop works", "fr": "Comment fonctionne la boucle de contrôle du HPA" },
       "md": { "en": "steps/en/01-intro.md", "fr": "steps/fr/01-intro.md" },
       "xp": 0
     },

@@ -1,6 +1,11 @@
 ## Claim storage that survives the Pod
 
-Create a PersistentVolumeClaim asking for 1Gi:
+You're going to create a PVC, attach a Pod to it, write a file, delete the Pod,
+and prove the file is still there when the Pod comes back.
+
+### Your task
+
+**1. Create the PVC** named `data-pvc` requesting 1 Gi:
 
 ```bash
 kubectl apply -f - <<'EOF'
@@ -16,15 +21,23 @@ spec:
 EOF
 ```
 
-Check it — it is **`Pending`**, and that is expected:
+**2. Check the PVC status** — it should be `Pending`:
 
 ```bash
 kubectl get pvc data-pvc
-# STATUS: Pending   (WaitForFirstConsumer — waiting for a Pod to use it)
 ```
 
-Now create a Pod that **mounts** the claim at `/data`. The moment it is scheduled,
-the volume is provisioned and the PVC turns **`Bound`**:
+```text
+NAME       STATUS    VOLUME   CAPACITY   ACCESS MODES
+data-pvc   Pending
+```
+
+> [!NOTE]
+> `Pending` here is expected. `local-path` is `WaitForFirstConsumer` — the disk
+> is not provisioned until a Pod actually uses the claim.
+
+**3. Create the `writer` Pod** that mounts `data-pvc` at `/data`. The moment it
+is scheduled, the volume is provisioned and the PVC turns `Bound`:
 
 ```bash
 kubectl apply -f - <<'EOF'
@@ -47,20 +60,26 @@ spec:
 EOF
 
 kubectl wait --for=condition=Ready pod/writer --timeout=60s
-kubectl get pvc data-pvc        # STATUS: Bound
+kubectl get pvc data-pvc
 ```
 
-Write a file into the volume:
+```text
+NAME       STATUS   VOLUME         CAPACITY   ACCESS MODES
+data-pvc   Bound    pvc-abc123…    1Gi        RWO
+```
+
+**4. Write a file into the volume:**
 
 ```bash
 kubectl exec writer -- sh -c "echo persisted > /data/hello.txt"
 ```
 
-**Prove it survives.** Delete the Pod, recreate it, and the file is still there —
-because the data lives on the PVC, not the Pod:
+**5. Prove it survives.** Delete the Pod, recreate it, and read the file back —
+the data lives on the PVC, not in the Pod:
 
 ```bash
 kubectl delete pod writer
+
 kubectl apply -f - <<'EOF'
 apiVersion: v1
 kind: Pod
@@ -75,9 +94,18 @@ spec:
   - name: data
     persistentVolumeClaim: { claimName: data-pvc }
 EOF
+
 kubectl wait --for=condition=Ready pod/writer --timeout=60s
-kubectl exec writer -- cat /data/hello.txt      # -> persisted  (it survived!)
+kubectl exec writer -- cat /data/hello.txt
 ```
 
-When the PVC is **Bound** and `/data/hello.txt` reads **`persisted`**, click
-**Verify**. ✅
+```text
+persisted
+```
+
+> [!TIP]
+> The file survived because `data-pvc` was never deleted. Delete the *PVC* and
+> the data is gone — the Pod is irrelevant to durability.
+
+When `data-pvc` is **Bound** and `/data/hello.txt` reads **`persisted`**, then
+hit **Verify**. ✅

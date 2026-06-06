@@ -1,8 +1,16 @@
 ## Build a Guaranteed Pod
 
-The highest QoS class, **Guaranteed**, has a strict rule: **every** container must
-set **both** cpu and memory, and for each resource `limits` must **equal**
-`requests`. Build one:
+**Guaranteed** is the highest QoS class. The rule is strict: every container must
+set **both** cpu and memory, and `limits` must **equal** `requests` for each.
+
+> [!NOTE]
+> Pod resource fields are immutable after creation. If you need to change them,
+> delete the Pod and re-apply. The cluster enforces this — you cannot `kubectl apply`
+> changed resource values onto a live Pod.
+
+### Your task
+
+**1. Apply the Guaranteed Pod:**
 
 ```bash
 kubectl apply -f - <<'EOF'
@@ -20,19 +28,33 @@ spec:
 EOF
 ```
 
-Once it is running, ask Kubernetes which class it assigned:
+**2. Confirm the QoS class Kubernetes assigned:**
 
 ```bash
 kubectl get pod guaranteed-demo -o jsonpath='{.status.qosClass}{"\n"}'
-# -> Guaranteed
 ```
 
-Try it: change one `limits` value so it no longer equals the request (e.g. memory
-limit `128Mi`) and re-apply — the class drops to **Burstable**. Set *no*
-requests/limits at all and it becomes **BestEffort**, the first to be evicted.
+What good looks like:
+
+```text
+Guaranteed
+```
+
+**3. Cross-check with describe:**
 
 ```bash
 kubectl describe pod guaranteed-demo | grep -i qos
 ```
 
-When `guaranteed-demo` reports **QoS Class: Guaranteed**, click **Verify**. ✅
+What good looks like:
+
+```text
+QoS Class:  Guaranteed
+```
+
+> [!TIP]
+> To see the other QoS classes without touching `guaranteed-demo`, apply a second
+> Pod with `limits != requests` (→ **Burstable**) or with no resource fields at all
+> (→ **BestEffort**, evicted first). Delete it when done.
+
+Then hit **Verify**. ✅

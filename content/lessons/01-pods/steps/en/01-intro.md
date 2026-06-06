@@ -6,10 +6,10 @@ more containers** that always run together on one node and share:
 - one **network identity** — a single Pod IP; containers talk over `localhost`
 - the same **storage volumes**
 
-> **Field note.** Run one container per Pod ~99% of the time. A Pod is *ephemeral*
-> — if it dies it is **not** recreated (a Deployment does that, next mission), and
-> its name and IP are not stable. The **kubelet** on the node pulls the image and
-> starts the container.
+> [!NOTE]
+> Run one container per Pod ~99% of the time. A Pod is *ephemeral* — if it dies it
+> is **not** recreated (a Deployment does that, next mission), and its name and IP
+> are not stable. The **kubelet** on the node pulls the image and starts the container.
 
 You rarely create Pods by hand in production — but every higher-level object
 (Deployments, Jobs, StatefulSets) ultimately runs Pods. Master this and the rest

@@ -10,13 +10,13 @@
   "steps": [
     {
       "id": "intro",
-      "title": { "en": "Why Ingress?", "fr": "Pourquoi l'Ingress ?" },
+      "title": { "en": "Ingress: one door, many apps", "fr": "Ingress : une porte, plusieurs apps" },
       "md": { "en": "steps/en/01-intro.md", "fr": "steps/fr/01-intro.md" },
       "xp": 0
     },
     {
       "id": "expose",
-      "title": { "en": "A Service for the backend", "fr": "Un Service pour le backend" },
+      "title": { "en": "Expose the backend with a Service", "fr": "Exposer le backend avec un Service" },
       "md": { "en": "steps/en/02-expose.md", "fr": "steps/fr/02-expose.md" },
       "setup": "scripts/02-setup.sh",
       "verify": "scripts/02-verify.sh",
@@ -28,7 +28,7 @@
     },
     {
       "id": "ingress",
-      "title": { "en": "Route traffic with an Ingress", "fr": "Router le trafic avec un Ingress" },
+      "title": { "en": "Route HTTP traffic with an Ingress", "fr": "Router le trafic HTTP avec un Ingress" },
       "md": { "en": "steps/en/03-ingress.md", "fr": "steps/fr/03-ingress.md" },
       "verify": "scripts/03-verify.sh",
       "hint": {

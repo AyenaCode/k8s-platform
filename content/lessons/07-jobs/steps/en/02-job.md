@@ -1,35 +1,62 @@
 ## Run a Job to completion
 
-Create a Job named **`hello`** that prints a line and exits:
+A Job creates Pods, runs them, and tracks whether they **succeeded**. When the
+required number exits 0 the Job is marked complete — and the Pods stick around
+so you can read their logs.
+
+### Your task
+
+**1. Create the Job** named `hello`:
 
 ```bash
 kubectl create job hello --image=busybox:1.36 -- /bin/sh -c "echo hello from a job; sleep 2"
 ```
 
-A Job creates a Pod, runs it, and tracks whether it **succeeded**. Watch it move
-from running to completed:
+**2. Watch the Pod move from `Running` to `Completed`:**
 
 ```bash
-kubectl get pods -l job-name=hello -w     # Running -> Completed, then Ctrl-C
+kubectl get pods -l job-name=hello -w     # Ctrl-C when Completed
 ```
 
-You can **block** until the Job is done — handy in scripts and pipelines:
+What good looks like:
+
+```text
+NAME          READY   STATUS      RESTARTS   AGE
+hello-xxxxx   0/1     Completed   0          8s
+```
+
+**3. Block until the Job is done** — handy in scripts and pipelines:
 
 ```bash
 kubectl wait --for=condition=complete job/hello --timeout=60s
 ```
 
-Check the result. A Job records how many Pods succeeded:
+**4. Confirm the result:**
 
 ```bash
 kubectl get job hello
-# NAME    COMPLETIONS   DURATION   AGE
-# hello   1/1           4s         20s
-
-kubectl logs -l job-name=hello       # see "hello from a job"
 ```
 
-Notice the completed Pod **sticks around** so you can read its logs — it is not
-cleaned up automatically (unless you set `ttlSecondsAfterFinished`).
+What good looks like:
 
-When `hello` shows **`1/1` COMPLETIONS**, click **Verify**. ✅
+```text
+NAME    COMPLETIONS   DURATION   AGE
+hello   1/1           4s         20s
+```
+
+**5. Read the output:**
+
+```bash
+kubectl logs -l job-name=hello
+```
+
+> [!TIP]
+> The completed Pod **stays around** so you can inspect logs after the fact.
+> Set `ttlSecondsAfterFinished` on the Job spec if you want automatic cleanup.
+
+> [!NOTE]
+> Key Job spec fields: `completions` (how many Pods must succeed, default 1),
+> `parallelism` (how many run at once, default 1), `backoffLimit` (max retries
+> before the Job is marked failed, default 6).
+
+When `hello` shows **`1/1` COMPLETIONS**, then hit **Verify**. ✅

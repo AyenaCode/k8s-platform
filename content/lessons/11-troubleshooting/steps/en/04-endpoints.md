@@ -1,32 +1,71 @@
-## Case 3: Service has no endpoints
+## Diagnose and fix a Service with no endpoints
 
-This one is sneaky — **nothing crashes**. The Pod is healthy, the Service exists,
-yet traffic goes nowhere. Click **Prepare task**, then diagnose:
+This one is subtle — nothing crashes. The Pod is healthy, the Service exists, yet traffic goes nowhere. This is the most common "it works locally" production mystery.
+
+### Diagnose
+
+**1. Spot the symptom** — the Pod looks fine:
 
 ```bash
-kubectl get pods -l app=api      # 1/1 Running — the Pod is fine
-kubectl get svc api              # the Service exists, has a ClusterIP
-kubectl get endpoints api
-# NAME   ENDPOINTS   AGE
-# api    <none>      30s          <- the smoking gun: no endpoints
+kubectl get pods -l app=api
 ```
 
-A Service finds its Pods by **label selector**. `<none>` endpoints means the
-selector matches **no Ready Pod**. Compare the two sides:
+```text
+NAME                   READY   STATUS    RESTARTS   AGE
+api-7c9f6b8c5-m3xpw   1/1     Running   0          45s
+```
+
+**2. Check the Service** — it has a ClusterIP but something is wrong:
+
+```bash
+kubectl get svc api
+kubectl get endpoints api
+```
+
+```text
+NAME   TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
+api    ClusterIP   10.96.45.102   <none>        80/TCP    45s
+
+NAME   ENDPOINTS   AGE
+api    <none>      45s
+```
+
+`<none>` — that is the smoking gun. A Service with no endpoints forwards traffic to nothing.
+
+**3. Compare the selector to the Pod labels** — a Service finds Pods by label selector:
 
 ```bash
 kubectl get svc api -o jsonpath='{.spec.selector}{"\n"}'
-# {"app":"api-v2"}     <- the Service is looking for app=api-v2
-
-kubectl get pods -l app=api --show-labels
-# ... app=api          <- but the Pods are labelled app=api
 ```
 
-`api-v2` ≠ `api`. The selector points at a label nothing has, so the Service is an
-empty shell. This is the **#1 cause** of "my Service returns nothing" — a selector
-that does not match the Pod labels.
+```text
+{"app":"api-v2"}
+```
 
-**Fix it** — re-apply the Service with the correct selector:
+```bash
+kubectl get pods -l app=api --show-labels
+```
+
+```text
+NAME                   LABELS
+api-7c9f6b8c5-m3xpw   app=api, pod-template-hash=7c9f6b8c5
+```
+
+`app=api-v2` (Service) ≠ `app=api` (Pod). The selector points at a label no Pod has, so the Service is an empty shell.
+
+> [!WARNING]
+> This mismatch is the **#1 cause** of "my Service returns nothing" in production. A selector typo, a forgotten version suffix, or a copy-paste from a different Deployment — all produce the same silent failure: the Pod is healthy but unreachable.
+
+**4. Confirm with events** — the Service itself produces no event for this, so compare the raw objects:
+
+```bash
+kubectl get svc api -o yaml | grep -A3 selector
+kubectl get deploy api -o yaml | grep -A3 matchLabels
+```
+
+### Your task
+
+**1. Re-apply the Service** with the correct selector — keep the same Service name:
 
 ```bash
 kubectl apply -f - <<'EOF'
@@ -36,18 +75,25 @@ metadata:
   name: api
 spec:
   selector:
-    app: api          # <- now matches the Pods
+    app: api          # matches the Pod labels
   ports:
   - port: 80
     targetPort: 80
 EOF
 ```
 
-Confirm the endpoints appear:
+**2. Confirm the endpoints now show a Pod IP:**
 
 ```bash
 kubectl get endpoints api
-# api    10.42.x.y:80    ...      <- a Pod IP — traffic will flow now
 ```
 
-When `kubectl get endpoints api` lists a **Pod IP**, click **Verify**. ✅
+```text
+NAME   ENDPOINTS         AGE
+api    10.42.0.12:80     45s
+```
+
+> [!TIP]
+> Endpoints appear within a second of the selector matching a Ready Pod. If you still see `<none>`, double-check `kubectl get pods -l app=api` — the Pod must be `1/1 Running`.
+
+Then hit **Verify**. ✅

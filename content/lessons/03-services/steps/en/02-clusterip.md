@@ -1,29 +1,52 @@
-## Expose with a ClusterIP
+## Expose a Deployment with ClusterIP
 
-Click **Prepare task** first — it deploys a 2-replica `web` app for you to expose.
+The setup script already deployed a 2-replica `web` app for you. Your job is to
+put a stable address in front of it.
 
-Now create a **ClusterIP** Service in front of it:
+### Your task
+
+**1. Click "Prepare task"** to confirm the `web` Deployment is ready.
+
+**2. Create the ClusterIP Service.**
 
 ```bash
 kubectl expose deployment web --port=80
 ```
 
-Inspect it and — crucially — check its **endpoints** (the Pod IPs it routes to):
+This creates a Service named `web` with `selector: app=web` — the same label
+`kubectl create deployment` puts on every Pod it manages.
+
+**3. Inspect the Service and its endpoints.**
 
 ```bash
 kubectl get svc web
 kubectl get endpoints web
-# web   10.42.0.7:80,10.42.0.8:80   ← one entry per Ready Pod
 ```
 
-> **The #1 Service debugging skill:** if `endpoints` is *empty*, the Service's
-> selector matches no Ready Pod — traffic goes nowhere. Always check endpoints.
+What good looks like:
 
-Reach it from inside the cluster using its ClusterIP:
+```text
+NAME   TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE
+web    ClusterIP   10.43.12.34   <none>        80/TCP    5s
+
+NAME   ENDPOINTS                       AGE
+web    10.42.0.7:80,10.42.0.8:80       5s
+```
+
+One endpoint entry per Ready Pod — two here because the Deployment has 2 replicas.
+
+> [!IMPORTANT]
+> Empty endpoints = traffic goes nowhere. If you see `<none>`, the selector
+> matches no Ready Pod. Check with:
+> `kubectl get pods -l app=web`
+
+**4. Reach the Service via its ClusterIP.**
 
 ```bash
-kubectl get svc web -o jsonpath='{.spec.clusterIP}'   # e.g. 10.43.12.34
-curl <that-ip>                                         # nginx welcome page
+IP=$(kubectl get svc web -o jsonpath='{.spec.clusterIP}')
+curl $IP
 ```
 
-When the `web` Service has **at least one endpoint**, click **Verify**. ✅
+You get the nginx welcome page — routed through the virtual IP, not a Pod IP.
+
+Then hit **Verify**. ✅

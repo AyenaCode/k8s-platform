@@ -1,28 +1,47 @@
-## Y accéder de l'extérieur (NodePort)
+## L'ouvrir vers l'extérieur avec NodePort
 
-Un ClusterIP n'est joignable qu'à *l'intérieur* du cluster. Un **NodePort** ouvre
-un port (30000–32767) sur chaque nœud et le redirige vers le Service.
+Un ClusterIP n'est joignable qu'à l'intérieur du cluster. Un **NodePort** ouvre un
+port dans la plage 30000–32767 sur chaque nœud et redirige le trafic vers le Service.
 
-Créez un Service NodePort nommé **`web-np`** pour le même Deployment :
+### Votre tâche
+
+**1. Créez un Service NodePort nommé `web-np`.**
 
 ```bash
 kubectl expose deployment web --name=web-np --type=NodePort --port=80
 ```
 
-Trouvez le port attribué et appelez-le sur `localhost` (votre terminal *est* le
-nœud) :
+**2. Trouvez le port de nœud attribué.**
 
 ```bash
 kubectl get svc web-np
-# web-np   NodePort   10.43.x   <none>   80:31234/TCP
-
-PORT=$(kubectl get svc web-np -o jsonpath='{.spec.ports[0].nodePort}')
-curl localhost:$PORT          # 🎉 la page nginx, depuis l'extérieur du cluster
 ```
 
-> Comme le terminal de ce lab partage le réseau du nœud, `localhost:<nodePort>`
-> atteint votre app exactement comme le ferait un vrai nœud. Sur un cluster cloud,
-> on utiliserait plutôt un **LoadBalancer** pour une IP externe propre.
+Ce que « bon » donne :
 
-Créez le Service NodePort **`web-np`**, confirmez que `curl localhost:$PORT`
-fonctionne, puis cliquez sur **Vérifier**. ✅
+```text
+NAME     TYPE       CLUSTER-IP    EXTERNAL-IP   PORT(S)        AGE
+web-np   NodePort   10.43.5.67    <none>        80:31234/TCP   5s
+```
+
+`80:31234` signifie que le port 80 du Service correspond au port 31234 du nœud.
+
+**3. Appelez-le sur `localhost`** — ce terminal partage le réseau du nœud.
+
+```bash
+PORT=$(kubectl get svc web-np -o jsonpath='{.spec.ports[0].nodePort}')
+curl localhost:$PORT
+```
+
+Vous obtenez la page nginx, atteinte depuis l'extérieur du cluster.
+
+> [!NOTE]
+> Sur un vrai cluster cloud, vous utiliseriez l'IP externe du nœud plutôt que
+> `localhost`. Pour un accès externe en production, préférez **type: LoadBalancer** —
+> sur k3s, le ServiceLB intégré attribue automatiquement une vraie IP externe.
+
+> [!TIP]
+> Vous avez déjà un Service ClusterIP `web` de l'étape précédente ? Parfait —
+> on peut avoir les deux types en parallèle devant le même Deployment.
+
+Puis cliquez sur **Vérifier**. ✅

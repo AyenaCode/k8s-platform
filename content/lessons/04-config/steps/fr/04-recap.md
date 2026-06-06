@@ -1,36 +1,52 @@
-## base64 ≠ chiffrement
+## base64 ≠ chiffrement — connaissez la réalité
 
-Une chose que tout ingénieur doit savoir sur les Secrets : par défaut ils ne sont
-**pas chiffrés**. Ils sont seulement **encodés en base64**, un format texte
-réversible — quiconque a un accès en lecture peut les décoder.
+Tout ingénieur qui touche à Kubernetes doit comprendre ceci : les Secrets ne sont **pas chiffrés au repos par défaut**. Ils sont encodés en base64 — un format de texte réversible que n'importe qui peut décoder en une commande.
 
-Voyez-le vous-même. La valeur brute dans l'API est en base64 :
+Vérifiez-le vous-même :
 
 ```bash
 kubectl get secret app-secret -o jsonpath='{.data.API_KEY}'
-# -> czNjcjN0   (ce n'est PAS du chiffrement)
 ```
 
-Décodez-la en une ligne :
+```text
+czNjcjN0
+```
+
+Décodez-le :
 
 ```bash
 kubectl get secret app-secret -o jsonpath='{.data.API_KEY}' | base64 -d
-# -> s3cr3t
 ```
 
-Alors qu'est-ce qui distingue un Secret d'une ConfigMap ?
+```text
+s3cr3t
+```
 
-- Il n'est **pas** affiché en clair par `kubectl describe`.
-- L'accès peut être verrouillé séparément avec le **RBAC**.
-- Le kubelet n'envoie un Secret qu'aux nœuds qui exécutent réellement un Pod qui
-  l'utilise.
-- Le cluster *peut* être configuré pour le **chiffrement au repos** (et vous
-  devriez le faire, en production).
+> [!WARNING]
+> `czNjcjN0` n'est pas un texte chiffré. C'est simplement la chaîne `s3cr3t` avec un autre alphabet.
+> Tout utilisateur pouvant exécuter `kubectl get secret` lit vos identifiants instantanément.
 
-> **Idée clé :** un Secret concerne la *manipulation* et le *contrôle d'accès*,
-> pas un chiffrement magique. Traitez le contenu comme de vrais secrets —
-> restreignez qui peut faire `get` dessus.
+### Ce qui différencie vraiment un Secret d'une ConfigMap
 
-Vous connaissez maintenant les deux façons d'injecter la config (env + fichiers)
-et la vérité sur le base64. Cette leçon est terminée — cliquez **Suivant** pour
-continuer. →
+| Propriété | ConfigMap | Secret |
+|---|---|---|
+| Affiché par `kubectl describe` | Oui (en clair) | Non (masqué) |
+| Ressource RBAC distincte | Non | Oui — verrouillez l'accès |
+| Livraison par le kubelet | Tous les nœuds | Uniquement les nœuds exécutant un Pod consommateur |
+| Chiffrement au repos | — | Optionnel — activez `EncryptionConfiguration` |
+
+> [!IMPORTANT]
+> En production : activez le **chiffrement au repos** (`EncryptionConfiguration` dans l'API server), utilisez un gestionnaire de secrets (Vault, AWS Secrets Manager, Sealed Secrets) et appliquez un RBAC strict. Le base64 est un encodage de transport, pas un contrôle de sécurité.
+
+### Méthodes d'injection — référence rapide
+
+```text
+ConfigMap / Secret → Pod
+
+  envFrom     tout  → variables d'env
+  valueFrom   1 clé → 1 variable
+  volume      tout  → fichiers  (MAJ auto)
+  + subPath   1 fichier  (pas de MAJ auto)
+```
+
+Vous savez maintenant garder la config hors des images, l'injecter de deux façons, et pourquoi les Secrets exigent un vrai contrôle d'accès. **Continuer →**

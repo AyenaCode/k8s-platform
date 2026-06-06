@@ -1,28 +1,37 @@
-## Why Services?
+## Why Services exist
 
-Pods are **ephemeral**: they're created and destroyed constantly (scaling,
-updates, crashes), and each gets a **new IP** every time. So you can never rely on
-a Pod's IP to talk to your app.
+Pods are **ephemeral**: they restart, reschedule, and scale out — and every new Pod
+gets a **different IP**. You can never hardcode a Pod IP and call it stable.
 
-A **Service** solves this. It is a **stable network identity** — a fixed virtual
-IP *and* a DNS name — that load-balances traffic across whatever Pods currently
-match its **label selector**.
+A **Service** fixes that. It is a **stable virtual IP + a DNS name** that kube-proxy
+keeps pointing at whatever Pods currently match its **label selector**. Pods come and
+go; the Service address never changes.
 
+```text
+  Service "web"
+  ┌──────────────────────────┐
+  │ ClusterIP  10.43.x.x     │
+  │ selector:  app=web       │
+  └────────┬─────────────────┘
+           │ routes to
+    ┌──────┴──────┐
+  Pod:web-a    Pod:web-b    ← come and go
 ```
-            Service "web"  (stable IP 10.43.x + DNS "web")
-                  │  selector: app=web
-        ┌─────────┼─────────┐
-      Pod        Pod        Pod      ← come and go; the Service tracks them
-```
 
-The four Service types you'll meet:
+> [!NOTE]
+> kube-proxy programs iptables (or IPVS) rules on every node so that traffic
+> to the ClusterIP is redirected to a real Pod. You never talk to Pods directly.
 
-| Type | Reachable from | Use |
-|------|----------------|-----|
+The four Service types:
+
+| Type | Reachable from | Typical use |
+|------|----------------|-------------|
 | **ClusterIP** (default) | inside the cluster | service-to-service |
 | **NodePort** | `<nodeIP>:<30000-32767>` | quick external access / labs |
-| **LoadBalancer** | cloud LB external IP | production ingress on cloud |
+| **LoadBalancer** | external IP via cloud LB | production ingress on cloud; on k3s the bundled **ServiceLB** fulfills it |
 | **ExternalName** | DNS CNAME | alias to an external host |
 
-In this lesson you'll expose a Deployment with a ClusterIP, reach it from outside
-with a NodePort, and discover it by DNS — all live.
+In this lesson you will expose a Deployment with a ClusterIP, open it to the
+outside with a NodePort, and discover it by DNS — all in a live cluster.
+
+**Continue →**

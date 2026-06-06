@@ -1,6 +1,12 @@
-## Planifier avec un CronJob
+## Planifier une tâche avec un CronJob
 
-Un CronJob exécute un Job selon un minuteur. Créez-en un nommé **`report`** qui se déclenche toutes les minutes :
+Un CronJob déclenche un nouveau Job sur minuteur. Il contient un `jobTemplate` —
+le modèle dont chaque Job déclenché est calqué. Pas besoin d'attendre le
+planning pour le tester : on lance une exécution manuelle.
+
+### Votre tâche
+
+**1. Créez le CronJob** nommé `report`, toutes les minutes :
 
 ```bash
 kubectl create cronjob report \
@@ -9,29 +15,48 @@ kubectl create cronjob report \
   -- /bin/sh -c "date; echo nightly report done"
 ```
 
-Examinez-le :
+**2. Confirmez qu'il est enregistré :**
 
 ```bash
 kubectl get cronjob report
-# NAME     SCHEDULE      SUSPEND   ACTIVE   LAST SCHEDULE   AGE
-# report   */1 * * * *   False     0        <none>          5s
 ```
 
-Attendre une minute entière pour le déclenchement est lent. Vous pouvez **lancer une exécution immédiate** en créant un Job *depuis* le modèle du CronJob — c'est exactement ce que fait un ingénieur d'astreinte pour tester une tâche planifiée :
+Ce que « bon » donne :
+
+```text
+NAME     SCHEDULE      SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+report   */1 * * * *   False     0        <none>          5s
+```
+
+**3. Déclenchez une exécution immédiate** — sans attendre le planning. C'est
+exactement ce que fait un ingénieur d'astreinte pour tester une tâche planifiée :
 
 ```bash
 kubectl create job report-now --from=cronjob/report
+```
+
+**4. Attendez la fin et lisez la sortie :**
+
+```bash
 kubectl wait --for=condition=complete job/report-now --timeout=60s
 kubectl logs -l job-name=report-now
 ```
 
-Au bout d'une ou deux minutes, le planning lui-même commencera à créer des Jobs nommés `report-<timestamp>`. Listez-les :
+**5. Au bout d'une minute ou deux, listez tous les Jobs** — le planificateur
+aura créé son propre Job nommé `report-<timestamp>` :
 
 ```bash
 kubectl get jobs
 ```
 
-> **Note :** un CronJob ne conserve que les derniers Jobs terminés
-> (`successfulJobsHistoryLimit`, valeur par défaut 3) afin que l'historique ne s'accumule pas indéfiniment.
+> [!NOTE]
+> Un CronJob ne conserve que les derniers Jobs terminés par défaut
+> (`successfulJobsHistoryLimit` vaut **3**). L'historique ne s'accumule jamais
+> indéfiniment.
 
-Lorsque le CronJob **`report`** existe et que votre Job **`report-now`** est terminé, cliquez **Vérifier**. ✅
+> [!TIP]
+> `kubectl create job <nom> --from=cronjob/<nom>` est la méthode standard pour
+> déclencher une exécution ponctuelle depuis n'importe quel CronJob — sans
+> modifier le moindre YAML.
+
+Quand le CronJob **`report`** existe et que le Job **`report-now`** est terminé, puis cliquez sur **Vérifier**. ✅

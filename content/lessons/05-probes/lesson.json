@@ -10,13 +10,13 @@
   "steps": [
     {
       "id": "intro",
-      "title": { "en": "Liveness vs readiness vs startup", "fr": "Liveness vs readiness vs startup" },
+      "title": { "en": "Know what healthy means", "fr": "Définir ce que « sain » signifie" },
       "md": { "en": "steps/en/01-intro.md", "fr": "steps/fr/01-intro.md" },
       "xp": 0
     },
     {
       "id": "readiness",
-      "title": { "en": "Readiness gates traffic", "fr": "La readiness contrôle le trafic" },
+      "title": { "en": "Gate traffic with a readiness probe", "fr": "Contrôler le trafic avec une probe de readiness" },
       "md": { "en": "steps/en/02-readiness.md", "fr": "steps/fr/02-readiness.md" },
       "verify": "scripts/02-verify.sh",
       "hint": {
@@ -27,7 +27,7 @@
     },
     {
       "id": "liveness",
-      "title": { "en": "Liveness restarts a stuck container", "fr": "La liveness redémarre un conteneur bloqué" },
+      "title": { "en": "Trigger a liveness restart on a stuck container", "fr": "Déclencher un redémarrage de liveness sur un conteneur bloqué" },
       "md": { "en": "steps/en/03-liveness.md", "fr": "steps/fr/03-liveness.md" },
       "verify": "scripts/03-verify.sh",
       "hint": {

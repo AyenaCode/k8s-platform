@@ -1,6 +1,12 @@
-## La readiness filtre le trafic
+## Contrôler le trafic avec une probe de readiness
 
-Déployez un Pod dont la probe de **readiness** ne passe que lorsque le fichier `/tmp/healthy` existe. Il démarre **sans** ce fichier, donc il tourne mais reste **not ready** :
+Déployez un Pod dont la probe de readiness ne passe que lorsque `/tmp/healthy`
+existe. Il démarre *sans* ce fichier — il tourne donc, mais reste **not ready** et
+ne reçoit aucun trafic.
+
+### Votre tâche
+
+**1. Appliquez le Pod.**
 
 ```bash
 kubectl apply -f - <<'EOF'
@@ -24,22 +30,45 @@ spec:
 EOF
 ```
 
-Observez la colonne READY — elle reste à **`0/1`** même si STATUS indique `Running` :
+**2. Observez la colonne READY** — elle reste à `0/1` même si STATUS indique `Running` :
 
 ```bash
-kubectl get pod ready-demo -w        # READY 0/1, puis Ctrl-C
+kubectl get pod ready-demo -w        # READY 0/1 — Ctrl-C quand vous l'avez vu
 ```
 
-Le conteneur est actif, mais Kubernetes ne lui enverra aucun trafic. Faites maintenant passer la probe en créant le fichier à l'intérieur du conteneur :
+Ce que vous devriez voir :
+
+```text
+NAME         READY   STATUS    RESTARTS   AGE
+ready-demo   0/1     Running   0          5s
+```
+
+Le conteneur tourne, mais Kubernetes ne lui achemine aucun trafic.
+
+> [!NOTE]
+> Une probe de readiness en échec **ne redémarre jamais** le conteneur. Elle retire
+> simplement le Pod des endpoints de son Service. Le trafic s'arrête ; le processus
+> continue de tourner.
+
+**3. Faites passer la probe** en créant le fichier dans le conteneur :
 
 ```bash
 kubectl exec ready-demo -- touch /tmp/healthy
 ```
 
-En quelques secondes le Pod passe à **`1/1` READY**. Notez que **RESTARTS reste à `0`** — la readiness ne redémarre jamais un conteneur, elle contrôle uniquement le trafic.
+**4. Confirmez** que le Pod est passé à `1/1` READY — avec RESTARTS toujours à `0` :
 
 ```bash
 kubectl get pod ready-demo
 ```
 
-Quand `ready-demo` affiche **`1/1` READY** avec **0 restart**, cliquez **Vérifier**. ✅
+Ce que « bon » donne :
+
+```text
+NAME         READY   STATUS    RESTARTS   AGE
+ready-demo   1/1     Running   0          30s
+```
+
+`RESTARTS 0` est la preuve : la readiness a contrôlé le trafic sans toucher au conteneur.
+
+Puis cliquez sur **Vérifier**. ✅

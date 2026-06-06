@@ -7,10 +7,11 @@ sur un même nœud et partagent :
 - une **identité réseau** unique — une seule IP de Pod ; les conteneurs dialoguent via `localhost`
 - les mêmes **volumes** de stockage
 
-> **Note de terrain.** Un seul conteneur par Pod dans ~99 % des cas. Un Pod est
-> *éphémère* : s'il meurt, il n'est **pas** recréé (c'est le rôle d'un Deployment,
-> prochaine mission), et son nom comme son IP ne sont pas stables. Le **kubelet**
-> du nœud récupère l'image et démarre le conteneur.
+> [!NOTE]
+> Un seul conteneur par Pod dans ~99 % des cas. Un Pod est *éphémère* : s'il meurt,
+> il n'est **pas** recréé (c'est le rôle d'un Deployment, prochaine mission), et son
+> nom comme son IP ne sont pas stables. Le **kubelet** du nœud récupère l'image et
+> démarre le conteneur.
 
 En production, on crée rarement les Pods à la main — mais tout objet de plus haut
 niveau (Deployments, Jobs, StatefulSets) finit par exécuter des Pods. Maîtrisez

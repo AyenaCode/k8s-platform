@@ -1,26 +1,47 @@
-## Auto-réparation — en direct
+## L'auto-réparation en direct
 
-C'est la magie du modèle d'état désiré. Listez les Pods, supprimez-en un, et
-regardez un remplaçant apparaître instantanément.
+Le modèle d'état désiré signifie que Kubernetes réconcilie en permanence « ce qui est » avec « ce que vous avez demandé ». Supprimez un Pod et le cluster comble le vide en quelques millisecondes — aucune intervention humaine requise.
+
+### Manipulations
+
+**1. Notez le nom d'un Pod en cours :**
 
 ```bash
-# notez le nom d'un Pod
-kubectl get pods -l app=web
-
-# supprimez-le
-kubectl delete pod <un-des-noms-de-pod>
-
-# relistez aussitôt — un nouveau Pod est déjà en création
 kubectl get pods -l app=web
 ```
 
-Vous avez demandé 5 replicas ; vous en avez supprimé un ; le ReplicaSet a vu
-`current=4 < desired=5` et a créé un nouveau Pod en quelques millisecondes. Vous
-n'avez jamais à intervenir.
+**2. Supprimez un Pod** (la commande ci-dessous choisit automatiquement le premier) :
 
-> **Idée clé :** vous déclarez *ce que* vous voulez, les contrôleurs poussent sans
-> relâche la réalité vers cet état. Cette boucle — *observer → comparer → agir* —
-> est le cœur de Kubernetes.
+```bash
+kubectl delete "$(kubectl get pod -l app=web -o name | head -1)"
+```
 
-Cette étape est juste de l'observation — pas de vérification. Cliquez sur
-**Suivant** une fois le Pod de remplacement apparu. →
+**3. Relistez immédiatement — un remplaçant est déjà en cours de planification :**
+
+```bash
+kubectl get pods -l app=web
+```
+
+Ce que « bon » donne :
+
+```text
+NAME                READY   STATUS              AGE
+web-74d9c-aaaa      1/1     Running             4m
+web-74d9c-bbbb      1/1     Running             4m
+web-74d9c-cccc      1/1     Running             4m
+web-74d9c-dddd      1/1     Running             4m
+web-74d9c-ffff      0/1     ContainerCreating   1s  ← nouveau
+```
+
+> [!IMPORTANT]
+> C'est la **boucle de réconciliation** : observer → comparer → agir.
+> Le contrôleur ReplicaSet a vu `current=4 < desired=5` et a créé un nouveau Pod
+> en quelques millisecondes. Cette même boucle replanifie les Pods quand un nœud
+> tombe. Vous déclarez *ce que* vous voulez — Kubernetes l'applique sans relâche.
+
+> [!WARNING]
+> Un **Pod seul** (créé avec `kubectl run`, sans Deployment) n'est **pas** recréé
+> à la suppression. Seuls les objets gérés par un contrôleur (Deployment → ReplicaSet)
+> s'auto-réparent.
+
+Cette étape est uniquement de l'observation — pas de vérification. **Continuer →**

@@ -1,14 +1,30 @@
-## StatefulSets : noms stables & disques dédiés
+## Déployer un StatefulSet avec noms et disques stables
 
-Les Pods d'un Deployment sont **interchangeables** — noms aléatoires, rien de partagé, créés dans n'importe quel ordre. C'est inadapté aux bases de données et aux clusters, où chaque membre a besoin d'une **identité stable** et de **son propre disque** qui le suit à travers les redémarrages.
+Les Pods d'un Deployment sont **interchangeables** — noms aléatoires, rien de
+partagé, créés dans n'importe quel ordre. Les bases de données et les systèmes
+distribués ont besoin que chaque membre dispose d'une **identité stable** et de
+**son propre disque** qui le suit à travers les redémarrages. C'est le rôle du
+**StatefulSet**.
 
-C'est là qu'intervient le **StatefulSet**. Il vous offre :
+Un StatefulSet vous offre :
 
-- **Des noms stables et ordonnés** : `web-0`, `web-1`, … (pas de suffixes aléatoires).
-- **Un stockage stable par Pod** : chaque réplique obtient son propre PVC depuis un `volumeClaimTemplate` — `data-web-0`, `data-web-1`. Supprimez `web-0`, il revient en tant que `web-0` rattaché à `data-web-0`.
-- **Un déploiement ordonné** : `web-0` devient Ready avant que `web-1` ne démarre.
+- **Des noms stables et ordonnés** : `web-0`, `web-1`, … — jamais de suffixes
+  aléatoires.
+- **Un stockage par Pod** : chaque réplique obtient son propre PVC depuis un
+  `volumeClaimTemplate`. `data-web-0` suit `web-0` ; `data-web-1` suit `web-1`.
+  Supprimez `web-0`, il revient rattaché à `data-web-0`.
+- **Un déploiement ordonné** : `web-0` devient Ready avant que `web-1` ne
+  démarre.
 
-Un StatefulSet nécessite un **headless Service** (`clusterIP: None`) pour donner à chaque Pod un nom DNS stable. Appliquez les deux :
+> [!IMPORTANT]
+> Un StatefulSet requiert un **headless Service** (`clusterIP: None`) référencé
+> dans `serviceName`. Ce Service donne à chaque Pod un nom DNS stable
+> (`web-0.db`, `web-1.db`). Sans lui, le StatefulSet ne fonctionnera pas
+> correctement.
+
+### Votre tâche
+
+**1. Appliquez le headless Service et le StatefulSet ensemble :**
 
 ```bash
 kubectl apply -f - <<'EOF'
@@ -17,7 +33,7 @@ kind: Service
 metadata:
   name: db
 spec:
-  clusterIP: None          # headless: DNS resolves to each Pod, no load-balancing
+  clusterIP: None
   selector:
     app: db
   ports:
@@ -28,7 +44,7 @@ kind: StatefulSet
 metadata:
   name: web
 spec:
-  serviceName: db          # must match the headless Service above
+  serviceName: db
   replicas: 2
   selector:
     matchLabels:
@@ -47,7 +63,7 @@ spec:
           mountPath: /data
   volumeClaimTemplates:
   - metadata:
-      name: data           # produces PVCs: data-web-0, data-web-1
+      name: data
     spec:
       accessModes: ["ReadWriteOnce"]
       resources:
@@ -56,21 +72,44 @@ spec:
 EOF
 ```
 
-Observez la création **ordonnée** — `web-0` en premier, puis `web-1` :
+**2. Observez le déploiement ordonné** — `web-0` devient Ready avant que
+`web-1` ne démarre :
 
 ```bash
-kubectl get pods -l app=db -w        # web-0 Ready, then web-1 appears; Ctrl-C
+kubectl get pods -l app=db -w
+```
+
+```text
+NAME    READY   STATUS    RESTARTS   AGE
+web-0   0/1     Pending   0          2s
+web-0   1/1     Running   0          10s
+web-1   0/1     Pending   0          11s
+web-1   1/1     Running   0          20s
+```
+
+Faites Ctrl-C, puis attendez le déploiement complet :
+
+```bash
 kubectl rollout status statefulset/web --timeout=120s
 ```
 
-Constatez qu'il y a un PVC **par Pod**, chacun Bound :
+**3. Confirmez qu'il y a un PVC Bound par Pod :**
 
 ```bash
 kubectl get pvc
-# data-web-0   Bound ...
-# data-web-1   Bound ...
 ```
 
-Chaque Pod possède également un nom DNS stable : `web-0.db`, `web-1.db`.
+```text
+NAME         STATUS   VOLUME          CAPACITY   ACCESS MODES
+data-web-0   Bound    pvc-abc123…     1Gi        RWO
+data-web-1   Bound    pvc-def456…     1Gi        RWO
+```
 
-Lorsque le StatefulSet affiche **2/2 ready** et que les PVCs **`data-web-0`** et **`data-web-1`** sont **Bound**, cliquez **Vérifier**. ✅
+> [!TIP]
+> Chaque Pod dispose aussi d'un nom DNS stable via le headless Service :
+> `web-0.db` et `web-1.db`. Les clients internes au cluster peuvent adresser
+> chaque réplique directement — sans load balancer.
+
+Lorsque le **StatefulSet `web` affiche 2/2 ready** et que les PVCs
+**`data-web-0`** et **`data-web-1`** sont **Bound**, cliquez sur
+**Vérifier**. ✅

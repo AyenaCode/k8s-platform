@@ -1,36 +1,51 @@
-## Découverte de service (DNS)
+## Découvrir les Services par DNS
 
-C'est ainsi que les microservices se trouvent. Chaque Service obtient un nom DNS
-automatique via le CoreDNS du cluster :
+C'est ainsi que les microservices se trouvent à l'exécution. CoreDNS — le serveur
+DNS intégré au cluster — crée automatiquement un enregistrement A pour chaque Service :
 
-```
+```text
 <service>.<namespace>.svc.cluster.local
 ```
 
-Dans le **même namespace**, le nom court suffit — juste `web`.
+Dans le **même namespace**, le nom court suffit : juste `web`.
 
-Essayez depuis un Pod jetable :
+### Voyez-le en direct
+
+**1. Lancez un Pod jetable et appelez le Service par son nom.**
 
 ```bash
 kubectl run tmp --rm -it --image=busybox --restart=Never -- \
   wget -qO- http://web
-# affiche le HTML nginx — "web" résolu par DNS, réparti vers un Pod
 ```
 
-Depuis un **autre** namespace, on utiliserait la forme longue :
+Ce que « bon » donne :
+
+```text
+<!DOCTYPE html>
+<html>
+<head><title>Welcome to nginx!</title>
+...
+```
+
+CoreDNS a résolu `web` → le ClusterIP → un Pod Ready. Aucune IP codée en dur.
+
+**2. Depuis un autre namespace, utilisez le FQDN complet.**
 
 ```bash
 wget -qO- http://web.default.svc.cluster.local
 ```
 
-> **Modèle mental :** le code ne code jamais en dur les IP de Pods. Il appelle le
-> *nom du Service* (`http://web`, `http://payments`, …) et le DNS + le load
-> balancing de Kubernetes font le reste. C'est l'épine dorsale de toute
-> architecture microservices sur K8s.
+> [!NOTE]
+> Le fichier `/etc/resolv.conf` de chaque Pod pointe déjà vers le ClusterIP de
+> CoreDNS et définit `search default.svc.cluster.local svc.cluster.local cluster.local`.
+> C'est pourquoi le nom court `web` fonctionne sans aucune config supplémentaire.
 
-Vous connaissez maintenant les trois piliers du réseau Kubernetes : les
-**Services** (identité stable), les **endpoints** (les Pods vivants derrière) et le
-**DNS** (la découverte). Ça complète la trilogie des fondamentaux — bravo ! 🎉
+> [!IMPORTANT]
+> Ne codez jamais des IP de Pods dans votre app. Appelez le **nom du Service** —
+> `http://web`, `http://payments` — et laissez DNS + kube-proxy gérer le routage
+> et le load balancing. C'est l'épine dorsale de toute architecture microservices
+> sur Kubernetes.
 
-Cette étape est conceptuelle — cliquez sur **Suivant**/terminer une fois la
-résolution DNS observée.
+Vous connaissez maintenant les trois piliers du réseau Kubernetes : les **Services**
+(identité stable), les **Endpoints** (les Pods actifs derrière eux) et le **DNS**
+(la découverte). Les fondamentaux réseau sont bouclés — bien joué.

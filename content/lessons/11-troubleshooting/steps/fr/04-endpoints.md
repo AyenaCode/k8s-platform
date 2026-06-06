@@ -1,32 +1,71 @@
-## Cas 3 : le Service n'a pas d'endpoints
+## Diagnostiquer et corriger un Service sans endpoints
 
-Celui-ci est sournois — **rien ne plante**. Le Pod est sain, le Service existe,
-pourtant le trafic ne passe nulle part. Cliquez **Préparer la tâche**, puis diagnostiquez :
+Celui-ci est subtil — rien ne plante. Le Pod est sain, le Service existe, pourtant le trafic ne passe nulle part. C'est le mystère de production le plus fréquent.
+
+### Diagnostiquer
+
+**1. Repérer le symptôme** — le Pod semble correct :
 
 ```bash
-kubectl get pods -l app=api      # 1/1 Running — the Pod is fine
-kubectl get svc api              # the Service exists, has a ClusterIP
-kubectl get endpoints api
-# NAME   ENDPOINTS   AGE
-# api    <none>      30s          <- the smoking gun: no endpoints
+kubectl get pods -l app=api
 ```
 
-Un Service trouve ses Pods par **label selector**. Des endpoints `<none>` signifient que le
-selector ne correspond à **aucun Pod Ready**. Comparez les deux côtés :
+```text
+NAME                   READY   STATUS    RESTARTS   AGE
+api-7c9f6b8c5-m3xpw   1/1     Running   0          45s
+```
+
+**2. Vérifier le Service** — il a un ClusterIP mais quelque chose cloche :
+
+```bash
+kubectl get svc api
+kubectl get endpoints api
+```
+
+```text
+NAME   TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
+api    ClusterIP   10.96.45.102   <none>        80/TCP    45s
+
+NAME   ENDPOINTS   AGE
+api    <none>      45s
+```
+
+`<none>` — voilà le signe révélateur. Un Service sans endpoints transmet le trafic vers... rien.
+
+**3. Comparer le selector aux labels des Pods** — un Service trouve ses Pods par label selector :
 
 ```bash
 kubectl get svc api -o jsonpath='{.spec.selector}{"\n"}'
-# {"app":"api-v2"}     <- the Service is looking for app=api-v2
-
-kubectl get pods -l app=api --show-labels
-# ... app=api          <- but the Pods are labelled app=api
 ```
 
-`api-v2` ≠ `api`. Le selector pointe vers un label qu'aucun Pod ne possède, donc le Service est
-une coquille vide. C'est la **cause n°1** du « mon Service ne retourne rien » — un selector
-qui ne correspond pas aux labels des Pods.
+```text
+{"app":"api-v2"}
+```
 
-**Corrigez-le** — ré-appliquez le Service avec le selector correct :
+```bash
+kubectl get pods -l app=api --show-labels
+```
+
+```text
+NAME                   LABELS
+api-7c9f6b8c5-m3xpw   app=api, pod-template-hash=7c9f6b8c5
+```
+
+`app=api-v2` (Service) ≠ `app=api` (Pod). Le selector pointe vers un label qu'aucun Pod ne possède : le Service est une coquille vide.
+
+> [!WARNING]
+> Cette incompatibilité est la **cause n°1** du « mon Service ne retourne rien » en production. Une faute de frappe dans le selector, un suffixe de version oublié, un copier-coller depuis un autre Deployment — tout produit le même échec silencieux : le Pod est sain mais injoignable.
+
+**4. Confirmer en comparant les objets bruts** — le Service ne génère pas d'event pour ce cas ; comparez directement les YAML :
+
+```bash
+kubectl get svc api -o yaml | grep -A3 selector
+kubectl get deploy api -o yaml | grep -A3 matchLabels
+```
+
+### Votre tâche
+
+**1. Ré-appliquer le Service** avec le selector correct — conservez le même nom de Service :
 
 ```bash
 kubectl apply -f - <<'EOF'
@@ -36,18 +75,25 @@ metadata:
   name: api
 spec:
   selector:
-    app: api          # <- now matches the Pods
+    app: api          # correspond aux labels des Pods
   ports:
   - port: 80
     targetPort: 80
 EOF
 ```
 
-Confirmez que les endpoints apparaissent :
+**2. Confirmer que les endpoints affichent maintenant une IP de Pod :**
 
 ```bash
 kubectl get endpoints api
-# api    10.42.x.y:80    ...      <- a Pod IP — traffic will flow now
 ```
 
-Lorsque `kubectl get endpoints api` liste une **IP de Pod**, cliquez **Vérifier**. ✅
+```text
+NAME   ENDPOINTS         AGE
+api    10.42.0.12:80     45s
+```
+
+> [!TIP]
+> Les endpoints apparaissent en moins d'une seconde dès que le selector correspond à un Pod Ready. Si vous voyez encore `<none>`, vérifiez `kubectl get pods -l app=api` — le Pod doit être `1/1 Running`.
+
+Puis cliquez sur **Vérifier**. ✅

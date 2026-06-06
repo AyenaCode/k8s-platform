@@ -1,28 +1,43 @@
 ## Create a Deployment
 
-Create a Deployment named **`web`** running **3 replicas** of nginx:
+One command creates a Deployment, a ReplicaSet, and three Pods — all wired together.
+
+### Your task
+
+**1. Create the Deployment** named `web` with 3 nginx replicas:
 
 ```bash
 kubectl create deployment web --image=nginx --replicas=3
 ```
 
-Watch the ReplicaSet bring up three Pods:
+**2. Watch the full ownership chain appear:**
 
 ```bash
 kubectl get deploy,rs,pods
 ```
 
-You should see:
+What good looks like:
 
-```
+```text
+NAME                  READY   UP-TO-DATE   AVAILABLE
 deployment.apps/web   3/3     3            3
-replicaset.apps/web-xxxx   3   3   3
-pod/web-xxxx-aaaa   1/1   Running
-pod/web-xxxx-bbbb   1/1   Running
-pod/web-xxxx-cccc   1/1   Running
+
+NAME                          DESIRED   CURRENT   READY
+replicaset.apps/web-74d9c     3         3         3
+
+NAME                    READY   STATUS
+pod/web-74d9c-aaaa      1/1     Running
+pod/web-74d9c-bbbb      1/1     Running
+pod/web-74d9c-cccc      1/1     Running
 ```
 
-Notice the Pod names: `web-<replicaset>-<random>`. The Deployment created a
-ReplicaSet, which created the Pods.
+> [!NOTE]
+> Pod names follow the pattern `web-<replicaset-hash>-<random>`.
+> The Deployment created the ReplicaSet; the ReplicaSet created the Pods.
+> You'll never need to touch the ReplicaSet directly.
 
-When **`web` shows 3/3 ready**, click **Verify**. ✅
+> [!TIP]
+> **Pods still in `ContainerCreating`?** The node is pulling the `nginx` image
+> for the first time. Wait a few seconds and re-run the command — it clears on its own.
+
+When `web` shows **3/3 ready**, then hit **Verify**. ✅

@@ -1,7 +1,10 @@
-## Router le trafic avec un Ingress
+## Router le trafic HTTP avec un Ingress
 
-Créez maintenant la porte d'entrée. Cet Ingress indique : *toute requête vers l'hôte
-`site.local`, chemin `/`, est transmise au Service `site-svc` sur le port 80.*
+Créez la porte d'entrée. Cet Ingress indique à Traefik : toute requête avec `Host: site.local` est transmise à `site-svc` sur le port 80.
+
+### Votre tâche
+
+**1. Appliquez l'Ingress.**
 
 ```bash
 kubectl apply -f - <<'EOF'
@@ -25,31 +28,43 @@ spec:
 EOF
 ```
 
-Examinez-le — après un moment, Traefik renseigne une adresse :
+**2. Attendez que Traefik assigne une adresse** (quelques secondes peuvent être nécessaires).
 
 ```bash
 kubectl get ingress site
-# NAME   CLASS     HOSTS        ADDRESS       PORTS   AGE
-# site   traefik   site.local   172.x.x.x     80      10s
 ```
 
-**Prouvez maintenant le routage.** Il n'y a pas de DNS pour `site.local`, nous simulons donc le
-nom d'hôte avec un en-tête `Host:` — Traefik route sur cet en-tête seul :
+Ce que « bon » donne :
+
+```text
+NAME   CLASS     HOSTS        ADDRESS       PORTS   AGE
+site   traefik   site.local   172.x.x.x     80      10s
+```
+
+**3. Prouvez le routage.** Il n'y a pas de DNS pour `site.local` ; simulez le nom d'hôte avec un en-tête `Host:` — Traefik route sur cet en-tête seul.
 
 ```bash
 curl -H "Host: site.local" http://localhost/
-# <!DOCTYPE html> ... Welcome to nginx!   (HTTP 200, served via the Ingress)
 ```
 
-Comparez : une requête avec un hôte **incorrect** reçoit un 404 de Traefik, car aucune règle
-ne correspond :
+Vous devriez voir la page d'accueil nginx (HTTP 200).
+
+**4. Confirmez que les mauvais hôtes sont rejetés** — aucune règle ne correspond, Traefik renvoie 404.
 
 ```bash
 curl -i -H "Host: wrong.local" http://localhost/ | head -1
-# HTTP/1.1 404 Not Found
 ```
 
-C'est tout l'intérêt — un seul proxy, qui route par hôte vers de nombreux backends.
+Ce que « bon » donne :
 
-Lorsque `curl -H "Host: site.local" http://localhost/` retourne **HTTP 200**, cliquez
-**Vérifier**. ✅
+```text
+HTTP/1.1 404 Not Found
+```
+
+> [!TIP]
+> Traefik peut mettre quelques secondes à charger un Ingress nouvellement appliqué. Si `curl` renvoie 404 immédiatement, patientez 5 secondes et réessayez.
+
+> [!IMPORTANT]
+> `ingressClassName: traefik` indique à Traefik que cet Ingress lui appartient. Sans ce champ, Traefik ignore complètement l'objet — votre curl retournera 404 quoi qu'il arrive.
+
+Lorsque `curl -H "Host: site.local" http://localhost/` retourne HTTP 200, puis cliquez sur **Vérifier**. ✅

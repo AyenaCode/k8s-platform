@@ -28,7 +28,8 @@ web    1/1     Running    0         20s
 - `READY 1/1` — le conteneur est prêt et passe ses checks.
 - `STATUS Running` — le processus a démarré.
 
-> **Bloqué sur `ContainerCreating` ?** L'image se télécharge encore (premier
-> pull). Patientez quelques secondes et réobservez — c'est normal, pas une erreur.
+> [!TIP]
+> **Bloqué sur `ContainerCreating` ?** L'image se télécharge encore (premier pull).
+> Patientez quelques secondes et réobservez — c'est normal, pas une erreur.
 
 Quand `web` est **Running**, cliquez sur **Vérifier**. ✅

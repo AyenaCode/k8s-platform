@@ -1,6 +1,18 @@
 ## Construire un Pod Guaranteed
 
-La classe QoS la plus haute, **Guaranteed**, obéit à une règle stricte : **chaque** conteneur doit définir **à la fois** le cpu et la mémoire, et pour chaque ressource `limits` doit **égaler** `requests`. Construisez-en un :
+**Guaranteed** est la classe QoS la plus haute. La règle est stricte : chaque
+conteneur doit définir **à la fois** le cpu et la mémoire, et `limits` doit
+**égaler** `requests` pour chaque ressource.
+
+> [!NOTE]
+> Les champs de ressources d'un Pod sont immuables après sa création. Pour les
+> modifier, supprimez le Pod et réappliquez-le. Le cluster l'impose — vous ne
+> pouvez pas changer les valeurs de ressources via `kubectl apply` sur un Pod
+> existant.
+
+### Votre tâche
+
+**1. Appliquez le Pod Guaranteed :**
 
 ```bash
 kubectl apply -f - <<'EOF'
@@ -18,17 +30,33 @@ spec:
 EOF
 ```
 
-Une fois qu'il tourne, demandez à Kubernetes quelle classe il lui a attribuée :
+**2. Confirmez la classe QoS que Kubernetes lui a attribuée :**
 
 ```bash
 kubectl get pod guaranteed-demo -o jsonpath='{.status.qosClass}{"\n"}'
-# -> Guaranteed
 ```
 
-Faites le test : modifiez une valeur de `limits` pour qu'elle ne soit plus égale à la request (par exemple la limite mémoire à `128Mi`) et réappliquez — la classe passe à **Burstable**. Supprimez toutes les requests/limits et elle devient **BestEffort**, la première à être évictée.
+Ce que « bon » donne :
+
+```text
+Guaranteed
+```
+
+**3. Vérifiez via describe :**
 
 ```bash
 kubectl describe pod guaranteed-demo | grep -i qos
 ```
 
-Quand `guaranteed-demo` affiche **QoS Class: Guaranteed**, cliquez **Vérifier**. ✅
+Ce que « bon » donne :
+
+```text
+QoS Class:  Guaranteed
+```
+
+> [!TIP]
+> Pour observer les autres classes QoS sans toucher à `guaranteed-demo`, appliquez
+> un second Pod avec `limits != requests` (→ **Burstable**) ou sans aucun champ de
+> ressources (→ **BestEffort**, évicté en premier). Supprimez-le ensuite.
+
+Puis cliquez sur **Vérifier**. ✅

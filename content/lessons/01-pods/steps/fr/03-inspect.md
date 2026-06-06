@@ -31,8 +31,9 @@ kubectl exec -it web -- bash
 kubectl get pod web -o yaml | less
 ```
 
-> **Astuce de pro.** `kubectl events --for pod/web` (avec `--watch`) est la façon
-> moderne et plus lisible de lire les events d'un Pod, sans dérouler `describe`.
+> [!TIP]
+> `kubectl events --for pod/web` (avec `--watch`) est la façon moderne et plus
+> lisible de lire les events d'un Pod, sans dérouler `describe`.
 
 ### Votre tâche
 

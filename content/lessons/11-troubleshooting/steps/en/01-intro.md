@@ -1,28 +1,28 @@
-## The debugging method
+## Master the debugging loop
 
-When a Pod misbehaves, guessing is slow. Good operators follow the **same three
-steps every time**, from the outside in:
+Every production incident starts with the same three moves — from the outside in.
 
 ```bash
-kubectl get pods            # 1. What is the STATUS? (the headline symptom)
-kubectl describe pod <name> # 2. Read the Events at the bottom (the WHY)
-kubectl logs <name>         # 3. What did the app itself say? (--previous for a crashed one)
+kubectl get pods              # 1. Spot the STATUS (the headline symptom)
+kubectl describe pod <name>   # 2. Read the Events section (the cause)
+kubectl logs <name>           # 3. Hear what the app said (--previous after a crash)
 ```
 
-Most problems announce themselves in the **STATUS** column. Learn to read it:
+The **STATUS** column tells you which category of problem you are facing before you read a single log line:
 
-| STATUS | Usually means |
+| STATUS | What it means |
 |---|---|
-| `ImagePullBackOff` / `ErrImagePull` | wrong image name or tag, or no registry access |
-| `CrashLoopBackOff` | the container starts then exits — bad command, missing dep, failed config |
-| `OOMKilled` | hit its memory limit (you saw this in the Resources lesson) |
-| `CreateContainerConfigError` | references a ConfigMap/Secret or key that does not exist |
-| `Pending` | cannot be scheduled — not enough CPU/memory, or no matching node |
-| `Running` but `0/1` ready | a readiness probe is failing (or, for a Service, no endpoints) |
+| `ImagePullBackOff` / `ErrImagePull` | Bad image name, wrong tag, or missing registry credentials |
+| `CrashLoopBackOff` | Container starts, exits immediately — bad command, missing dep, failed config |
+| `OOMKilled` | Container hit its memory limit and was killed |
+| `CreateContainerConfigError` | References a ConfigMap / Secret key that does not exist |
+| `Pending` | Cannot be scheduled — no node has enough CPU/memory |
+| `Running` but `0/1` ready | Readiness probe failing — or, for a Service, no endpoints |
 
-> **Key idea:** `get` gives the symptom, `describe` gives the cause (in Events),
-> `logs` gives the app's own story. Always go in that order.
+> [!IMPORTANT]
+> `get` surfaces the symptom. `describe` gives the cause (scroll to **Events** at the bottom). `logs` tells the app's own story. Always run them in that order — don't skip ahead.
 
-In this clinic the platform will **break three Pods on purpose**. For each, click
-**Prepare task**, diagnose it with the three commands, then fix it and **Verify**.
-→
+This is the capstone. The platform will **break three workloads on purpose**. For each one:
+click **Prepare task** → diagnose with the three commands → fix it → click **Verify**.
+
+**Continue →**

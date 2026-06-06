@@ -1,33 +1,41 @@
-## Run-to-completion workloads
+## Understand run-to-completion workloads
 
-Deployments are for things that should run **forever** — web servers, APIs. But a
-lot of real work is the opposite: do a task **once**, then stop. A database
-migration, a backup, a nightly report, a batch import.
+Deployments keep things running **forever** — web servers, APIs. A lot of real
+work is the opposite: do a task **once**, then stop. A database migration, a
+backup, a nightly report, a batch import.
 
-For that, Kubernetes has two objects:
+Kubernetes has two objects for that:
 
 - **Job** — runs one or more Pods until they **succeed** (exit 0), then stops.
   If a Pod fails, the Job retries it (up to `backoffLimit`).
-- **CronJob** — creates a Job on a **schedule**, using standard cron syntax.
+- **CronJob** — creates a Job on a **schedule**, using standard five-field cron
+  syntax. It owns a `jobTemplate` that defines what each triggered Job looks like.
 
-The key difference from a Deployment is the Pod's `restartPolicy`. A Job's Pod
-must use `Never` or `OnFailure` — **not** `Always` (the default), because a task
-that "always restarts" never finishes.
+The critical difference from a Deployment: a Job Pod must use `restartPolicy:
+Never` or `OnFailure` — **never** `Always`. A task that "always restarts" never
+finishes.
 
-```
-*/1 * * * *      cron: "at every 1st minute" (every minute)
-0 2 * * *        "at 02:00 every day"
-0 0 * * 0        "at midnight every Sunday"
+> [!NOTE]
+> A Job tracks *success*, not *uptime*. It is done when the required number of
+> Pods exit 0 (`completions`, default 1). A CronJob is just a Job factory on a
+> timer — it does not run anything itself.
+
+### Cron syntax at a glance
+
+```text
 ┬ ┬ ┬ ┬ ┬
-│ │ │ │ └ day of week (0-6)
+│ │ │ │ └ dow   (0-6, Sun=0)
 │ │ │ └── month (1-12)
-│ │ └──── day of month (1-31)
-│ └────── hour (0-23)
+│ │ └──── dom   (1-31)
+│ └────── hour  (0-23)
 └──────── minute (0-59)
-```
 
-> **Key idea:** a Job tracks *success*, not *uptime*. It is done when the task
-> completes — and a CronJob is just a Job factory on a timer.
+*/1 * * * *   every minute
+0 2 * * *     daily at 02:00
+0 0 * * 0     Sundays at 00:00
+```
 
 In this lesson you will run a Job to completion, then wrap it in a CronJob and
-trigger a run on demand. →
+trigger a manual run on demand.
+
+**Continue →**

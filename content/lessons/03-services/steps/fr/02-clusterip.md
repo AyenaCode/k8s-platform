@@ -1,31 +1,52 @@
-## Exposer avec un ClusterIP
+## Exposer un Deployment avec ClusterIP
 
-Cliquez d'abord sur **Préparer la tâche** — ça déploie une app `web` à 2 replicas
-que vous allez exposer.
+Le script de préparation a déjà déployé une app `web` à 2 replicas. Votre mission :
+lui donner une adresse stable.
 
-Créez maintenant un Service **ClusterIP** devant elle :
+### Votre tâche
+
+**1. Cliquez sur "Préparer la tâche"** pour confirmer que le Deployment `web` est prêt.
+
+**2. Créez le Service ClusterIP.**
 
 ```bash
 kubectl expose deployment web --port=80
 ```
 
-Inspectez-le et — surtout — vérifiez ses **endpoints** (les IP de Pods routées) :
+Cela crée un Service nommé `web` avec `selector: app=web` — le même label que
+`kubectl create deployment` pose sur chaque Pod qu'il gère.
+
+**3. Inspectez le Service et ses endpoints.**
 
 ```bash
 kubectl get svc web
 kubectl get endpoints web
-# web   10.42.0.7:80,10.42.0.8:80   ← une entrée par Pod Ready
 ```
 
-> **Réflexe n°1 de debug d'un Service :** si `endpoints` est *vide*, le sélecteur
-> du Service ne correspond à aucun Pod Ready — le trafic ne va nulle part.
-> Vérifiez toujours les endpoints.
+Ce que « bon » donne :
 
-Joignez-le depuis l'intérieur du cluster via son ClusterIP :
+```text
+NAME   TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE
+web    ClusterIP   10.43.12.34   <none>        80/TCP    5s
+
+NAME   ENDPOINTS                       AGE
+web    10.42.0.7:80,10.42.0.8:80       5s
+```
+
+Une entrée par Pod Ready — deux ici car le Deployment a 2 replicas.
+
+> [!IMPORTANT]
+> Endpoints vides = le trafic ne passe nulle part. Si vous voyez `<none>`,
+> le sélecteur ne correspond à aucun Pod Ready. Vérifiez avec :
+> `kubectl get pods -l app=web`
+
+**4. Joignez le Service via son ClusterIP.**
 
 ```bash
-kubectl get svc web -o jsonpath='{.spec.clusterIP}'   # ex. 10.43.12.34
-curl <cette-ip>                                        # page d'accueil nginx
+IP=$(kubectl get svc web -o jsonpath='{.spec.clusterIP}')
+curl $IP
 ```
 
-Quand le Service `web` a **au moins un endpoint**, cliquez sur **Vérifier**. ✅
+Vous obtenez la page d'accueil nginx — routée par l'IP virtuelle, pas par une IP de Pod.
+
+Puis cliquez sur **Vérifier**. ✅

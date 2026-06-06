@@ -10,13 +10,13 @@
   "steps": [
     {
       "id": "intro",
-      "title": { "en": "Why ConfigMaps & Secrets?", "fr": "Pourquoi ConfigMaps & Secrets ?" },
+      "title": { "en": "Stop baking config into images", "fr": "Ne figez plus la config dans vos images" },
       "md": { "en": "steps/en/01-intro.md", "fr": "steps/fr/01-intro.md" },
       "xp": 0
     },
     {
       "id": "configmap",
-      "title": { "en": "Inject config as env vars", "fr": "Injecter la config en variables d'env" },
+      "title": { "en": "Create a ConfigMap and inject as env vars", "fr": "Créer une ConfigMap et l'injecter en variables d'env" },
       "md": { "en": "steps/en/02-configmap.md", "fr": "steps/fr/02-configmap.md" },
       "verify": "scripts/02-verify.sh",
       "hint": {
@@ -27,7 +27,7 @@
     },
     {
       "id": "secret",
-      "title": { "en": "Mount a Secret as a file", "fr": "Monter un Secret en fichier" },
+      "title": { "en": "Create a Secret and mount as a file", "fr": "Créer un Secret et le monter en fichier" },
       "md": { "en": "steps/en/03-secret.md", "fr": "steps/fr/03-secret.md" },
       "verify": "scripts/03-verify.sh",
       "hint": {
