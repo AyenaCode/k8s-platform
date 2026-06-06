@@ -3,7 +3,7 @@
 // is piped by AttachAddon; resize is sent as a 5-byte control frame. The theme is
 // the "OPS CONSOLE" palette (see styles.css) so the shell reads as part of the
 // cockpit, not a bolted-on black box.
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import { AttachAddon } from '@xterm/addon-attach'
@@ -50,6 +50,9 @@ const THEME = {
 
 export function PtyTerminal() {
   const containerRef = useRef<HTMLDivElement>(null)
+  // Toggled true for ~1s after any copy, to flash the discreet "copied" pill.
+  const [copyFlash, setCopyFlash] = useState(false)
+  const flashTimer = useRef<number | undefined>(undefined)
 
   useEffect(() => {
     const container = containerRef.current
@@ -74,6 +77,26 @@ export function PtyTerminal() {
     const fit = new FitAddon()
     term.loadAddon(fit)
 
+    // Copy the current selection to the clipboard and flash the "copied" pill.
+    // `lastCopied` dedupes the stream of selectionChange events fired during a
+    // mouse drag, so we don't hammer the clipboard API on every pixel of motion.
+    // Ctrl+Shift+C passes force=true so an identical re-copy still confirms.
+    let lastCopied = ''
+    const flashCopied = () => {
+      setCopyFlash(true)
+      window.clearTimeout(flashTimer.current)
+      flashTimer.current = window.setTimeout(() => setCopyFlash(false), 1100)
+    }
+    const copySelection = (force: boolean) => {
+      const sel = term.getSelection()
+      if (!sel || (!force && sel === lastCopied)) return
+      lastCopied = sel
+      void navigator.clipboard?.writeText(sel)
+      flashCopied()
+    }
+    // Copy-on-select, like a native Linux terminal: highlighting text copies it.
+    term.onSelectionChange(() => copySelection(false))
+
     // Make this behave like a real terminal in the browser: route control keys to
     // the PTY instead of letting the browser act on them (Ctrl+R reloading the
     // page, Ctrl+L focusing the address bar, Ctrl+Shift+C opening the inspector…),
@@ -83,8 +106,7 @@ export function PtyTerminal() {
 
       // Copy the selection. (Plain Ctrl+C stays SIGINT, the terminal convention.)
       if (e.ctrlKey && e.shiftKey && e.code === 'KeyC') {
-        const sel = term.getSelection()
-        if (sel) void navigator.clipboard?.writeText(sel)
+        copySelection(true)
         e.preventDefault()
         return false
       }
@@ -157,10 +179,19 @@ export function PtyTerminal() {
 
     return () => {
       cancelled = true
+      window.clearTimeout(flashTimer.current)
       teardown?.()
       term.dispose()
     }
   }, [])
 
-  return <div ref={containerRef} style={{ width: '100%', height: '100%', minHeight: 320 }} />
+  return (
+    <div className="pty">
+      <div ref={containerRef} className="pty__screen" />
+      <div className={`pty__toast${copyFlash ? ' is-on' : ''}`} aria-hidden="true">
+        <span className="pty__toast-dot" />
+        copied
+      </div>
+    </div>
+  )
 }
