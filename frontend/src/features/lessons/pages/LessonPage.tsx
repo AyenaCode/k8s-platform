@@ -34,6 +34,8 @@ export function LessonPage({ slug }: { slug: string }) {
   const [reward, setReward] = useState<Reward | null>(null)
   const [celebrate, setCelebrate] = useState(false)
   const outRef = useRef<HTMLPreElement>(null)
+  const lessonRef = useRef<HTMLDivElement>(null)
+  const railRef = useRef<HTMLOListElement>(null)
   // Holds the latest verify action so the (once-registered) keyboard listener
   // always calls the current closure; null when verify isn't available.
   const verifyRef = useRef<(() => void) | null>(null)
@@ -69,6 +71,18 @@ export function LessonPage({ slug }: { slug: string }) {
     setOut([])
     setShowHint(false)
     clearAdvance()
+    // A new step is a new "slide": jump the scrolling content pane back to the top
+    // (otherwise the next step opens wherever the previous one was scrolled to)…
+    lessonRef.current?.closest('.lab__content')?.scrollTo({ top: 0 })
+    // …and keep the active chip visible in the horizontally-scrolling step rail so
+    // the sub-nav tracks your progress through the steps.
+    const rail = railRef.current
+    const active = rail?.querySelector<HTMLElement>('.steprail__item.is-on')
+    if (rail && active) {
+      const a = active.getBoundingClientRect()
+      const r = rail.getBoundingClientRect()
+      rail.scrollBy({ left: a.left + a.width / 2 - (r.left + r.width / 2), behavior: 'smooth' })
+    }
   }, [idx, slug])
   useEffect(() => clearAdvance, [])
   useEffect(() => {
@@ -179,7 +193,7 @@ export function LessonPage({ slug }: { slug: string }) {
   verifyRef.current = step.hasVerify && !busy ? onVerify : null
 
   return (
-    <div className="lesson">
+    <div className="lesson" ref={lessonRef}>
       <header className="lesson__head">
         <div>
           <span className="lesson__kicker">
@@ -190,7 +204,7 @@ export function LessonPage({ slug }: { slug: string }) {
         {lessonDone && <span className="lesson__done">✓ mission complete</span>}
       </header>
 
-      <ol className="steprail">
+      <ol className="steprail" ref={railRef}>
         {data.steps.map((s, i) => {
           const sdone = solved.has(stepKey(slug, s.id))
           const cls = 'steprail__item' + (i === idx ? ' is-on' : sdone ? ' is-done' : '')
