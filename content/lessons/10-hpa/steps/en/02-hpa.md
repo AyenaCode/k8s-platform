@@ -1,6 +1,6 @@
 ## Attach a HorizontalPodAutoscaler to a Deployment
 
-The platform pre-created **`web-hpa`** — a Deployment with a **100m CPU request**
+The platform pre-created **`web-hpa`**: a Deployment with a **100m CPU request**
 already set. That request is the denominator the HPA divides by; without it the
 autoscaler is blind.
 
@@ -14,7 +14,7 @@ kubectl top pods -l app=web-hpa
 ```
 
 > [!NOTE]
-> If `kubectl top pods` returns `<unknown>` wait ~15 s and retry — metrics-server
+> If `kubectl top pods` returns `<unknown>` wait ~15 s and retry: metrics-server
 > scrapes on a short interval.
 
 **2. Attach the autoscaler.** Target **50% average CPU**, between **1 and 5** replicas:
@@ -43,15 +43,15 @@ down once the burst ends.
 
 > [!TIP]
 > **Generate load to watch it scale:** exec a busy loop directly inside the
-> `web-hpa` pod so the HPA sees its CPU rise —
-> `kubectl exec deploy/web-hpa -- sh -c "while true; do :; done"` —
+> `web-hpa` pod so the HPA sees its CPU rise
+> (`kubectl exec deploy/web-hpa -- sh -c "while true; do :; done"`),
 > then watch `kubectl get hpa -w` climb REPLICAS. Scale-down is deliberately
 > slow (a stabilization window) to prevent flapping.
 
 > [!WARNING]
 > `<unknown>` that never clears means the Pods lack a CPU request. The setup
 > script already sets `requests.cpu: 100m` on `web-hpa`, so this should not
-> happen — but if it does, check `kubectl describe hpa web-hpa` for the cause.
+> happen, but if it does, check `kubectl describe hpa web-hpa` for the cause.
 
 **4. Confirm the HPA is healthy.**
 

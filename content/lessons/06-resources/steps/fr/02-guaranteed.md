@@ -6,13 +6,13 @@ conteneur doit définir **à la fois** le cpu et la mémoire, et `limits` doit
 
 > [!NOTE]
 > Les champs de ressources d'un Pod sont immuables après sa création. Pour les
-> modifier, supprimez le Pod et réappliquez-le. Le cluster l'impose — vous ne
-> pouvez pas changer les valeurs de ressources via `kubectl apply` sur un Pod
+> modifier, supprime le Pod et réapplique-le. Le cluster l'impose : tu ne
+> peux pas changer les valeurs de ressources via `kubectl apply` sur un Pod
 > existant.
 
-### Votre tâche
+### Ta tâche
 
-**1. Appliquez le Pod Guaranteed :**
+**1. Applique le Pod Guaranteed :**
 
 ```bash
 kubectl apply -f - <<'EOF'
@@ -30,7 +30,7 @@ spec:
 EOF
 ```
 
-**2. Confirmez la classe QoS que Kubernetes lui a attribuée :**
+**2. Confirme la classe QoS que Kubernetes lui a attribuée :**
 
 ```bash
 kubectl get pod guaranteed-demo -o jsonpath='{.status.qosClass}{"\n"}'
@@ -42,7 +42,7 @@ Ce que « bon » donne :
 Guaranteed
 ```
 
-**3. Vérifiez via describe :**
+**3. Vérifie via describe :**
 
 ```bash
 kubectl describe pod guaranteed-demo | grep -i qos
@@ -55,8 +55,8 @@ QoS Class:  Guaranteed
 ```
 
 > [!TIP]
-> Pour observer les autres classes QoS sans toucher à `guaranteed-demo`, appliquez
+> Pour observer les autres classes QoS sans toucher à `guaranteed-demo`, applique
 > un second Pod avec `limits != requests` (→ **Burstable**) ou sans aucun champ de
-> ressources (→ **BestEffort**, évicté en premier). Supprimez-le ensuite.
+> ressources (→ **BestEffort**, évicté en premier). Supprime-le ensuite.
 
-Puis cliquez sur **Vérifier**. ✅
+Puis clique sur **Vérifier**. ✅

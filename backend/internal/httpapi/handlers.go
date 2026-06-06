@@ -53,7 +53,7 @@ func (h *handlers) setupStep(w http.ResponseWriter, r *http.Request) {
 }
 
 // verifyStep streams the step's verify script. On success (exit 0) it records the
-// step as solved, and — if every verify step of the lesson is now solved —
+// step as solved, and, if every verify step of the lesson is now solved,
 // records the lesson as complete (awarding its XP once).
 func (h *handlers) verifyStep(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")

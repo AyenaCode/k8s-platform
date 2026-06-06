@@ -17,14 +17,14 @@ util% < cible  →  supprimer des replicas  (jusqu'à minReplicas)
 
 Deux conditions doivent être remplies avant que le HPA puisse fonctionner :
 
-1. **metrics-server doit tourner** — il alimente le HPA en chiffres CPU en direct.
-2. **Les Pods doivent déclarer `resources.requests.cpu`** — la formule divise par
+1. **metrics-server doit tourner** : il alimente le HPA en chiffres CPU en direct.
+2. **Les Pods doivent déclarer `resources.requests.cpu`** : la formule divise par
    la request. Sans request → pas de dénominateur → le HPA affiche `<unknown>`
    indéfiniment et ne scale jamais.
 
 > [!NOTE]
 > k3s embarque metrics-server comme composant intégré. Il **tourne déjà** dans ce
-> cluster — aucune installation nécessaire. `kubectl top pods` fonctionne
+> cluster : aucune installation nécessaire. `kubectl top pods` fonctionne
 > immédiatement.
 
 Vue d'ensemble :
@@ -41,11 +41,11 @@ Vue d'ensemble :
 ```
 
 > [!IMPORTANT]
-> `kubectl autoscale` crée un HPA **`autoscaling/v2`** — l'API stable actuelle.
-> Vous définissez une utilisation cible et des bornes ; le HPA trouve le nombre
-> de replicas qui vous y maintient.
+> `kubectl autoscale` crée un HPA **`autoscaling/v2`** : l'API stable actuelle.
+> Tu définis une utilisation cible et des bornes ; le HPA trouve le nombre
+> de replicas qui t'y maintient.
 
-À l'étape suivante vous attacherez un HPA à un Deployment pré-créé et le
-regarderez s'animer avec de vraies métriques.
+À l'étape suivante tu attacheras un HPA à un Deployment pré-créé et le
+regarderas s'animer avec de vraies métriques.
 
 **Continuer →**

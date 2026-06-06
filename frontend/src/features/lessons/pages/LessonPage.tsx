@@ -1,6 +1,6 @@
 // LessonPage is the heart of the lab: the left (content) pane of a mission under
 // LabLayout, with the persistent terminal on the right. It walks the learner
-// through ordered steps — concept prose, then an interactive task they perform in
+// through ordered steps: concept prose, then an interactive task they perform in
 // the terminal and confirm with "Verify". Verify streams a script over SSE; the
 // backend awards XP on success, so we just refetch the summary and celebrate.
 //
@@ -39,7 +39,7 @@ export function LessonPage({ slug }: { slug: string }) {
   // Holds the latest verify action so the (once-registered) keyboard listener
   // always calls the current closure; null when verify isn't available.
   const verifyRef = useRef<(() => void) | null>(null)
-  // Pending auto-advance timer (next step or next mission) — cleared on unmount
+  // Pending auto-advance timer (next step or next mission), cleared on unmount
   // and on any manual navigation so a deferred jump never fires out of context.
   const advanceTimer = useRef<number | null>(null)
   const clearAdvance = () => {
@@ -145,7 +145,7 @@ export function LessonPage({ slug }: { slug: string }) {
       setShowHint(true)
       return
     }
-    // Backend awarded XP; force a fresh refetch (staleTime: 0 — otherwise the
+    // Backend awarded XP; force a fresh refetch (staleTime: 0, otherwise the
     // global 30s staleTime makes fetchQuery resolve from cache, so the delta is
     // always 0 and neither the reward toast nor the confetti ever fire). This
     // also updates the cache + notifies observers, so no invalidate is needed.
@@ -156,11 +156,11 @@ export function LessonPage({ slug }: { slug: string }) {
       setReward(newBadge ? { xp: gained, badge: newBadge.name } : { xp: gained })
     }
     // Confetti on every successful verify. (The reward toast still only shows
-    // when XP or a badge was actually gained — re-verifying a solved step still
+    // when XP or a badge was actually gained, re-verifying a solved step still
     // celebrates but won't claim fake XP.)
     setCelebrate(true)
-    // Gentle auto-advance to keep momentum: next step within the mission, or — once
-    // the last step is verified — straight on to the next mission (a touch slower so
+    // Gentle auto-advance to keep momentum: next step within the mission, or, once
+    // the last step is verified, straight on to the next mission (a touch slower so
     // the reward toast is seen first). Stops at the end of the course.
     clearAdvance()
     if (!isLast) {

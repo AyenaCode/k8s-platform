@@ -1,10 +1,10 @@
 ## Router le trafic HTTP avec un Ingress
 
-Créez la porte d'entrée. Cet Ingress indique à Traefik : toute requête avec `Host: site.local` est transmise à `site-svc` sur le port 80.
+Crée la porte d'entrée. Cet Ingress indique à Traefik : toute requête avec `Host: site.local` est transmise à `site-svc` sur le port 80.
 
-### Votre tâche
+### Ta tâche
 
-**1. Appliquez l'Ingress.**
+**1. Applique l'Ingress.**
 
 ```bash
 kubectl apply -f - <<'EOF'
@@ -28,7 +28,7 @@ spec:
 EOF
 ```
 
-**2. Attendez que Traefik assigne une adresse** (quelques secondes peuvent être nécessaires).
+**2. Attends que Traefik assigne une adresse** (quelques secondes peuvent être nécessaires).
 
 ```bash
 kubectl get ingress site
@@ -41,15 +41,15 @@ NAME   CLASS     HOSTS        ADDRESS       PORTS   AGE
 site   traefik   site.local   172.x.x.x     80      10s
 ```
 
-**3. Prouvez le routage.** Il n'y a pas de DNS pour `site.local` ; simulez le nom d'hôte avec un en-tête `Host:` — Traefik route sur cet en-tête seul.
+**3. Prouve le routage.** Il n'y a pas de DNS pour `site.local` ; simule le nom d'hôte avec un en-tête `Host:`, Traefik route sur cet en-tête seul.
 
 ```bash
 curl -H "Host: site.local" http://localhost/
 ```
 
-Vous devriez voir la page d'accueil nginx (HTTP 200).
+Tu devrais voir la page d'accueil nginx (HTTP 200).
 
-**4. Confirmez que les mauvais hôtes sont rejetés** — aucune règle ne correspond, Traefik renvoie 404.
+**4. Confirme que les mauvais hôtes sont rejetés** : aucune règle ne correspond, Traefik renvoie 404.
 
 ```bash
 curl -i -H "Host: wrong.local" http://localhost/ | head -1
@@ -62,9 +62,9 @@ HTTP/1.1 404 Not Found
 ```
 
 > [!TIP]
-> Traefik peut mettre quelques secondes à charger un Ingress nouvellement appliqué. Si `curl` renvoie 404 immédiatement, patientez 5 secondes et réessayez.
+> Traefik peut mettre quelques secondes à charger un Ingress nouvellement appliqué. Si `curl` renvoie 404 immédiatement, patiente 5 secondes et réessaie.
 
 > [!IMPORTANT]
-> `ingressClassName: traefik` indique à Traefik que cet Ingress lui appartient. Sans ce champ, Traefik ignore complètement l'objet — votre curl retournera 404 quoi qu'il arrive.
+> `ingressClassName: traefik` indique à Traefik que cet Ingress lui appartient. Sans ce champ, Traefik ignore complètement l'objet : ton curl retournera 404 quoi qu'il arrive.
 
-Lorsque `curl -H "Host: site.local" http://localhost/` retourne HTTP 200, puis cliquez sur **Vérifier**. ✅
+Lorsque `curl -H "Host: site.local" http://localhost/` retourne HTTP 200, puis clique sur **Vérifier**. ✅

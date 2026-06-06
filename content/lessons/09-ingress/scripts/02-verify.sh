@@ -14,9 +14,9 @@ fi
 
 ips=$(kubectl get endpoints site-svc -o jsonpath='{.subsets[*].addresses[*].ip}' 2>/dev/null)
 if [ -z "$ips" ]; then
-  echo "✗ Service 'site-svc' has no endpoints — its selector matches no Ready Pod."
+  echo "✗ Service 'site-svc' has no endpoints: its selector matches no Ready Pod."
   exit 1
 fi
 
-echo "✓ Service 'site-svc' on :80 has endpoints: $ips — ready to put an Ingress in front."
+echo "✓ Service 'site-svc' on :80 has endpoints: $ips, ready to put an Ingress in front."
 exit 0

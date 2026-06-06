@@ -1,6 +1,6 @@
 #!/bin/bash
 # Pass when an HPA targets the web-hpa Deployment, caps at 5 replicas, AND is
-# actually reading CPU metrics (TARGETS is a real % — not <unknown>). The metric
+# actually reading CPU metrics (TARGETS is a real %, not <unknown>). The metric
 # takes ~15-30s to appear after the HPA is created, so we retry briefly.
 set -uo pipefail
 

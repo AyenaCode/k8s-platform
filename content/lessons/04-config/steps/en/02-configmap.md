@@ -12,7 +12,7 @@ kubectl create configmap app-config \
   --from-literal=GREETING=hello
 ```
 
-**2. Inspect what you made** — see the data section:
+**2. Inspect what you made**, see the data section:
 
 ```bash
 kubectl get configmap app-config -o yaml
@@ -64,6 +64,6 @@ hello
 ```
 
 > [!TIP]
-> `envFrom` bulk-loads every key. If you only need one key, use `env: valueFrom: configMapKeyRef` instead — it gives you full control over the variable name.
+> `envFrom` bulk-loads every key. If you only need one key, use `env: valueFrom: configMapKeyRef` instead, it gives you full control over the variable name.
 
 Then hit **Verify**. ✅

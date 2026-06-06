@@ -1,6 +1,6 @@
 ## Why Services exist
 
-Pods are **ephemeral**: they restart, reschedule, and scale out — and every new Pod
+Pods are **ephemeral**: they restart, reschedule, and scale out, and every new Pod
 gets a **different IP**. You can never hardcode a Pod IP and call it stable.
 
 A **Service** fixes that. It is a **stable virtual IP + a DNS name** that kube-proxy
@@ -32,6 +32,6 @@ The four Service types:
 | **ExternalName** | DNS CNAME | alias to an external host |
 
 In this lesson you will expose a Deployment with a ClusterIP, open it to the
-outside with a NodePort, and discover it by DNS — all in a live cluster.
+outside with a NodePort, and discover it by DNS, all in a live cluster.
 
 **Continue →**

@@ -1,13 +1,13 @@
 ## Deploy a StatefulSet with stable names & disks
 
-A Deployment's Pods are **interchangeable** — random names, shared nothing,
+A Deployment's Pods are **interchangeable**: random names, shared nothing,
 created in any order. Databases and distributed systems need each member to have
 a **stable identity** and **its own disk** that follows it across restarts. That
 is a **StatefulSet**.
 
 A StatefulSet gives you:
 
-- **Stable, ordered names**: `web-0`, `web-1`, … — never random suffixes.
+- **Stable, ordered names**: `web-0`, `web-1`, … (never random suffixes).
 - **Per-Pod storage**: each replica gets its own PVC from a
   `volumeClaimTemplate`. `data-web-0` follows `web-0`; `data-web-1` follows
   `web-1`. Delete `web-0` and it comes back re-attached to `data-web-0`.
@@ -68,7 +68,7 @@ spec:
 EOF
 ```
 
-**2. Watch the ordered rollout** — `web-0` becomes Ready before `web-1` starts:
+**2. Watch the ordered rollout**, `web-0` becomes Ready before `web-1` starts:
 
 ```bash
 kubectl get pods -l app=db -w
@@ -102,7 +102,7 @@ data-web-1   Bound    pvc-def456…     1Gi        RWO
 
 > [!TIP]
 > Each Pod also gets a stable DNS name via the headless Service: `web-0.db` and
-> `web-1.db`. Clients inside the cluster can address each replica directly — no
+> `web-1.db`. Clients inside the cluster can address each replica directly, no
 > load balancer in the way.
 
 When **StatefulSet `web` shows 2/2 ready** and PVCs **`data-web-0`** and

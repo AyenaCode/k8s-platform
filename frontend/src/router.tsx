@@ -1,7 +1,7 @@
 // Code-based TanStack Router tree (type-safe, no codegen). The dashboard and the
 // lesson catalog render full-width under RootLayout. A lesson renders under a
 // pathless LAYOUT route (`_lab`) that keeps a single persistent terminal mounted
-// while its <Outlet/> content swaps — so the shell session survives navigation.
+// while its <Outlet/> content swaps, so the shell session survives navigation.
 import { createRootRoute, createRoute, createRouter } from '@tanstack/react-router'
 import { RootLayout } from '@/app/RootLayout'
 import { LabLayout } from '@/app/LabLayout'

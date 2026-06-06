@@ -1,7 +1,7 @@
 ## Discover Services by DNS
 
-This is how microservices find each other at runtime. CoreDNS — the cluster's
-built-in DNS server — automatically creates an A record for every Service:
+This is how microservices find each other at runtime. CoreDNS, the cluster's
+built-in DNS server, automatically creates an A record for every Service:
 
 ```text
 <service>.<namespace>.svc.cluster.local
@@ -41,10 +41,10 @@ wget -qO- http://web.default.svc.cluster.local
 > That's why the short name `web` works without any extra config.
 
 > [!IMPORTANT]
-> Never hardcode Pod IPs in your app. Call the **Service name** — `http://web`,
-> `http://payments` — and let DNS + kube-proxy handle routing and load balancing.
+> Never hardcode Pod IPs in your app. Call the **Service name** (`http://web`,
+> `http://payments`) and let DNS + kube-proxy handle routing and load balancing.
 > This is the backbone of every microservice architecture on Kubernetes.
 
 You now know the three pillars of Kubernetes networking: **Services** (stable
 identity), **Endpoints** (the live Pods behind them), and **DNS** (discovery).
-That closes the networking fundamentals — well done.
+That closes the networking fundamentals, well done.

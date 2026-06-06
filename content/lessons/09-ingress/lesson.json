@@ -2,8 +2,8 @@
   "slug": "09-ingress",
   "title": { "en": "Ingress & HTTP routing", "fr": "Ingress & routage HTTP" },
   "summary": {
-    "en": "One entry point, many apps. An Ingress routes HTTP by host and path to the right Service — the front door of a cluster.",
-    "fr": "Un seul point d'entrée, plusieurs apps. Un Ingress route le HTTP par host et chemin vers le bon Service — la porte d'entrée d'un cluster."
+    "en": "One entry point, many apps. An Ingress routes HTTP by host and path to the right Service: the front door of a cluster.",
+    "fr": "Un seul point d'entrée, plusieurs apps. Un Ingress route le HTTP par host et chemin vers le bon Service : la porte d'entrée d'un cluster."
   },
   "estMinutes": 18,
   "xp": 240,
@@ -22,7 +22,7 @@
       "verify": "scripts/02-verify.sh",
       "hint": {
         "en": "The 'site' Deployment is pre-created. Expose it: kubectl expose deployment site --name=site-svc --port=80",
-        "fr": "Le Deployment 'site' est déjà créé. Exposez-le : kubectl expose deployment site --name=site-svc --port=80"
+        "fr": "Le Deployment 'site' est déjà créé. Expose-le : kubectl expose deployment site --name=site-svc --port=80"
       },
       "xp": 90
     },
@@ -33,7 +33,7 @@
       "verify": "scripts/03-verify.sh",
       "hint": {
         "en": "Create an Ingress for host site.local -> site-svc:80 with ingressClassName: traefik. Test: curl -H 'Host: site.local' localhost",
-        "fr": "Créez un Ingress pour le host site.local -> site-svc:80 avec ingressClassName: traefik. Test : curl -H 'Host: site.local' localhost"
+        "fr": "Crée un Ingress pour le host site.local -> site-svc:80 avec ingressClassName: traefik. Test : curl -H 'Host: site.local' localhost"
       },
       "xp": 150
     }

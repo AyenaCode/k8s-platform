@@ -1,5 +1,5 @@
 // Package httpapi wires the application tier: REST (JSON), SSE streams,
-// the PTY WebSocket, and static SPA serving — all on one origin (no CORS).
+// the PTY WebSocket, and static SPA serving, all on one origin (no CORS).
 package httpapi
 
 import (

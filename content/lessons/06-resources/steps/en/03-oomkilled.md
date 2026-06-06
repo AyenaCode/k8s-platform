@@ -1,7 +1,7 @@
 ## Trigger an OOMKilled
 
 Deploy a container with a **20Mi** memory limit, then make it allocate without
-bound. `tail /dev/zero` streams endless zero-bytes into memory — the kernel's
+bound. `tail /dev/zero` streams endless zero-bytes into memory: the kernel's
 OOM-killer terminates it the moment it crosses the limit.
 
 ### Your task
@@ -25,7 +25,7 @@ spec:
 EOF
 ```
 
-**2. Watch the STATUS flip** — within seconds it hits 20Mi and the kernel kills it:
+**2. Watch the STATUS flip**, within seconds it hits 20Mi and the kernel kills it:
 
 ```bash
 kubectl get pod hog -w        # Ctrl-C once you see OOMKilled
@@ -40,7 +40,7 @@ hog    0/1     CrashLoopBackOff   1   8s
 ```
 
 > [!NOTE]
-> `STATUS` is transient — the kubelet restarts the container and the string changes.
+> `STATUS` is transient: the kubelet restarts the container and the string changes.
 > The reliable proof is the **last terminated state**, which persists across restarts.
 
 **3. Confirm the OOMKilled reason:**
@@ -71,11 +71,11 @@ Last State:  Terminated
 
 > [!IMPORTANT]
 > Exit code **137** = killed by signal 9 (SIGKILL) from the kernel's OOM-killer.
-> This is the #1 reason a "healthy" container keeps restarting in production — its
+> This is the #1 reason a "healthy" container keeps restarting in production: its
 > memory limit is set too low. Raise the limit or fix the leak.
 
 > [!WARNING]
-> `CrashLoopBackOff` does **not** always mean OOMKilled — it only means the
+> `CrashLoopBackOff` does **not** always mean OOMKilled: it only means the
 > container keeps crashing. Always read `lastState.terminated.reason` and the exit
 > code to know the real cause.
 

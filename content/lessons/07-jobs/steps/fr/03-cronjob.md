@@ -1,12 +1,12 @@
 ## Planifier une tâche avec un CronJob
 
-Un CronJob déclenche un nouveau Job sur minuteur. Il contient un `jobTemplate` —
+Un CronJob déclenche un nouveau Job sur minuteur. Il contient un `jobTemplate` :
 le modèle dont chaque Job déclenché est calqué. Pas besoin d'attendre le
 planning pour le tester : on lance une exécution manuelle.
 
-### Votre tâche
+### Ta tâche
 
-**1. Créez le CronJob** nommé `report`, toutes les minutes :
+**1. Crée le CronJob** nommé `report`, toutes les minutes :
 
 ```bash
 kubectl create cronjob report \
@@ -15,7 +15,7 @@ kubectl create cronjob report \
   -- /bin/sh -c "date; echo nightly report done"
 ```
 
-**2. Confirmez qu'il est enregistré :**
+**2. Confirme qu'il est enregistré :**
 
 ```bash
 kubectl get cronjob report
@@ -28,21 +28,21 @@ NAME     SCHEDULE      SUSPEND   ACTIVE   LAST SCHEDULE   AGE
 report   */1 * * * *   False     0        <none>          5s
 ```
 
-**3. Déclenchez une exécution immédiate** — sans attendre le planning. C'est
+**3. Déclenche une exécution immédiate**, sans attendre le planning. C'est
 exactement ce que fait un ingénieur d'astreinte pour tester une tâche planifiée :
 
 ```bash
 kubectl create job report-now --from=cronjob/report
 ```
 
-**4. Attendez la fin et lisez la sortie :**
+**4. Attends la fin et lis la sortie :**
 
 ```bash
 kubectl wait --for=condition=complete job/report-now --timeout=60s
 kubectl logs -l job-name=report-now
 ```
 
-**5. Au bout d'une minute ou deux, listez tous les Jobs** — le planificateur
+**5. Au bout d'une minute ou deux, liste tous les Jobs**, le planificateur
 aura créé son propre Job nommé `report-<timestamp>` :
 
 ```bash
@@ -56,7 +56,7 @@ kubectl get jobs
 
 > [!TIP]
 > `kubectl create job <nom> --from=cronjob/<nom>` est la méthode standard pour
-> déclencher une exécution ponctuelle depuis n'importe quel CronJob — sans
+> déclencher une exécution ponctuelle depuis n'importe quel CronJob, sans
 > modifier le moindre YAML.
 
-Quand le CronJob **`report`** existe et que le Job **`report-now`** est terminé, puis cliquez sur **Vérifier**. ✅
+Quand le CronJob **`report`** existe et que le Job **`report-now`** est terminé, puis clique sur **Vérifier**. ✅

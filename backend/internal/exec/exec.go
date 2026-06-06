@@ -1,7 +1,7 @@
 // Package exec runs the exercise lifecycle scripts (deploy / reset / check) and
 // streams their output to the browser as Server-Sent Events. Interactive shell
 // access is provided separately by the full-access PTY terminal (package
-// terminal) — there is no restricted command box.
+// terminal), there is no restricted command box.
 package exec
 
 import (
@@ -111,7 +111,7 @@ func StreamScript(w http.ResponseWriter, r *http.Request, script, dir string, ti
 
 // StreamScriptResult is like StreamScript but reports whether the script exited 0,
 // so the caller can react (e.g. award XP when a verify step passes). The SSE
-// stream — including the final done frame — is fully written before returning.
+// stream, including the final done frame, is fully written before returning.
 func StreamScriptResult(w http.ResponseWriter, r *http.Request, script, dir string, timeout time.Duration, args ...string) Result {
 	s, _ := newSSE(w)
 	cmd := exec.Command("bash", append([]string{script}, args...)...)

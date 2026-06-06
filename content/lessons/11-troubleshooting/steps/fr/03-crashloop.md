@@ -1,10 +1,10 @@
 ## Diagnostiquer et corriger un CrashLoopBackOff
 
-La plateforme vient de déployer `crasher` — un Pod qui démarre et meurt immédiatement. Le kubelet le redémarre en boucle, avec des délais croissants.
+La plateforme vient de déployer `crasher`, un Pod qui démarre et meurt immédiatement. Le kubelet le redémarre en boucle, avec des délais croissants.
 
 ### Diagnostiquer
 
-**1. Repérer le symptôme** — regardez le compteur RESTARTS grimper :
+**1. Repérer le symptôme** : regarde le compteur RESTARTS grimper :
 
 ```bash
 kubectl get pods
@@ -17,7 +17,7 @@ crasher-5b8f7d9c4-r2zt   0/1     CrashLoopBackOff   4          90s
 
 `CrashLoopBackOff` signifie que l'image s'est bien téléchargée, mais que le **conteneur démarre, s'arrête et est redémarré** sans cesse. Le problème est à l'intérieur du conteneur.
 
-**2. Lire les logs** — c'est votre indice le plus direct pour un crash :
+**2. Lire les logs** : c'est ton indice le plus direct pour un crash :
 
 ```bash
 kubectl logs -l app=crasher
@@ -29,13 +29,13 @@ starting
 
 Il a affiché une ligne et s'est arrêté. Voilà toute la sortie. Un conteneur qui n'a plus rien à exécuter est considéré comme planté.
 
-**3. Confirmer le code de sortie** — vérifiez le dernier état :
+**3. Confirmer le code de sortie** : vérifie le dernier état :
 
 ```bash
 kubectl describe pod -l app=crasher
 ```
 
-Descendez jusqu'à **Last State** dans la section du conteneur :
+Descends jusqu'à **Last State** dans la section du conteneur :
 
 ```text
 Last State:  Terminated
@@ -44,9 +44,9 @@ Last State:  Terminated
 ```
 
 > [!NOTE]
-> Le code de sortie 1 est une erreur applicative générique. Causes réelles : une variable d'environnement manquante, un fichier de config introuvable au démarrage, ou un serveur qui échoue à se lier à son port. Commencez toujours par les logs — le message de crash s'y trouve.
+> Le code de sortie 1 est une erreur applicative générique. Causes réelles : une variable d'environnement manquante, un fichier de config introuvable au démarrage, ou un serveur qui échoue à se lier à son port. Commence toujours par les logs : le message de crash s'y trouve.
 
-**4. Lire les logs précédents** — après plusieurs redémarrages, le conteneur actuel n'a peut-être pas encore produit de sortie. Utilisez `--previous` pour lire la dernière exécution terminée :
+**4. Lire les logs précédents** : après plusieurs redémarrages, le conteneur actuel n'a peut-être pas encore produit de sortie. Utilise `--previous` pour lire la dernière exécution terminée :
 
 ```bash
 kubectl logs -l app=crasher --previous
@@ -55,9 +55,9 @@ kubectl logs -l app=crasher --previous
 > [!TIP]
 > `kubectl events --for pod/<name>` est la façon la plus propre de voir uniquement les events d'un Pod, sans avoir à défiler dans toute la sortie de `describe`.
 
-### Votre tâche
+### Ta tâche
 
-**1. Ré-appliquer le Deployment** avec une commande qui reste active — conservez le même nom de Deployment et la même image :
+**1. Ré-appliquer le Deployment** avec une commande qui reste active, conserve le même nom de Deployment et la même image :
 
 ```bash
 kubectl apply -f - <<'EOF'
@@ -93,4 +93,4 @@ NAME                      READY   STATUS    RESTARTS   AGE
 crasher-6d9c8f7b4-kw4lp   1/1     Running   0          8s
 ```
 
-Puis cliquez sur **Vérifier**. ✅
+Puis clique sur **Vérifier**. ✅

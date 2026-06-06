@@ -11,7 +11,7 @@ fi
 ips=$(kubectl get endpoints web -o jsonpath='{.subsets[*].addresses[*].ip}' 2>/dev/null)
 
 if [ -z "$ips" ]; then
-  echo "✗ Service 'web' has no endpoints — its selector matches no Ready Pod."
+  echo "✗ Service 'web' has no endpoints: its selector matches no Ready Pod."
   echo "  Check: kubectl get endpoints web   and   kubectl get pods -l app=web"
   exit 1
 fi

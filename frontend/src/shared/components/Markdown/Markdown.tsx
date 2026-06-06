@@ -1,11 +1,11 @@
 // MarkdownView renders trusted lesson/mission markdown: GFM (tables, lists,
 // task items) via remark-gfm, and syntax-highlighted code blocks via react-shiki.
-// Code blocks get a "Copy" button only — deliberately NO "Run": the learner types
+// Code blocks get a "Copy" button only, deliberately NO "Run": the learner types
 // each command into the live terminal themselves (you learn kubectl by typing it).
 import { memo, useState, type ComponentPropsWithoutRef } from 'react'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-// /web uses the JS RegExp engine (no wasm/oniguruma chunk) — lighter & faster
+// /web uses the JS RegExp engine (no wasm/oniguruma chunk), lighter & faster
 // startup, plenty for our bash/yaml/text snippets.
 import ShikiHighlighter, { isInlineCode, type Element } from 'react-shiki/web'
 
@@ -15,7 +15,7 @@ const SHELL = new Set(['bash', 'sh', 'shell', 'console', 'zsh'])
 // GitHub-style alert callouts: a blockquote whose first line is `[!NOTE]`,
 // `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]` or `[!CAUTION]` renders as a coloured
 // callout box (styled in styles.css). Implemented as a tiny inline remark
-// transform — no extra dependency — by walking the mdast tree, stripping the
+// transform, no extra dependency, by walking the mdast tree, stripping the
 // marker, and retargeting the blockquote to a <div class="callout callout--TYPE">.
 const ALERT_RE = /^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*\n?/i
 

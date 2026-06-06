@@ -1,10 +1,10 @@
 ## Qu'est-ce qu'un Pod ?
 
-Un **Pod** est la plus petite unité que vous déployez dans Kubernetes : une
+Un **Pod** est la plus petite unité que tu déploies dans Kubernetes : une
 enveloppe autour d'**un ou plusieurs conteneurs** qui tournent toujours ensemble
 sur un même nœud et partagent :
 
-- une **identité réseau** unique — une seule IP de Pod ; les conteneurs dialoguent via `localhost`
+- une **identité réseau** unique : une seule IP de Pod ; les conteneurs dialoguent via `localhost`
 - les mêmes **volumes** de stockage
 
 > [!NOTE]
@@ -13,18 +13,18 @@ sur un même nœud et partagent :
 > nom comme son IP ne sont pas stables. Le **kubelet** du nœud récupère l'image et
 > démarre le conteneur.
 
-En production, on crée rarement les Pods à la main — mais tout objet de plus haut
-niveau (Deployments, Jobs, StatefulSets) finit par exécuter des Pods. Maîtrisez
+En production, on crée rarement les Pods à la main, mais tout objet de plus haut
+niveau (Deployments, Jobs, StatefulSets) finit par exécuter des Pods. Maîtrise
 ceci et le reste suivra.
 
 ### Reconnaissance
 
-Le terminal à droite est un vrai shell, avec `kubectl` déjà connecté à un cluster
-en direct. Faites le tour :
+Le terminal est un vrai shell, avec `kubectl` déjà connecté à un cluster
+en direct. Fais le tour :
 
 ```bash
-kubectl get nodes      # les machines qui exécutent vos charges
+kubectl get nodes      # les machines qui exécutent tes charges
 kubectl get pods       # ce qui tourne maintenant (sans doute rien encore)
 ```
 
-Ensuite, vous placerez un Pod sur l'un de ces nœuds. **Continuer →**
+Ensuite, tu placeras un Pod sur l'un de ces nœuds. **Continuer →**

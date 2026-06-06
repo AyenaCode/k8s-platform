@@ -1,5 +1,5 @@
 // App-wide UI language. The backend serves bilingual content via ?lang=en|fr, and
-// every content query key already includes the language — so flipping this value
+// every content query key already includes the language, so flipping this value
 // transparently refetches courses, exercises and missions in the chosen language.
 // The choice is persisted to localStorage so it survives reloads.
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'

@@ -1,24 +1,24 @@
-## Définissez ce que « sain » signifie avant de déployer
+## Définis ce que « sain » signifie avant de déployer
 
 « Le processus tourne-t-il ? » est une définition trop faible de *sain*. Un
-conteneur peut être **actif mais inutile** — bloqué sur un deadlock, encore en
+conteneur peut être **actif mais inutile** : bloqué sur un deadlock, encore en
 train de charger un cache, en attente d'une base de données. Le kubelet ne sait
-ce que *sain* signifie que si **vous** le lui dites, avec des **probes** (sondes).
+ce que *sain* signifie que si **tu** le lui dis, avec des **probes** (sondes).
 
 Il en existe trois, chacune ayant un rôle bien distinct :
 
 | Probe | Ce à quoi elle répond | Action en cas d'échec |
 |---|---|---|
-| **readiness** | « Puis-je servir du trafic *maintenant* ? » | Retirée des endpoints du Service — **aucun redémarrage** |
+| **readiness** | « Puis-je servir du trafic *maintenant* ? » | Retirée des endpoints du Service, **aucun redémarrage** |
 | **liveness** | « Suis-je encore vivant, ou bloqué ? » | Le kubelet **tue et redémarre** le conteneur |
 | **startup** | « Ai-je fini de démarrer ? » | Bloque readiness + liveness jusqu'au démarrage de l'app |
 
-Les deux que vous utiliserez dans presque chaque déploiement :
+Les deux que tu utiliseras dans presque chaque déploiement :
 
-- **Readiness** protège vos utilisateurs. Un Pod en échec continue de tourner mais
-  ne reçoit **aucun trafic** jusqu'à son rétablissement — idéal pour le préchauffage
+- **Readiness** protège tes utilisateurs. Un Pod en échec continue de tourner mais
+  ne reçoit **aucun trafic** jusqu'à son rétablissement, idéal pour le préchauffage
   et les surcharges temporaires.
-- **Liveness** protège votre application contre elle-même. Un Pod en échec est
+- **Liveness** protège ton application contre elle-même. Un Pod en échec est
   **redémarré**, ce qui casse un deadlock sans intervention humaine.
 
 Chaque probe vérifie l'état de l'une de ces trois façons : `exec` (commande ;
@@ -27,10 +27,10 @@ exit 0 = sain), `httpGet` (endpoint HTTP ; 2xx–3xx = sain), ou `tcpSocket`
 
 > [!WARNING]
 > Pointer une probe de **liveness** vers quelque chose de lent ou d'instable
-> provoque des redémarrages en boucle. En cas de doute, préférez **readiness** —
+> provoque des redémarrages en boucle. En cas de doute, préfère **readiness** :
 > elle ne redémarre jamais, elle retire simplement le Pod de la rotation.
 
-Vous allez ensuite observer la readiness filtrer le trafic, puis regarder la
+Tu vas ensuite observer la readiness filtrer le trafic, puis regarder la
 liveness redémarrer un conteneur bloqué.
 
 **Continuer →**

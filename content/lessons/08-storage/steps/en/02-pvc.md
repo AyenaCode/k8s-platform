@@ -21,7 +21,7 @@ spec:
 EOF
 ```
 
-**2. Check the PVC status** — it should be `Pending`:
+**2. Check the PVC status**, it should be `Pending`:
 
 ```bash
 kubectl get pvc data-pvc
@@ -33,7 +33,7 @@ data-pvc   Pending
 ```
 
 > [!NOTE]
-> `Pending` here is expected. `local-path` is `WaitForFirstConsumer` — the disk
+> `Pending` here is expected. `local-path` is `WaitForFirstConsumer`: the disk
 > is not provisioned until a Pod actually uses the claim.
 
 **3. Create the `writer` Pod** that mounts `data-pvc` at `/data`. The moment it
@@ -74,8 +74,8 @@ data-pvc   Bound    pvc-abc123…    1Gi        RWO
 kubectl exec writer -- sh -c "echo persisted > /data/hello.txt"
 ```
 
-**5. Prove it survives.** Delete the Pod, recreate it, and read the file back —
-the data lives on the PVC, not in the Pod:
+**5. Prove it survives.** Delete the Pod, recreate it, and read the file back
+(the data lives on the PVC, not in the Pod):
 
 ```bash
 kubectl delete pod writer
@@ -105,7 +105,7 @@ persisted
 
 > [!TIP]
 > The file survived because `data-pvc` was never deleted. Delete the *PVC* and
-> the data is gone — the Pod is irrelevant to durability.
+> the data is gone, the Pod is irrelevant to durability.
 
 When `data-pvc` is **Bound** and `/data/hello.txt` reads **`persisted`**, then
 hit **Verify**. ✅

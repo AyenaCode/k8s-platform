@@ -17,7 +17,7 @@ port=$(kubectl get svc web-np -o jsonpath='{.spec.ports[0].nodePort}' 2>/dev/nul
 code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "localhost:$port" 2>/dev/null)
 
 if [ "$code" = "200" ]; then
-  echo "✓ NodePort 'web-np' on port $port returned HTTP 200 — reachable from outside!"
+  echo "✓ NodePort 'web-np' on port $port returned HTTP 200: reachable from outside!"
   exit 0
 fi
 

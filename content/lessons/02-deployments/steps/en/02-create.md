@@ -1,6 +1,6 @@
 ## Create a Deployment
 
-One command creates a Deployment, a ReplicaSet, and three Pods — all wired together.
+One command creates a Deployment, a ReplicaSet, and three Pods, all wired together.
 
 ### Your task
 
@@ -38,6 +38,6 @@ pod/web-74d9c-cccc      1/1     Running
 
 > [!TIP]
 > **Pods still in `ContainerCreating`?** The node is pulling the `nginx` image
-> for the first time. Wait a few seconds and re-run the command — it clears on its own.
+> for the first time. Wait a few seconds and re-run the command: it clears on its own.
 
 When `web` shows **3/3 ready**, then hit **Verify**. ✅

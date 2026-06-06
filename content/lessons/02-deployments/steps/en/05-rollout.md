@@ -1,6 +1,6 @@
 ## Roll Out a New Image and Roll Back
 
-Ship a new container image with zero downtime. Kubernetes replaces Pods a few at a time — new ones start before old ones stop — so traffic never drops.
+Ship a new container image with zero downtime. Kubernetes replaces Pods a few at a time (new ones start before old ones stop), so traffic never drops.
 
 ### Your task
 
@@ -42,7 +42,7 @@ kubectl rollout undo deployment/web      # returns to the previous image
 > `maxSurge` and `maxUnavailable` (in the Deployment spec) control the pace.
 
 > [!WARNING]
-> `--record` (e.g., `kubectl apply --record`) is **deprecated** — do not use it.
+> `--record` (e.g., `kubectl apply --record`) is **deprecated**: do not use it.
 > Use `kubectl annotate` or rely on `rollout history` without it.
 
 Set the image to **`nginx:1.27`**, wait for the rollout to finish, then hit **Verify**. ✅

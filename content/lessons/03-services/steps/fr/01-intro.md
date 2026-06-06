@@ -33,7 +33,7 @@ Les quatre types de Service :
 | **LoadBalancer** | IP externe via LB cloud | ingress en prod cloud ; sur k3s, le **ServiceLB** intégré le prend en charge |
 | **ExternalName** | CNAME DNS | alias vers un hôte externe |
 
-Dans cette leçon, vous exposerez un Deployment avec un ClusterIP, l'ouvrirez vers
-l'extérieur avec un NodePort, et le découvrirez par DNS — sur un cluster en direct.
+Dans cette leçon, tu exposeras un Deployment avec un ClusterIP, l'ouvriras vers
+l'extérieur avec un NodePort, et le découvriras par DNS, sur un cluster en direct.
 
 **Continuer →**

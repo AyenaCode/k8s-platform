@@ -1,5 +1,5 @@
 #!/bin/bash
-# reset.sh — wipe the learner's scratch state so they can start clean.
+# reset.sh: wipe the learner's scratch state so they can start clean.
 # Deletes every non-system namespace and clears the default namespace's resources.
 # kube-system / kube-public / kube-node-lease / default are preserved (default is
 # only emptied, not deleted).

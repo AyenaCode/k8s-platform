@@ -11,7 +11,7 @@ fi
 # only when the Ready condition is True, and tolerates a slow first-time image
 # pull (waits up to 30s) instead of failing on a transient not-Ready snapshot.
 if kubectl wait --for=condition=Ready pod/web --timeout=30s >/dev/null 2>&1; then
-  echo "✓ Pod 'web' is Running and Ready. Nice — your first Pod is live!"
+  echo "✓ Pod 'web' is Running and Ready. Nice, your first Pod is live!"
   exit 0
 fi
 

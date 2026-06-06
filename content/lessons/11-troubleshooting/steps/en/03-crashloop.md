@@ -1,10 +1,10 @@
 ## Diagnose and fix a CrashLoopBackOff
 
-The platform just deployed `crasher` — a Pod that starts and immediately dies. The kubelet keeps restarting it, backing off longer each time.
+The platform just deployed `crasher`, a Pod that starts and immediately dies. The kubelet keeps restarting it, backing off longer each time.
 
 ### Diagnose
 
-**1. Spot the symptom** — watch the RESTARTS column climb:
+**1. Spot the symptom**: watch the RESTARTS column climb:
 
 ```bash
 kubectl get pods
@@ -17,7 +17,7 @@ crasher-5b8f7d9c4-r2zt   0/1     CrashLoopBackOff   4          90s
 
 `CrashLoopBackOff` means the image pulled fine but the **container starts, exits, and is restarted** over and over. The problem is inside the container.
 
-**2. Read the logs** — this is your most direct clue for a crash:
+**2. Read the logs**: this is your most direct clue for a crash:
 
 ```bash
 kubectl logs -l app=crasher
@@ -29,7 +29,7 @@ starting
 
 It printed one line and exited. That is the entire output. A container with nothing left to run is treated as crashed.
 
-**3. Confirm the exit code** — check the last state:
+**3. Confirm the exit code**: check the last state:
 
 ```bash
 kubectl describe pod -l app=crasher
@@ -44,9 +44,9 @@ Last State:  Terminated
 ```
 
 > [!NOTE]
-> Exit code 1 is a generic application error. Real-world causes: a missing environment variable, a config file not found at startup, or a server that fails to bind its port. Always check logs first — the crash message is there.
+> Exit code 1 is a generic application error. Real-world causes: a missing environment variable, a config file not found at startup, or a server that fails to bind its port. Always check logs first: the crash message is there.
 
-**4. Read previous logs** — after multiple restarts, the current container may not have produced output yet. Use `--previous` to read the last completed run:
+**4. Read previous logs**: after multiple restarts, the current container may not have produced output yet. Use `--previous` to read the last completed run:
 
 ```bash
 kubectl logs -l app=crasher --previous
@@ -57,7 +57,7 @@ kubectl logs -l app=crasher --previous
 
 ### Your task
 
-**1. Re-apply the Deployment** with a command that stays alive — keep the same Deployment name and image:
+**1. Re-apply the Deployment** with a command that stays alive, keeping the same Deployment name and image:
 
 ```bash
 kubectl apply -f - <<'EOF'

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Pass when Pod "hog" has been OOMKilled — its last terminated state reason is
+# Pass when Pod "hog" has been OOMKilled: its last terminated state reason is
 # OOMKilled (checked on either the last or current terminated state).
 set -uo pipefail
 
@@ -12,7 +12,7 @@ last=$(kubectl get pod hog -o jsonpath='{.status.containerStatuses[0].lastState.
 cur=$(kubectl get pod hog -o jsonpath='{.status.containerStatuses[0].state.terminated.reason}' 2>/dev/null)
 
 if [ "$last" = "OOMKilled" ] || [ "$cur" = "OOMKilled" ]; then
-  echo "✓ hog was OOMKilled — it exceeded its 20Mi memory limit and the kernel killed it."
+  echo "✓ hog was OOMKilled: it exceeded its 20Mi memory limit and the kernel killed it."
   exit 0
 fi
 

@@ -26,7 +26,7 @@ web-np   NodePort   10.43.5.67    <none>        80:31234/TCP   5s
 
 The `80:31234` means port 80 on the Service maps to node port 31234.
 
-**3. Hit it on `localhost`** — this terminal shares the node's network.
+**3. Hit it on `localhost`**, this terminal shares the node's network.
 
 ```bash
 PORT=$(kubectl get svc web-np -o jsonpath='{.spec.ports[0].nodePort}')
@@ -37,11 +37,11 @@ You get the nginx welcome page, reached from outside the cluster.
 
 > [!NOTE]
 > On a real cloud cluster you would use the node's external IP instead of
-> `localhost`. For production external access, prefer **type: LoadBalancer** —
-> on k3s, the bundled ServiceLB assigns a real external IP automatically.
+> `localhost`. For production external access, prefer **type: LoadBalancer**
+> (on k3s, the bundled ServiceLB assigns a real external IP automatically).
 
 > [!TIP]
-> Already have a ClusterIP Service `web` from the previous step? Good — you can
+> Already have a ClusterIP Service `web` from the previous step? Good: you can
 > have both types in front of the same Deployment at the same time.
 
 Then hit **Verify**. ✅

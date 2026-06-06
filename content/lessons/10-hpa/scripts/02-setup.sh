@@ -1,5 +1,5 @@
 #!/bin/bash
-# Pre-seed: a "web-hpa" Deployment that DECLARES cpu requests — mandatory for HPA,
+# Pre-seed: a "web-hpa" Deployment that DECLARES cpu requests: mandatory for HPA,
 # because utilization is measured as (used cpu / requested cpu). Without a request
 # the HPA can only show <unknown> and never scales. Idempotent.
 set -uo pipefail
@@ -24,7 +24,7 @@ spec:
         image: nginx:1.27
         resources:
           requests:
-            cpu: "100m"        # the baseline HPA divides by — REQUIRED
+            cpu: "100m"        # the baseline HPA divides by: REQUIRED
           limits:
             cpu: "200m"
 YAML

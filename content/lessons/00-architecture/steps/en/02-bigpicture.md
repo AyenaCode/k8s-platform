@@ -1,6 +1,6 @@
 ## The big picture: control plane + nodes
 
-A Kubernetes cluster is a group of machines split into two roles — the **brain**
+A Kubernetes cluster is a group of machines split into two roles: the **brain**
 that decides, and the **muscle** that runs your containers.
 
 ```text
@@ -19,7 +19,7 @@ that decides, and the **muscle** that runs your containers.
 - The **control plane** makes global decisions and stores the truth.
 - The **worker nodes** run your actual containers, inside Pods.
 
-### The reconciliation loop — the heartbeat of K8s
+### The reconciliation loop: the heartbeat of K8s
 
 Everything runs on one simple loop, repeated forever:
 

@@ -1,6 +1,6 @@
-## base64 ≠ encryption — know the truth
+## base64 ≠ encryption, know the truth
 
-Every engineer who touches Kubernetes must understand this: Secrets are **not encrypted at rest by default**. They are base64-encoded — a reversible text format anyone can decode in one command.
+Every engineer who touches Kubernetes must understand this: Secrets are **not encrypted at rest by default**. They are base64-encoded: a reversible text format anyone can decode in one command.
 
 Prove it yourself:
 
@@ -31,14 +31,14 @@ s3cr3t
 | Property | ConfigMap | Secret |
 |---|---|---|
 | Shown in `kubectl describe` | Yes (plain) | No (omitted) |
-| Separate RBAC resource | No | Yes — lock it down |
+| Separate RBAC resource | No | Yes: lock it down |
 | kubelet delivery | All nodes | Only nodes running a consumer Pod |
-| Encrypted at rest | — | Optional — enable `EncryptionConfiguration` |
+| Encrypted at rest | No | Optional: enable `EncryptionConfiguration` |
 
 > [!IMPORTANT]
 > In production: enable **encryption at rest** (`EncryptionConfiguration` in the API server), use a secrets manager (Vault, AWS Secrets Manager, Sealed Secrets), and apply tight RBAC. base64 is a transport encoding, not a security control.
 
-### Injection methods — quick reference
+### Injection methods, quick reference
 
 ```text
 ConfigMap / Secret → Pod

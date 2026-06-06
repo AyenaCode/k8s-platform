@@ -1,6 +1,6 @@
 #!/bin/bash
 # Pass when PVC "data-pvc" is Bound AND Pod "writer" has the persisted file in the
-# mounted volume — proving dynamic provisioning and a successful write.
+# mounted volume: proving dynamic provisioning and a successful write.
 set -uo pipefail
 
 phase=$(kubectl get pvc data-pvc -o jsonpath='{.status.phase}' 2>/dev/null)
@@ -9,7 +9,7 @@ if [ -z "$phase" ]; then
   exit 1
 fi
 if [ "$phase" != "Bound" ]; then
-  echo "✗ PVC 'data-pvc' is '$phase', not Bound. Apply the 'writer' Pod that mounts it —"
+  echo "✗ PVC 'data-pvc' is '$phase', not Bound. Apply the 'writer' Pod that mounts it:"
   echo "  local-path only provisions the volume once a Pod consumes the claim."
   exit 1
 fi
@@ -27,5 +27,5 @@ if [ "$content" != "persisted" ]; then
   exit 1
 fi
 
-echo "✓ PVC 'data-pvc' is Bound and /data/hello.txt persisted — storage outlives the Pod."
+echo "✓ PVC 'data-pvc' is Bound and /data/hello.txt persisted: storage outlives the Pod."
 exit 0

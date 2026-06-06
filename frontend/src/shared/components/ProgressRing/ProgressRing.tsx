@@ -1,5 +1,5 @@
 // ProgressRing is a dependency-free SVG completion ring. It reads as the unit of
-// "mastery" across the app — lesson cards, the dashboard daily goal, lesson
+// "mastery" across the app: lesson cards, the dashboard daily goal, lesson
 // headers. Filled in signal-lime; switches to success-green at 100%.
 interface ProgressRingProps {
   /** 0..1 completion. */

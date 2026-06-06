@@ -17,14 +17,14 @@ util% < target  →  remove replicas (down to minReplicas)
 
 Two things must be true before the HPA can work:
 
-1. **metrics-server must be running** — it feeds live CPU numbers to the HPA.
-2. **Pods must declare `resources.requests.cpu`** — the formula divides by the
+1. **metrics-server must be running**: it feeds live CPU numbers to the HPA.
+2. **Pods must declare `resources.requests.cpu`**: the formula divides by the
    request. No request → no denominator → HPA shows `<unknown>` forever and
    never scales.
 
 > [!NOTE]
 > k3s bundles metrics-server as a packaged add-on. It is **already running** in
-> this cluster — no install needed. `kubectl top pods` works out of the box.
+> this cluster: no install needed. `kubectl top pods` works out of the box.
 
 Here is the full picture:
 
@@ -40,7 +40,7 @@ Here is the full picture:
 ```
 
 > [!IMPORTANT]
-> `kubectl autoscale` creates an **`autoscaling/v2`** HPA — the current stable API.
+> `kubectl autoscale` creates an **`autoscaling/v2`** HPA: the current stable API.
 > You set a target utilization and bounds; the HPA finds the replica count that
 > keeps you there.
 

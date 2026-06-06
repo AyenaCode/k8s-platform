@@ -1,5 +1,5 @@
 #!/bin/bash
-# Pass when Service "api" has at least one endpoint — the learner aligned the
+# Pass when Service "api" has at least one endpoint: the learner aligned the
 # Service selector with the Pod labels (app=api).
 set -uo pipefail
 
@@ -15,6 +15,6 @@ if [ -n "$ips" ]; then
   exit 0
 fi
 
-echo "✗ Service 'api' still has no endpoints — its selector does not match any Pod."
+echo "✗ Service 'api' still has no endpoints: its selector does not match any Pod."
 echo "  Pods are labelled app=api. Set the Service selector to app: api."
 exit 1

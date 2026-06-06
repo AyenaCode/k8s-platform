@@ -1,8 +1,8 @@
-# K8s Lab — Architecture
+# K8s Lab: Architecture
 
 An interactive, self-hosted Kubernetes learning lab. The design goal: **a learner
 clones the repo, runs `docker compose up`, and learns + practises against a real
-cluster — with Docker as the only dependency.**
+cluster, with Docker as the only dependency.**
 
 ## The stack (`docker-compose.yml`)
 
@@ -18,24 +18,24 @@ cluster — with Docker as the only dependency.**
 │ app         Go 1.26 + React 19 SPA + interactive PTY terminal          │
 │   - Serves the SPA and the REST/SSE API on :8080 (one origin, no CORS) │
 │   - The PTY terminal is a full host: bash, kubectl, helm, vim, jq,     │
-│     curl, git — and KUBECONFIG points at k3s, so kubectl just works.   │
+│     curl, git, and KUBECONFIG points at k3s, so kubectl just works.    │
 │   - Because it shares k3s's netns, the terminal IS the node:           │
 │     localhost:<nodePort>, Pod IPs and ClusterIPs are all reachable.    │
 └───────────────┬──────────────────────────────────────────────────────┘
                 │ pgx
 ┌───────────────▼──────────────────────────────────────────────────────┐
 │ postgres    progress / XP / streak (data tier)                         │
-│   Schema is applied in-process on startup (idempotent DDL) — no        │
+│   Schema is applied in-process on startup (idempotent DDL), no         │
 │   separate migration binary in the image.                              │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
 Why `network_mode: service:k3s` (not a separate network + kubeconfig rewrite):
-it gives the terminal **node-level network fidelity** — the canonical "expose a
-Service, then `curl localhost:<nodePort>`" works for real — and the kubeconfig's
+it gives the terminal **node-level network fidelity**: the canonical "expose a
+Service, then `curl localhost:<nodePort>`" works for real, and the kubeconfig's
 `127.0.0.1:6443` is valid as-is, so there's nothing to rewrite.
 
-## Backend (Go) — `backend/`
+## Backend (Go): `backend/`
 
 | Package | Role |
 |---|---|
@@ -60,32 +60,32 @@ Service, then `curl localhost:<nodePort>`" works for real — and the kubeconfig
 **Lesson completion rule:** a lesson is complete once every step that has a
 `verify` script is solved (concept-only steps don't block).
 
-## Frontend (React) — `frontend/`
+## Frontend (React): `frontend/`
 
 Vite 8 · React 19 · TanStack Router/Query · TypeScript 6. Key pieces:
 
-- **`LabLayout`** — a pathless route (`_lab`) that keeps **one persistent terminal**
+- **`LabLayout`**: a pathless route (`_lab`) that keeps **one persistent terminal**
   mounted while lesson content swaps in its `<Outlet/>`, so the shell session
   survives navigation.
-- **`features/lessons/LessonPage`** — the core: stepped concept prose
+- **`features/lessons/LessonPage`**, the core: stepped concept prose
   (`MarkdownView` + `react-shiki`), **Prepare task** / **Verify** / **Hint**
   buttons (SSE), auto-advance, and per-step ✓.
-- **`features/gamification`** — `XpBar`, `LevelChip`, `BadgeGrid`, `RewardToast`,
+- **`features/gamification`**: `XpBar`, `LevelChip`, `BadgeGrid`, `RewardToast`,
   `Confetti`; the dashboard shows XP, streak and per-lesson mastery.
-- **`core/i18n`** — global EN/FR toggle (persisted), wired through every content query.
+- **`core/i18n`**: global EN/FR toggle (persisted), wired through every content query.
 
-## Content tier — `content/`
+## Content tier: `content/`
 
-`content/lessons/<NN-slug>/` — `lesson.json` manifest + `steps/{en,fr}/*.md` +
+`content/lessons/<NN-slug>/`: `lesson.json` manifest + `steps/{en,fr}/*.md` +
 optional `scripts/*.sh`. `content/reset.sh` cleans the cluster. This is the only
 place you touch to add curriculum.
 
-## Security — read before exposing this
+## Security: read before exposing this
 
 `/ws/terminal` is an **unauthenticated interactive shell** with cluster-admin on
 the lab's k3s (remote code execution by design); `OriginPatterns` is empty
 (same-origin only). The terminal lives in the `app` container, not in k3s, so a
-learner breaking the cluster doesn't kill the app — but this is still a
+learner breaking the cluster doesn't kill the app, but this is still a
 **single-user, local-only** design. Before exposing it to more than one trusted
 user on localhost you must add: authentication, one isolated cluster + PTY per
 session, and an origin allow-list.

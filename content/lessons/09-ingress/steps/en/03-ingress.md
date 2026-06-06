@@ -41,7 +41,7 @@ NAME   CLASS     HOSTS        ADDRESS       PORTS   AGE
 site   traefik   site.local   172.x.x.x     80      10s
 ```
 
-**3. Prove the routing.** There is no DNS for `site.local`, so fake the hostname with a `Host:` header — Traefik routes on that header alone.
+**3. Prove the routing.** There is no DNS for `site.local`, so fake the hostname with a `Host:` header, and Traefik routes on that header alone.
 
 ```bash
 curl -H "Host: site.local" http://localhost/
@@ -49,7 +49,7 @@ curl -H "Host: site.local" http://localhost/
 
 You should see the nginx welcome page (HTTP 200).
 
-**4. Confirm wrong hosts are rejected** — no rule matches, so Traefik returns 404.
+**4. Confirm wrong hosts are rejected**: no rule matches, so Traefik returns 404.
 
 ```bash
 curl -i -H "Host: wrong.local" http://localhost/ | head -1
@@ -65,6 +65,6 @@ HTTP/1.1 404 Not Found
 > Traefik may take a few seconds to load a newly applied Ingress. If `curl` returns 404 right away, wait 5 seconds and retry.
 
 > [!IMPORTANT]
-> `ingressClassName: traefik` tells Traefik this Ingress belongs to it. Leave it out and Traefik ignores the object entirely — your curl will return 404 no matter what.
+> `ingressClassName: traefik` tells Traefik this Ingress belongs to it. Leave it out and Traefik ignores the object entirely: your curl will return 404 no matter what.
 
 When `curl -H "Host: site.local" http://localhost/` returns HTTP 200, then hit **Verify**. ✅

@@ -2,7 +2,7 @@
 #
 # The lab "app" image: the Go backend serves the built React SPA on :8080 and
 # spawns the interactive PTY terminal. The terminal is a COMPLETE host for
-# learning Kubernetes — bash, kubectl, helm, vim, jq, curl, git — and (via
+# learning Kubernetes (bash, kubectl, helm, vim, jq, curl, git) and (via
 # `network_mode: service:k3s` in docker-compose) talks to the local k3s cluster
 # with zero config. Build Go + React happen here, so a learner needs only Docker.
 
@@ -26,7 +26,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/server 
 # ── 3) kubectl binary (no runtime download) ──────────────────────────────────
 FROM bitnami/kubectl:latest AS kubectl
 
-# ── 4) Runtime — the learner's lab host ───────────────────────────────────────
+# ── 4) Runtime: the learner's lab host ───────────────────────────────────────
 FROM alpine:3.20
 WORKDIR /app
 

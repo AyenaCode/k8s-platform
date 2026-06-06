@@ -3,7 +3,7 @@
   "title": { "en": "Services & networking", "fr": "Services & réseau" },
   "summary": {
     "en": "Pods come and go with changing IPs. A Service is the stable address in front of them. Expose, reach, and discover apps.",
-    "fr": "Les Pods vont et viennent avec des IP changeantes. Un Service est l'adresse stable devant eux. Exposez, joignez et découvrez vos apps."
+    "fr": "Les Pods vont et viennent avec des IP changeantes. Un Service est l'adresse stable devant eux. Expose, joins et découvre tes apps."
   },
   "estMinutes": 18,
   "xp": 200,
@@ -21,8 +21,8 @@
       "setup": "scripts/02-setup.sh",
       "verify": "scripts/02-verify.sh",
       "hint": {
-        "en": "kubectl expose deployment web --port=80 — then check endpoints with: kubectl get endpoints web",
-        "fr": "kubectl expose deployment web --port=80 — puis vérifiez les endpoints : kubectl get endpoints web"
+        "en": "kubectl expose deployment web --port=80: then check endpoints with: kubectl get endpoints web",
+        "fr": "kubectl expose deployment web --port=80 : puis vérifie les endpoints : kubectl get endpoints web"
       },
       "xp": 70
     },

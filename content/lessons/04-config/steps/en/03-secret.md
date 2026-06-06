@@ -1,6 +1,6 @@
 ## Create a Secret and mount it as a file
 
-Secrets share the same structure as ConfigMaps, but the kubelet only delivers them to nodes that actually run a Pod using them, and access is controlled separately via RBAC. You will create **`app-secret`**, then mount it as a directory of files inside a Pod — each key becomes a file whose content is the value.
+Secrets share the same structure as ConfigMaps, but the kubelet only delivers them to nodes that actually run a Pod using them, and access is controlled separately via RBAC. You will create **`app-secret`**, then mount it as a directory of files inside a Pod: each key becomes a file whose content is the value.
 
 > [!WARNING]
 > A Secret is **base64-encoded, not encrypted** at rest by default. Anyone with `kubectl get secret` access can decode the value in seconds. Treat RBAC on Secrets as mandatory, not optional.
@@ -53,6 +53,6 @@ s3cr3t
 The key `API_KEY` became the filename; its value is the file content.
 
 > [!TIP]
-> Volume-mounted Secrets (and ConfigMaps) **eventually update** when you change the object — the kubelet re-syncs within seconds to a minute. Env vars are **frozen** at container start and require a Pod restart. Exception: a `subPath` mount does **not** auto-update, even as a volume.
+> Volume-mounted Secrets (and ConfigMaps) **eventually update** when you change the object, the kubelet re-syncs within seconds to a minute. Env vars are **frozen** at container start and require a Pod restart. Exception: a `subPath` mount does **not** auto-update, even as a volume.
 
 Then hit **Verify**. ✅

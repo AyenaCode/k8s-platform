@@ -47,7 +47,7 @@ export function PtyTerminal() {
         return false
       }
       // Any other Ctrl/Alt combo (without Shift): block the browser shortcut and
-      // let xterm send the control sequence to the shell — Ctrl+R history search,
+      // let xterm send the control sequence to the shell: Ctrl+R history search,
       // Ctrl+L clear, Ctrl+A/E line nav, Ctrl+U/K/W kill, Ctrl+C interrupt, etc.
       // Shift is left alone so the few unblockable combos (Ctrl+Shift+I/J devtools)
       // aren't fought with.

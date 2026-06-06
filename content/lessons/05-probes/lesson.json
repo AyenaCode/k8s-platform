@@ -3,7 +3,7 @@
   "title": { "en": "Health probes", "fr": "Sondes de santé" },
   "summary": {
     "en": "Teach Kubernetes what 'healthy' means. Readiness gates traffic; liveness restarts stuck containers. See both fire on a live Pod.",
-    "fr": "Apprenez à Kubernetes ce que « en bonne santé » veut dire. La readiness contrôle le trafic ; la liveness redémarre les conteneurs bloqués. Voyez les deux en action sur un Pod réel."
+    "fr": "Apprends à Kubernetes ce que « en bonne santé » veut dire. La readiness contrôle le trafic ; la liveness redémarre les conteneurs bloqués. Vois les deux en action sur un Pod réel."
   },
   "estMinutes": 16,
   "xp": 220,
@@ -21,7 +21,7 @@
       "verify": "scripts/02-verify.sh",
       "hint": {
         "en": "The readiness probe runs `cat /tmp/healthy`. Make the Pod ready: kubectl exec ready-demo -- touch /tmp/healthy",
-        "fr": "La sonde readiness exécute `cat /tmp/healthy`. Rendez le Pod ready : kubectl exec ready-demo -- touch /tmp/healthy"
+        "fr": "La sonde readiness exécute `cat /tmp/healthy`. Rends le Pod ready : kubectl exec ready-demo -- touch /tmp/healthy"
       },
       "xp": 90
     },
@@ -31,8 +31,8 @@
       "md": { "en": "steps/en/03-liveness.md", "fr": "steps/fr/03-liveness.md" },
       "verify": "scripts/03-verify.sh",
       "hint": {
-        "en": "Apply the live-demo Pod, then watch `kubectl get pod live-demo -w`. The liveness probe fails after ~15s and the container restarts — RESTARTS climbs above 0.",
-        "fr": "Appliquez le Pod live-demo, puis observez `kubectl get pod live-demo -w`. La sonde liveness échoue après ~15s et le conteneur redémarre — RESTARTS dépasse 0."
+        "en": "Apply the live-demo Pod, then watch `kubectl get pod live-demo -w`. The liveness probe fails after ~15s and the container restarts, RESTARTS climbs above 0.",
+        "fr": "Applique le Pod live-demo, puis observe `kubectl get pod live-demo -w`. La sonde liveness échoue après ~15s et le conteneur redémarre, RESTARTS dépasse 0."
       },
       "xp": 90
     }

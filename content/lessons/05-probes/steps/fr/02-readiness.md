@@ -1,12 +1,12 @@
 ## Contrôler le trafic avec une probe de readiness
 
-Déployez un Pod dont la probe de readiness ne passe que lorsque `/tmp/healthy`
-existe. Il démarre *sans* ce fichier — il tourne donc, mais reste **not ready** et
+Déploie un Pod dont la probe de readiness ne passe que lorsque `/tmp/healthy`
+existe. Il démarre *sans* ce fichier, il tourne donc, mais reste **not ready** et
 ne reçoit aucun trafic.
 
-### Votre tâche
+### Ta tâche
 
-**1. Appliquez le Pod.**
+**1. Applique le Pod.**
 
 ```bash
 kubectl apply -f - <<'EOF'
@@ -30,13 +30,13 @@ spec:
 EOF
 ```
 
-**2. Observez la colonne READY** — elle reste à `0/1` même si STATUS indique `Running` :
+**2. Observe la colonne READY**, elle reste à `0/1` même si STATUS indique `Running` :
 
 ```bash
-kubectl get pod ready-demo -w        # READY 0/1 — Ctrl-C quand vous l'avez vu
+kubectl get pod ready-demo -w        # READY 0/1, Ctrl-C quand tu l'as vu
 ```
 
-Ce que vous devriez voir :
+Ce que tu devrais voir :
 
 ```text
 NAME         READY   STATUS    RESTARTS   AGE
@@ -50,13 +50,13 @@ Le conteneur tourne, mais Kubernetes ne lui achemine aucun trafic.
 > simplement le Pod des endpoints de son Service. Le trafic s'arrête ; le processus
 > continue de tourner.
 
-**3. Faites passer la probe** en créant le fichier dans le conteneur :
+**3. Fais passer la probe** en créant le fichier dans le conteneur :
 
 ```bash
 kubectl exec ready-demo -- touch /tmp/healthy
 ```
 
-**4. Confirmez** que le Pod est passé à `1/1` READY — avec RESTARTS toujours à `0` :
+**4. Confirme** que le Pod est passé à `1/1` READY, avec RESTARTS toujours à `0` :
 
 ```bash
 kubectl get pod ready-demo
@@ -71,4 +71,4 @@ ready-demo   1/1     Running   0          30s
 
 `RESTARTS 0` est la preuve : la readiness a contrôlé le trafic sans toucher au conteneur.
 
-Puis cliquez sur **Vérifier**. ✅
+Puis clique sur **Vérifier**. ✅

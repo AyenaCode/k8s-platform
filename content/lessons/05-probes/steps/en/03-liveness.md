@@ -1,12 +1,12 @@
 ## Trigger a liveness restart on a stuck container
 
 A liveness probe is the cluster's self-repair mechanism. When it fails, the kubelet
-**kills and restarts** the container — no human required.
+**kills and restarts** the container, no human required.
 
 ### Your task
 
 **1. Apply the Pod.** It creates `/tmp/alive`, waits 15 s, deletes the file, then
-sleeps. The liveness probe runs `cat /tmp/alive` — once the file is gone, the probe
+sleeps. The liveness probe runs `cat /tmp/alive`, and once the file is gone, the probe
 fails and the kubelet restarts the container:
 
 ```bash
@@ -45,7 +45,7 @@ live-demo   0/1     Running   1          22s
 live-demo   1/1     Running   1          24s
 ```
 
-**3. Confirm why** it restarted — check the Pod events:
+**3. Confirm why** it restarted, check the Pod events:
 
 ```bash
 kubectl describe pod live-demo | grep -A2 -i liveness
@@ -59,7 +59,7 @@ Container app failed liveness probe, will be restarted
 ```
 
 > [!IMPORTANT]
-> Each restart re-runs the container command, so the cycle repeats — exactly what
+> Each restart re-runs the container command, so the cycle repeats, exactly what
 > happens to a real app that deadlocks. A correctly tuned liveness probe means a
 > hung Pod heals itself without a pager alert.
 

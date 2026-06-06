@@ -1,7 +1,7 @@
 // Gamification hooks. The summary query is the single source of truth for XP,
 // level, streak and badges. Steps are awarded server-side when their verify
 // script passes (see LessonPage), so the only client action is to refetch the
-// summary afterwards — there are no client-side "solve" mutations anymore.
+// summary afterwards: there are no client-side "solve" mutations anymore.
 import { useQuery } from '@tanstack/react-query'
 import { progressSummaryQuery } from '@/features/progress/api/progress.queries'
 import type { ProgressSummary } from '@/features/progress/types'

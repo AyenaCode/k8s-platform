@@ -1,6 +1,6 @@
-## Recon — explore your live cluster
+## Recon: explore your live cluster
 
-Enough theory. You have a **real** cluster in the terminal on the right. Map it.
+Enough theory. You have a **real** cluster in the terminal. Map it.
 
 ### Drills
 
@@ -30,12 +30,12 @@ kubectl api-resources          # every object type, with its short name
 
 > [!NOTE]
 > Because this is **k3s**, `kube-system` shows add-ons like `coredns`, `traefik`,
-> `metrics-server` and `local-path-provisioner` — not the control-plane pods you'd
+> `metrics-server` and `local-path-provisioner`, not the control-plane pods you'd
 > meet on a kubeadm cluster (those live inside the k3s process).
 
 ### Your task
 
-A **namespace** is how a cluster is partitioned into isolated slices — different
+A **namespace** is how a cluster is partitioned into isolated slices: different
 teams or apps, same cluster. Carve out your own:
 
 ```bash

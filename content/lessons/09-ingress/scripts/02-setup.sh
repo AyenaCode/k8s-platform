@@ -1,10 +1,10 @@
 #!/bin/bash
 # Pre-seed: a "site" Deployment (nginx) for the learner to expose and route to.
-# Idempotent — safe to click "Prepare task" more than once.
+# Idempotent: safe to click "Prepare task" more than once.
 set -uo pipefail
 
 if kubectl get deploy site >/dev/null 2>&1; then
-  echo "Deployment 'site' already exists — good."
+  echo "Deployment 'site' already exists: good."
 else
   echo "Creating Deployment 'site' (nginx)..."
   kubectl create deployment site --image=nginx:1.27 >/dev/null

@@ -4,7 +4,7 @@ The platform just deployed `broken-img` with a tag that does not exist. Nothing 
 
 ### Diagnose
 
-**1. Spot the symptom** — scan the STATUS column:
+**1. Spot the symptom**: scan the STATUS column:
 
 ```bash
 kubectl get pods
@@ -15,9 +15,9 @@ NAME                          READY   STATUS             RESTARTS   AGE
 broken-img-7d9f6b8c5-xk2pq   0/1     ImagePullBackOff   0          30s
 ```
 
-`ImagePullBackOff` — the kubelet tried to pull the image, failed, and is backing off (waiting longer each retry).
+`ImagePullBackOff`: the kubelet tried to pull the image, failed, and is backing off (waiting longer each retry).
 
-**2. Read the Events** — find the exact reason:
+**2. Read the Events**: find the exact reason:
 
 ```bash
 kubectl describe pod -l app=broken-img
@@ -31,12 +31,12 @@ Warning  Failed   ...  Error: ErrImagePull
 Warning  BackOff  ...  Back-off pulling image "nginx:doesnotexist99999"
 ```
 
-Tag `doesnotexist99999` is not a real nginx tag. Pull fails. Kubernetes backs off and retries — forever, until you fix it.
+Tag `doesnotexist99999` is not a real nginx tag. Pull fails. Kubernetes backs off and retries, forever, until you fix it.
 
 > [!NOTE]
 > The same symptom appears for a typo in the image name, a private registry with missing credentials, or a wrong digest. The **Events** message tells you which one.
 
-**3. Check logs** — nothing useful yet (the container never started), but worth confirming:
+**3. Check logs**: nothing useful yet (the container never started), but worth confirming:
 
 ```bash
 kubectl logs -l app=broken-img
@@ -48,7 +48,7 @@ Error from server (BadRequest): container "app" in pod "..." is waiting to start
 
 ### Your task
 
-**1. Re-apply the Deployment** with a valid image tag — keep the same Deployment name:
+**1. Re-apply the Deployment** with a valid image tag, keeping the same Deployment name:
 
 ```bash
 kubectl apply -f - <<'EOF'
@@ -68,7 +68,7 @@ spec:
     spec:
       containers:
       - name: app
-        image: nginx:1.27        # valid tag — this one will pull
+        image: nginx:1.27        # valid tag: this one will pull
 EOF
 ```
 
@@ -84,6 +84,6 @@ broken-img-6c8d7f9b4-p9mkx   1/1     Running   0          12s
 ```
 
 > [!TIP]
-> Still seeing `ImagePullBackOff` right after applying? Kubernetes is still in the back-off window. Give it up to 5 minutes — the retry interval backs off to 5 min max. Press Ctrl-C and re-run `kubectl get pods` to check again.
+> Still seeing `ImagePullBackOff` right after applying? Kubernetes is still in the back-off window. Give it up to 5 minutes: the retry interval backs off to 5 min max. Press Ctrl-C and re-run `kubectl get pods` to check again.
 
 Then hit **Verify**. ✅

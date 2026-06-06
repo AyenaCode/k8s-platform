@@ -2,11 +2,11 @@
 
 Chaque conteneur peut déclarer deux valeurs de ressources pour le CPU et la mémoire.
 
-- **`requests`** — ce qui est *garanti* au conteneur. Le scheduler les utilise pour
+- **`requests`** : ce qui est *garanti* au conteneur. Le scheduler les utilise pour
   trouver un nœud disposant de suffisamment de place. Il s'agit d'une **réservation**.
-- **`limits`** — le *plafond* strict. Dépasser la limite de **mémoire** déclenche
+- **`limits`** : le *plafond* strict. Dépasser la limite de **mémoire** déclenche
   l'**OOMKill** du conteneur par le noyau (code de sortie 137). Dépasser la limite
-  de **CPU** provoque un simple **throttling** — un ralentissement, jamais un arrêt.
+  de **CPU** provoque un simple **throttling** : un ralentissement, jamais un arrêt.
 
 ```yaml
 resources:
@@ -25,12 +25,12 @@ de mémoire :
 | **BestEffort** | aucune request ni limit | **en premier** |
 
 > [!IMPORTANT]
-> `requests` = protection à la planification — le scheduler refuse de placer un Pod
-> sur un nœud incapable de les satisfaire. `limits` = confinement à l'exécution —
-> le noyau les applique en temps réel. Définissez `requests == limits` pour la
+> `requests` = protection à la planification : le scheduler refuse de placer un Pod
+> sur un nœud incapable de les satisfaire. `limits` = confinement à l'exécution :
+> le noyau les applique en temps réel. Définis `requests == limits` pour la
 > mémoire de tout ce qui ne doit pas être OOMKilled.
 
-Dans cette leçon vous allez construire un Pod **Guaranteed**, puis dépasser
+Dans cette leçon tu vas construire un Pod **Guaranteed**, puis dépasser
 délibérément une limite de mémoire et observer le noyau le tuer.
 
 **Continuer →**

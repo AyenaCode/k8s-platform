@@ -5,7 +5,7 @@ set **both** cpu and memory, and `limits` must **equal** `requests` for each.
 
 > [!NOTE]
 > Pod resource fields are immutable after creation. If you need to change them,
-> delete the Pod and re-apply. The cluster enforces this — you cannot `kubectl apply`
+> delete the Pod and re-apply. The cluster enforces this: you cannot `kubectl apply`
 > changed resource values onto a live Pod.
 
 ### Your task

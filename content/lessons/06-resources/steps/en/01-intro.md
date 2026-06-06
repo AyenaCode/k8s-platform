@@ -2,11 +2,11 @@
 
 Every container can declare two resource numbers for CPU and memory.
 
-- **`requests`** — what the container is *guaranteed*. The scheduler uses requests
+- **`requests`**: what the container is *guaranteed*. The scheduler uses requests
   to find a node with enough room. This is a **reservation**.
-- **`limits`** — the hard *ceiling*. Exceed the **memory** limit and the kernel
+- **`limits`**: the hard *ceiling*. Exceed the **memory** limit and the kernel
   **OOMKills** the container (exit 137). Exceed the **CPU** limit and the container
-  is **throttled** — slowed, never killed.
+  is **throttled**: slowed, never killed.
 
 ```yaml
 resources:
@@ -24,8 +24,8 @@ which determines who gets evicted first when a node runs low on memory:
 | **BestEffort** | no requests or limits at all | **first** |
 
 > [!IMPORTANT]
-> `requests` = scheduling protection — the scheduler will not place a Pod on a node
-> that cannot satisfy them. `limits` = runtime containment — the kernel enforces them
+> `requests` = scheduling protection: the scheduler will not place a Pod on a node
+> that cannot satisfy them. `limits` = runtime containment: the kernel enforces them
 > live. Set memory `requests == limits` for anything that must not be OOMKilled.
 
 In this lesson you will build a **Guaranteed** Pod, then deliberately blow past a

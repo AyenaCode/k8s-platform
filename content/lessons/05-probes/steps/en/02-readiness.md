@@ -1,7 +1,7 @@
 ## Gate traffic with a readiness probe
 
 Deploy a Pod whose readiness probe only passes when `/tmp/healthy` exists. It
-starts *without* that file — so it boots but stays **not ready** and receives no
+starts *without* that file, so it boots but stays **not ready** and receives no
 traffic.
 
 ### Your task
@@ -30,10 +30,10 @@ spec:
 EOF
 ```
 
-**2. Watch the READY column** — it holds at `0/1` even though STATUS is `Running`:
+**2. Watch the READY column**, it holds at `0/1` even though STATUS is `Running`:
 
 ```bash
-kubectl get pod ready-demo -w        # READY 0/1 — Ctrl-C when you've seen it
+kubectl get pod ready-demo -w        # READY 0/1, Ctrl-C when you've seen it
 ```
 
 What you should see:
@@ -55,7 +55,7 @@ The container is up, but Kubernetes will not route any traffic to it.
 kubectl exec ready-demo -- touch /tmp/healthy
 ```
 
-**4. Confirm** the Pod flipped to `1/1` READY — with RESTARTS still at `0`:
+**4. Confirm** the Pod flipped to `1/1` READY, with RESTARTS still at `0`:
 
 ```bash
 kubectl get pod ready-demo

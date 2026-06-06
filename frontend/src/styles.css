@@ -1,5 +1,5 @@
 /* ============================================================================
-   K8s LAB — "OPS CONSOLE" design system
+   K8s LAB: "OPS CONSOLE" design system
    An SRE mission-control cockpit: carbon surfaces, a faint blueprint grid, film
    grain, and one signature signal-lime that means "go / earned / live". Type is
    Bricolage Grotesque (display), Hanken Grotesk (body), JetBrains Mono (metrics
@@ -102,7 +102,7 @@ body {
   background-size: auto, auto, 44px 44px, 44px 44px;
   background-attachment: fixed;
 }
-/* film grain overlay — subtle, never interactive */
+/* film grain overlay, subtle, never interactive */
 body::after {
   content: '';
   position: fixed;
@@ -343,7 +343,7 @@ kbd {
 .progress-list .card-meta { margin: 0; }
 
 /* ====================== Lab split (content + terminal) =================== */
-/* SIZING IS LOAD-BEARING for the xterm fit addon — do not change the grid /
+/* SIZING IS LOAD-BEARING for the xterm fit addon: do not change the grid /
    flex / height rules here; only colours & borders are restyled. */
 .lab {
   display: grid; grid-template-columns: minmax(300px, 2fr) minmax(420px, 3fr);
@@ -382,7 +382,7 @@ kbd {
   border: 1px solid rgba(87, 217, 138, 0.4); border-radius: var(--r-pill); padding: 0.25rem 0.65rem;
 }
 
-/* step rail — labelled, status-aware, replaces tiny dots */
+/* step rail: labelled, status-aware, replaces tiny dots */
 .steprail { display: flex; gap: 0.4rem; list-style: none; padding: 0 0 0.2rem; margin: 0 0 1.2rem; overflow-x: auto; }
 .steprail__item {
   display: inline-flex; align-items: center; gap: 0.45rem; white-space: nowrap;
@@ -421,7 +421,7 @@ kbd {
 
 .task__solved { color: var(--good); font-family: var(--font-mono); font-size: 0.8rem; }
 
-/* sticky action bar — Verify is ALWAYS reachable */
+/* sticky action bar: Verify is ALWAYS reachable */
 .actionbar {
   position: sticky; bottom: 0; z-index: 5;
   display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
@@ -455,7 +455,7 @@ kbd {
   background: var(--ink-700); color: var(--muted); border-radius: 0 var(--r-sm) var(--r-sm) 0;
 }
 
-/* GitHub-style alert callouts (see remarkAlerts in Markdown.tsx) — the "new
+/* GitHub-style alert callouts (see remarkAlerts in Markdown.tsx), the "new
    style" for the architecture course: a labelled, colour-coded box. */
 .md .callout {
   margin: 1.1rem 0; padding: 0.8rem 1rem 0.85rem; border-radius: var(--r-sm);

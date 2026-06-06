@@ -2,8 +2,8 @@
   "slug": "06-resources",
   "title": { "en": "Resources & QoS", "fr": "Ressources & QoS" },
   "summary": {
-    "en": "Requests reserve capacity; limits cap it. Together they set a Pod's Quality of Service — and decide who gets OOMKilled first.",
-    "fr": "Les requests réservent de la capacité ; les limits la plafonnent. Ensemble elles fixent la Quality of Service d'un Pod — et décident qui est OOMKilled en premier."
+    "en": "Requests reserve capacity; limits cap it. Together they set a Pod's Quality of Service, and decide who gets OOMKilled first.",
+    "fr": "Les requests réservent de la capacité ; les limits la plafonnent. Ensemble elles fixent la Quality of Service d'un Pod, et décident qui est OOMKilled en premier."
   },
   "estMinutes": 16,
   "xp": 220,
@@ -32,7 +32,7 @@
       "verify": "scripts/03-verify.sh",
       "hint": {
         "en": "Apply the hog Pod (a 20Mi limit while it allocates without bound). Wait, then check: kubectl get pod hog -o jsonpath='{.status.containerStatuses[0].lastState.terminated.reason}'",
-        "fr": "Appliquez le Pod hog (limite 20Mi alors qu'il alloue sans limite). Attendez, puis vérifiez : kubectl get pod hog -o jsonpath='{.status.containerStatuses[0].lastState.terminated.reason}'"
+        "fr": "Applique le Pod hog (limite 20Mi alors qu'il alloue sans limite). Attends, puis vérifie : kubectl get pod hog -o jsonpath='{.status.containerStatuses[0].lastState.terminated.reason}'"
       },
       "xp": 90
     }

@@ -2,8 +2,8 @@
   "slug": "08-storage",
   "title": { "en": "Storage & StatefulSets", "fr": "Stockage & StatefulSets" },
   "summary": {
-    "en": "Pods are disposable; data is not. Claim persistent storage with a PVC, then meet StatefulSets — stable names and stable disks for stateful apps.",
-    "fr": "Les Pods sont jetables ; les données non. Réclamez du stockage persistant avec un PVC, puis découvrez les StatefulSets — noms et disques stables pour les apps avec état."
+    "en": "Pods are disposable; data is not. Claim persistent storage with a PVC, then meet StatefulSets, with stable names and stable disks for stateful apps.",
+    "fr": "Les Pods sont jetables ; les données non. Réclame du stockage persistant avec un PVC, puis découvre les StatefulSets : noms et disques stables pour les apps avec état."
   },
   "estMinutes": 20,
   "xp": 240,
@@ -21,7 +21,7 @@
       "verify": "scripts/02-verify.sh",
       "hint": {
         "en": "A PVC stays Pending until a Pod uses it (WaitForFirstConsumer). Apply the PVC AND the writer Pod, then write a file into /data.",
-        "fr": "Un PVC reste Pending tant qu'un Pod ne l'utilise pas (WaitForFirstConsumer). Appliquez le PVC ET le Pod writer, puis écrivez un fichier dans /data."
+        "fr": "Un PVC reste Pending tant qu'un Pod ne l'utilise pas (WaitForFirstConsumer). Applique le PVC ET le Pod writer, puis écris un fichier dans /data."
       },
       "xp": 100
     },

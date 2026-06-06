@@ -1,4 +1,4 @@
-# K8s Lab — Docker is the only dependency. `make up`, then open the URL.
+# K8s Lab: Docker is the only dependency. `make up`, then open the URL.
 
 COMPOSE ?= docker compose
 URL     ?= http://localhost:8088
@@ -7,7 +7,7 @@ URL     ?= http://localhost:8088
 .PHONY: help up down logs ps shell reset clean
 
 help: ## Show this help
-	@echo "K8s Lab — available commands:"
+	@echo "K8s Lab: available commands:"
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | sort | \
 		awk 'BEGIN{FS=":.*## "}{printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2}'
 	@echo ""

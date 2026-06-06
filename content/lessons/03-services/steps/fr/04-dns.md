@@ -1,7 +1,7 @@
 ## Découvrir les Services par DNS
 
-C'est ainsi que les microservices se trouvent à l'exécution. CoreDNS — le serveur
-DNS intégré au cluster — crée automatiquement un enregistrement A pour chaque Service :
+C'est ainsi que les microservices se trouvent à l'exécution. CoreDNS, le serveur
+DNS intégré au cluster, crée automatiquement un enregistrement A pour chaque Service :
 
 ```text
 <service>.<namespace>.svc.cluster.local
@@ -9,9 +9,9 @@ DNS intégré au cluster — crée automatiquement un enregistrement A pour chaq
 
 Dans le **même namespace**, le nom court suffit : juste `web`.
 
-### Voyez-le en direct
+### Vois-le en direct
 
-**1. Lancez un Pod jetable et appelez le Service par son nom.**
+**1. Lance un Pod jetable et appelle le Service par son nom.**
 
 ```bash
 kubectl run tmp --rm -it --image=busybox --restart=Never -- \
@@ -29,7 +29,7 @@ Ce que « bon » donne :
 
 CoreDNS a résolu `web` → le ClusterIP → un Pod Ready. Aucune IP codée en dur.
 
-**2. Depuis un autre namespace, utilisez le FQDN complet.**
+**2. Depuis un autre namespace, utilise le FQDN complet.**
 
 ```bash
 wget -qO- http://web.default.svc.cluster.local
@@ -41,11 +41,11 @@ wget -qO- http://web.default.svc.cluster.local
 > C'est pourquoi le nom court `web` fonctionne sans aucune config supplémentaire.
 
 > [!IMPORTANT]
-> Ne codez jamais des IP de Pods dans votre app. Appelez le **nom du Service** —
-> `http://web`, `http://payments` — et laissez DNS + kube-proxy gérer le routage
+> Ne code jamais des IP de Pods dans ton app. Appelle le **nom du Service**
+> (`http://web`, `http://payments`) et laisse DNS + kube-proxy gérer le routage
 > et le load balancing. C'est l'épine dorsale de toute architecture microservices
 > sur Kubernetes.
 
-Vous connaissez maintenant les trois piliers du réseau Kubernetes : les **Services**
+Tu connais maintenant les trois piliers du réseau Kubernetes : les **Services**
 (identité stable), les **Endpoints** (les Pods actifs derrière eux) et le **DNS**
-(la découverte). Les fondamentaux réseau sont bouclés — bien joué.
+(la découverte). Les fondamentaux réseau sont bouclés, bien joué.

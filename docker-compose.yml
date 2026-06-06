@@ -1,4 +1,4 @@
-# K8s Lab — the whole stack. The ONLY dependency on your machine is Docker.
+# K8s Lab: the whole stack. The ONLY dependency on your machine is Docker.
 #
 #   docker compose up --build      then open http://localhost:8080
 #
@@ -9,7 +9,7 @@
 #
 # The app shares k3s's network namespace (network_mode: service:k3s) so the
 # terminal IS the node: `kubectl`, pod IPs, ClusterIPs and `localhost:<nodePort>`
-# all work with zero config. Because of that, the app has no ports of its own —
+# all work with zero config. Because of that, the app has no ports of its own,
 # its :8080 is published on the k3s service below.
 
 services:

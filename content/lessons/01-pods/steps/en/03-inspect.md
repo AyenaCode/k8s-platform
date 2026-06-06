@@ -1,31 +1,31 @@
-## Inspect, logs & exec — the daily toolkit
+## Inspect, logs & exec: the daily toolkit
 
 When something misbehaves, these are the commands you reach for first. Run each
 against your `web` Pod.
 
 ### Drills
 
-**1. Describe** — full config plus recent **Events** (your first stop when a Pod
+**1. Describe**: full config plus recent **Events** (your first stop when a Pod
 won't start):
 
 ```bash
 kubectl describe pod web
 ```
 
-**2. Logs** — whatever the container wrote to stdout/stderr:
+**2. Logs**: whatever the container wrote to stdout/stderr:
 
 ```bash
 kubectl logs web          # add -f to stream live, --previous after a crash
 ```
 
-**3. Exec** — drop into a shell *inside* the container:
+**3. Exec**: drop into a shell *inside* the container:
 
 ```bash
 kubectl exec -it web -- bash
 # you're inside nginx now:  ls /usr/share/nginx/html   then  exit
 ```
 
-**4. Raw object** — the Pod exactly as the cluster stores it:
+**4. Raw object**: the Pod exactly as the cluster stores it:
 
 ```bash
 kubectl get pod web -o yaml | less

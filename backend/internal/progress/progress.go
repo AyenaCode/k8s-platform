@@ -1,6 +1,6 @@
 // Package progress is the data tier: it persists per-user exercise progress and
 // gamification (XP). It is defined as an interface so the rest of the app never
-// depends on a concrete store — the in-memory store runs with zero setup, and
+// depends on a concrete store: the in-memory store runs with zero setup, and
 // the Postgres store (postgres.go) is a drop-in for production scale.
 package progress
 

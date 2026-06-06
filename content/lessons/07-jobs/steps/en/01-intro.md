@@ -1,24 +1,24 @@
 ## Understand run-to-completion workloads
 
-Deployments keep things running **forever** — web servers, APIs. A lot of real
+Deployments keep things running **forever**: web servers, APIs. A lot of real
 work is the opposite: do a task **once**, then stop. A database migration, a
 backup, a nightly report, a batch import.
 
 Kubernetes has two objects for that:
 
-- **Job** — runs one or more Pods until they **succeed** (exit 0), then stops.
+- **Job**: runs one or more Pods until they **succeed** (exit 0), then stops.
   If a Pod fails, the Job retries it (up to `backoffLimit`).
-- **CronJob** — creates a Job on a **schedule**, using standard five-field cron
+- **CronJob**: creates a Job on a **schedule**, using standard five-field cron
   syntax. It owns a `jobTemplate` that defines what each triggered Job looks like.
 
 The critical difference from a Deployment: a Job Pod must use `restartPolicy:
-Never` or `OnFailure` — **never** `Always`. A task that "always restarts" never
+Never` or `OnFailure`, **never** `Always`. A task that "always restarts" never
 finishes.
 
 > [!NOTE]
 > A Job tracks *success*, not *uptime*. It is done when the required number of
 > Pods exit 0 (`completions`, default 1). A CronJob is just a Job factory on a
-> timer — it does not run anything itself.
+> timer, it does not run anything itself.
 
 ### Cron syntax at a glance
 

@@ -14,7 +14,7 @@ if [ "$desired" != "5" ]; then
   exit 1
 fi
 if [ "${ready:-0}" != "5" ]; then
-  echo "✗ Only ${ready:-0}/5 replicas ready — wait for the new Pods to start."
+  echo "✗ Only ${ready:-0}/5 replicas ready: wait for the new Pods to start."
   exit 1
 fi
 echo "✓ Deployment 'web' scaled to 5/5 replicas."

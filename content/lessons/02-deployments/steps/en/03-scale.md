@@ -28,13 +28,13 @@ web-74d9c-eeee      1/1     Running   0
 ```
 
 > [!TIP]
-> Scaling down works the same way — `--replicas=2` and Kubernetes terminates
+> Scaling down works the same way: `--replicas=2` and Kubernetes terminates
 > the extra Pods gracefully. The Deployment's contract is simple:
 > *make the running count equal the desired count, always.*
 
 > [!NOTE]
 > In production you rarely scale by hand. A **HorizontalPodAutoscaler** (HPA)
-> watches CPU/memory and calls `scale` for you — but the underlying mechanism
+> watches CPU/memory and calls `scale` for you, but the underlying mechanism
 > is identical to what you just ran.
 
 When all **5 replicas are ready**, then hit **Verify**. ✅

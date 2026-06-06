@@ -22,7 +22,7 @@ function LangToggle() {
   )
 }
 
-// A streak is the single most addictive retention loop — keep it visible everywhere.
+// A streak is the single most addictive retention loop: keep it visible everywhere.
 function NavStreak() {
   const { data } = useProgressSummary()
   if (!data || data.streak <= 0) return null

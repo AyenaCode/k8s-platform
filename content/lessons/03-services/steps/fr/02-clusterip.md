@@ -1,22 +1,22 @@
 ## Exposer un Deployment avec ClusterIP
 
-Le script de préparation a déjà déployé une app `web` à 2 replicas. Votre mission :
+Le script de préparation a déjà déployé une app `web` à 2 replicas. Ta mission :
 lui donner une adresse stable.
 
-### Votre tâche
+### Ta tâche
 
-**1. Cliquez sur "Préparer la tâche"** pour confirmer que le Deployment `web` est prêt.
+**1. Clique sur "Préparer la tâche"** pour confirmer que le Deployment `web` est prêt.
 
-**2. Créez le Service ClusterIP.**
+**2. Crée le Service ClusterIP.**
 
 ```bash
 kubectl expose deployment web --port=80
 ```
 
-Cela crée un Service nommé `web` avec `selector: app=web` — le même label que
+Cela crée un Service nommé `web` avec `selector: app=web`, le même label que
 `kubectl create deployment` pose sur chaque Pod qu'il gère.
 
-**3. Inspectez le Service et ses endpoints.**
+**3. Inspecte le Service et ses endpoints.**
 
 ```bash
 kubectl get svc web
@@ -33,20 +33,20 @@ NAME   ENDPOINTS                       AGE
 web    10.42.0.7:80,10.42.0.8:80       5s
 ```
 
-Une entrée par Pod Ready — deux ici car le Deployment a 2 replicas.
+Une entrée par Pod Ready, deux ici car le Deployment a 2 replicas.
 
 > [!IMPORTANT]
-> Endpoints vides = le trafic ne passe nulle part. Si vous voyez `<none>`,
-> le sélecteur ne correspond à aucun Pod Ready. Vérifiez avec :
+> Endpoints vides = le trafic ne passe nulle part. Si tu vois `<none>`,
+> le sélecteur ne correspond à aucun Pod Ready. Vérifie avec :
 > `kubectl get pods -l app=web`
 
-**4. Joignez le Service via son ClusterIP.**
+**4. Joins le Service via son ClusterIP.**
 
 ```bash
 IP=$(kubectl get svc web -o jsonpath='{.spec.clusterIP}')
 curl $IP
 ```
 
-Vous obtenez la page d'accueil nginx — routée par l'IP virtuelle, pas par une IP de Pod.
+Tu obtiens la page d'accueil nginx, routée par l'IP virtuelle, pas par une IP de Pod.
 
-Puis cliquez sur **Vérifier**. ✅
+Puis clique sur **Vérifier**. ✅

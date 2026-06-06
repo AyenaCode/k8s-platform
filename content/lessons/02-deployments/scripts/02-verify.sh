@@ -14,7 +14,7 @@ if [ "$desired" != "3" ]; then
   exit 1
 fi
 if [ "${ready:-0}" != "3" ]; then
-  echo "✗ Only ${ready:-0}/3 replicas ready — give the Pods a few seconds."
+  echo "✗ Only ${ready:-0}/3 replicas ready: give the Pods a few seconds."
   exit 1
 fi
 echo "✓ Deployment 'web' has 3/3 replicas ready."

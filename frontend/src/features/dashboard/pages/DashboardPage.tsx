@@ -1,5 +1,5 @@
 // DashboardPage is the "Ops Console" home: a glanceable cockpit that pulls the
-// learner straight back in — a one-click Resume, a course-completion ring, the
+// learner straight back in: a one-click Resume, a course-completion ring, the
 // streak, today's XP goal, and per-mission mastery. Everything here exists to
 // shorten the path from "open the app" to "solve the next task".
 import { useQuery } from '@tanstack/react-query'
@@ -13,7 +13,7 @@ import { useLang } from '@/core/i18n/lang'
 
 const DAILY_GOAL_XP = 100
 
-// XP earned since local midnight — drives the daily-goal ring.
+// XP earned since local midnight: drives the daily-goal ring.
 function xpToday(records: { xp: number; solvedAt?: string }[]): number {
   const start = new Date()
   start.setHours(0, 0, 0, 0)
@@ -88,7 +88,7 @@ export function DashboardPage() {
               <span className="stat__v">
                 {data.streak} <small>{data.streak === 1 ? 'day' : 'days'}</small>
               </span>
-              <span className="stat__hint">{data.streak > 0 ? '🔥 keep it alive — solve one today' : 'Solve a task to start a streak'}</span>
+              <span className="stat__hint">{data.streak > 0 ? '🔥 keep it alive: solve one today' : 'Solve a task to start a streak'}</span>
             </div>
             <div className="stat" style={{ flexDirection: 'row', alignItems: 'center', gap: '1rem' }}>
               <ProgressRing value={goalPct} size={52} stroke={5} label={goalPct >= 1 ? '✓' : ''} />

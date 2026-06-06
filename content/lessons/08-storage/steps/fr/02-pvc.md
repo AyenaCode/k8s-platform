@@ -1,11 +1,11 @@
 ## Réserver du stockage qui survit au Pod
 
-Vous allez créer un PVC, y attacher un Pod, écrire un fichier, supprimer le
+Tu vas créer un PVC, y attacher un Pod, écrire un fichier, supprimer le
 Pod, puis prouver que le fichier est toujours là au retour du Pod.
 
-### Votre tâche
+### Ta tâche
 
-**1. Créez le PVC** `data-pvc` demandant 1 Gi :
+**1. Crée le PVC** `data-pvc` demandant 1 Gi :
 
 ```bash
 kubectl apply -f - <<'EOF'
@@ -21,7 +21,7 @@ spec:
 EOF
 ```
 
-**2. Vérifiez l'état du PVC** — il doit être `Pending` :
+**2. Vérifie l'état du PVC**, il doit être `Pending` :
 
 ```bash
 kubectl get pvc data-pvc
@@ -33,11 +33,11 @@ data-pvc   Pending
 ```
 
 > [!NOTE]
-> `Pending` est attendu ici. `local-path` est en mode `WaitForFirstConsumer` —
+> `Pending` est attendu ici. `local-path` est en mode `WaitForFirstConsumer` :
 > le disque n'est pas provisionné tant qu'un Pod n'utilise pas réellement la
 > demande.
 
-**3. Créez le Pod `writer`** qui monte `data-pvc` sur `/data`. Au moment où il
+**3. Crée le Pod `writer`** qui monte `data-pvc` sur `/data`. Au moment où il
 est planifié, le volume est provisionné et le PVC passe à `Bound` :
 
 ```bash
@@ -69,14 +69,14 @@ NAME       STATUS   VOLUME         CAPACITY   ACCESS MODES
 data-pvc   Bound    pvc-abc123…    1Gi        RWO
 ```
 
-**4. Écrivez un fichier dans le volume :**
+**4. Écris un fichier dans le volume :**
 
 ```bash
 kubectl exec writer -- sh -c "echo persisted > /data/hello.txt"
 ```
 
-**5. Prouvez que cela survit.** Supprimez le Pod, recréez-le, puis relisez le
-fichier — les données résident dans le PVC, pas dans le Pod :
+**5. Prouve que cela survit.** Supprime le Pod, recrée-le, puis relis le
+fichier (les données résident dans le PVC, pas dans le Pod) :
 
 ```bash
 kubectl delete pod writer
@@ -105,8 +105,8 @@ persisted
 ```
 
 > [!TIP]
-> Le fichier a survécu parce que `data-pvc` n'a pas été supprimé. Supprimez le
-> *PVC* et les données disparaissent — le Pod n'a aucun rôle dans la durabilité.
+> Le fichier a survécu parce que `data-pvc` n'a pas été supprimé. Supprime le
+> *PVC* et les données disparaissent, le Pod n'a aucun rôle dans la durabilité.
 
 Lorsque `data-pvc` est **Bound** et que `/data/hello.txt` affiche **`persisted`**,
-cliquez sur **Vérifier**. ✅
+clique sur **Vérifier**. ✅

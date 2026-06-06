@@ -1,8 +1,8 @@
 // Package content is the content tier. It loads a manifest-driven curriculum from
 // the filesystem: each lesson is a directory under content/lessons/ holding a
 // lesson.json manifest, per-step markdown (bilingual), and optional setup/verify
-// shell scripts. Adding a lesson is purely additive — drop a new directory, no
-// code change — which is the whole point of the schema.
+// shell scripts. Adding a lesson is purely additive: drop a new directory, no
+// code change, which is the whole point of the schema.
 //
 // On-disk layout:
 //

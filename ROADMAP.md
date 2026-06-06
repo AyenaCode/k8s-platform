@@ -1,8 +1,8 @@
-# Roadmap — scaling to advanced courses & troubleshooting labs
+# Roadmap: scaling to advanced courses & troubleshooting labs
 
 Assessment of whether the current infra/content engine can host advanced Kubernetes
 courses and advanced troubleshooting labs, plus the concrete work to unlock everything.
-(Grounded in a live probe of the running k3s — May 2026.)
+(Grounded in a live probe of the running k3s, May 2026.)
 
 ## TL;DR
 
@@ -11,7 +11,7 @@ courses and advanced troubleshooting labs, plus the concrete work to unlock ever
 - **k3s covers ~90% of advanced topics out of the box.**
 - **3 small infra tweaks** unlock the rest. Only multi-node is a (small) real change.
 
-## Status — June 2026: intermediate tier shipped
+## Status, June 2026: intermediate tier shipped
 
 The full intermediate curriculum is in (lessons 04–11, bilingual, every verify
 script tested live against the running k3s). Two of the three unlocks are done:
@@ -26,16 +26,16 @@ script tested live against the running k3s). Two of the three unlocks are done:
 
 | # | Lesson | Teaches | Infra |
 |---|---|---|---|
-| 04 | ConfigMaps & Secrets | env vs file injection, base64≠encryption | — |
-| 05 | Health probes | readiness gates traffic, liveness restarts | — |
-| 06 | Resources & QoS | requests/limits, QoS classes, **OOMKilled** | — |
-| 07 | Jobs & CronJobs | run-to-completion, schedules, manual trigger | — |
-| 08 | Storage & StatefulSets | PVC dynamic provisioning, stable per-pod disks | — |
+| 04 | ConfigMaps & Secrets | env vs file injection, base64≠encryption | - |
+| 05 | Health probes | readiness gates traffic, liveness restarts | - |
+| 06 | Resources & QoS | requests/limits, QoS classes, **OOMKilled** | - |
+| 07 | Jobs & CronJobs | run-to-completion, schedules, manual trigger | - |
+| 08 | Storage & StatefulSets | PVC dynamic provisioning, stable per-pod disks | - |
 | 09 | Ingress & HTTP routing | host/path routing, real curl through Traefik | traefik |
 | 10 | Autoscaling (HPA) | CPU-target scaling, why cpu requests are mandatory | metrics-server |
-| 11 | Troubleshooting clinic | diagnose+fix ImagePull / CrashLoop / no-endpoints | — |
+| 11 | Troubleshooting clinic | diagnose+fix ImagePull / CrashLoop / no-endpoints | - |
 
-## Content engine — already sufficient
+## Content engine: already sufficient
 
 - Manifest-driven: `lesson.json` + `steps/{en,fr}/*.md` + optional `scripts/{setup,verify}.sh`.
 - Troubleshooting labs map perfectly onto **setup → break / verify → confirm fix**
@@ -52,7 +52,7 @@ script tested live against the running k3s). Two of the three unlocks are done:
 | RBAC, ServiceAccounts | ✅ | native |
 | Probes, CrashLoopBackOff, **OOMKilled** | ✅ | great for troubleshooting |
 | ConfigMaps/Secrets, Jobs/CronJobs, DaemonSets | ✅ | |
-| **NetworkPolicies** | ✅ | k3s **enforces** them (built-in controller) — a real plus |
+| **NetworkPolicies** | ✅ | k3s **enforces** them (built-in controller), a real plus |
 | PodDisruptionBudgets, PriorityClasses, ResourceQuota, LimitRange | ✅ | |
 | CRDs / Operators / Helm | ✅ | `helm` is in the lab terminal |
 | Ingress | ✅ | traefik **re-enabled**; reachable on `localhost:80` (lesson 09) |
@@ -61,11 +61,11 @@ script tested live against the running k3s). Two of the three unlocks are done:
 
 ## The 3 unlocks (do when the first lab needs them)
 
-1. ✅ **HPA / autoscaling** — *done.* Removed `--disable metrics-server` from the `k3s`
+1. ✅ **HPA / autoscaling**: *done.* Removed `--disable metrics-server` from the `k3s`
    command in `docker-compose.yml`. `kubectl top` and HPA now work.
-2. ✅ **Ingress** — *done.* Removed `--disable traefik`. Thanks to
+2. ✅ **Ingress**: *done.* Removed `--disable traefik`. Thanks to
    `network_mode: service:k3s`, the ingress is reachable on `localhost:80`.
-3. ⏳ **Multi-node** (taints/affinity/drain/node-failure labs) — add one or two **k3s agent**
+3. ⏳ **Multi-node** (taints/affinity/drain/node-failure labs): add one or two **k3s agent**
    containers to `docker-compose.yml` that join the server (k3s is natively multi-node).
    This is the only non-trivial change, and still small. Sketch:
    ```yaml
@@ -99,12 +99,12 @@ script tested live against the running k3s). Two of the three unlocks are done:
 
 ## Suggested next content (when ready)
 
-**Intermediate — shipped** (lessons 04–11): ConfigMaps & Secrets · Probes & health ·
+**Intermediate, shipped** (lessons 04–11): ConfigMaps & Secrets · Probes & health ·
 Resource requests/limits & QoS (+OOMKilled) · Jobs/CronJobs · StatefulSets & storage ·
 Ingress · HPA · Troubleshooting clinic (ImagePullBackOff · CrashLoopBackOff · Service
 has no endpoints).
 
-**Advanced — next:** Namespaces & RBAC (multi-tenant) · NetworkPolicies (k3s enforces
+**Advanced, next:** Namespaces & RBAC (multi-tenant) · NetworkPolicies (k3s enforces
 them) · CRDs/Operators/Helm · the multi-node scheduling track (taints/tolerations,
 affinity, drain/cordon, node-failure) once unlock #3 lands · more troubleshooting cases
 (missing ConfigMap/Secret → CreateContainerConfigError · Pending pods from

@@ -1,6 +1,6 @@
 ## Maîtriser la boucle de débogage
 
-Chaque incident en production commence par les mêmes trois gestes — de l'extérieur vers l'intérieur.
+Chaque incident en production commence par les mêmes trois gestes, de l'extérieur vers l'intérieur.
 
 ```bash
 kubectl get pods              # 1. Repérer le STATUS (le symptôme principal)
@@ -13,16 +13,16 @@ La colonne **STATUS** révèle la catégorie du problème avant même de lire un
 | STATUS | Ce que ça signifie |
 |---|---|
 | `ImagePullBackOff` / `ErrImagePull` | Nom d'image, tag incorrect, ou identifiants manquants |
-| `CrashLoopBackOff` | Le conteneur démarre puis s'arrête — mauvaise commande, dépendance absente, config défaillante |
+| `CrashLoopBackOff` | Le conteneur démarre puis s'arrête : mauvaise commande, dépendance absente, config défaillante |
 | `OOMKilled` | Le conteneur a dépassé sa limite mémoire et a été tué |
 | `CreateContainerConfigError` | Référence à une clé de ConfigMap / Secret inexistante |
-| `Pending` | Ne peut pas être schedulé — aucun nœud avec assez de CPU/mémoire |
-| `Running` mais `0/1` ready | Readiness probe en échec — ou, pour un Service, aucun endpoint |
+| `Pending` | Ne peut pas être schedulé : aucun nœud avec assez de CPU/mémoire |
+| `Running` mais `0/1` ready | Readiness probe en échec, ou, pour un Service, aucun endpoint |
 
 > [!IMPORTANT]
-> `get` expose le symptôme. `describe` donne la cause (descendez jusqu'à **Events** en bas). `logs` raconte l'histoire de l'application elle-même. Exécutez-les toujours dans cet ordre — ne sautez pas d'étape.
+> `get` expose le symptôme. `describe` donne la cause (descends jusqu'à **Events** en bas). `logs` raconte l'histoire de l'application elle-même. Exécute-les toujours dans cet ordre : ne saute pas d'étape.
 
 C'est la leçon finale. La plateforme va **casser trois workloads intentionnellement**. Pour chacun :
-cliquez sur **Préparer la tâche** → diagnostiquez avec les trois commandes → corrigez → cliquez sur **Vérifier**.
+clique sur **Préparer la tâche** → diagnostique avec les trois commandes → corrige → clique sur **Vérifier**.
 
 **Continuer →**

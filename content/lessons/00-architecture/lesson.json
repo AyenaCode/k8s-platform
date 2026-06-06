@@ -2,8 +2,8 @@
   "slug": "00-architecture",
   "title": { "en": "How Kubernetes Works", "fr": "Comment fonctionne Kubernetes" },
   "summary": {
-    "en": "Start here. What Kubernetes really is, the control plane vs the worker nodes, and the components that keep your apps alive — then map a live cluster yourself.",
-    "fr": "Commencez ici. Ce qu'est vraiment Kubernetes, le control plane face aux nœuds, et les composants qui maintiennent vos apps en vie — puis cartographiez un cluster réel."
+    "en": "Start here. What Kubernetes really is, the control plane vs the worker nodes, and the components that keep your apps alive, then map a live cluster yourself.",
+    "fr": "Commence ici. Ce qu'est vraiment Kubernetes, le control plane face aux nœuds, et les composants qui maintiennent tes apps en vie, puis cartographie un cluster réel."
   },
   "estMinutes": 15,
   "xp": 120,
@@ -34,12 +34,12 @@
     },
     {
       "id": "recon",
-      "title": { "en": "Recon: your live cluster", "fr": "Reconnaissance : votre cluster" },
+      "title": { "en": "Recon: your live cluster", "fr": "Reconnaissance : ton cluster" },
       "md": { "en": "steps/en/05-recon.md", "fr": "steps/fr/05-recon.md" },
       "verify": "scripts/05-verify.sh",
       "hint": {
-        "en": "Run: kubectl create namespace recon — then confirm with kubectl get namespaces.",
-        "fr": "Lancez : kubectl create namespace recon — puis confirmez avec kubectl get namespaces."
+        "en": "Run: kubectl create namespace recon, then confirm with kubectl get namespaces.",
+        "fr": "Lance : kubectl create namespace recon, puis confirme avec kubectl get namespaces."
       },
       "xp": 60
     }

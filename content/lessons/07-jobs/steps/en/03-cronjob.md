@@ -1,6 +1,6 @@
 ## Schedule work with a CronJob
 
-A CronJob fires a new Job on a timer. It holds a `jobTemplate` — the blueprint
+A CronJob fires a new Job on a timer. It holds a `jobTemplate`: the blueprint
 every triggered Job is stamped from. You never touch the schedule to test it;
 you trigger a manual run instead.
 
@@ -28,7 +28,7 @@ NAME     SCHEDULE      SUSPEND   ACTIVE   LAST SCHEDULE   AGE
 report   */1 * * * *   False     0        <none>          5s
 ```
 
-**3. Trigger a manual run now** — don't wait for the schedule. This is exactly
+**3. Trigger a manual run now**, don't wait for the schedule. This is exactly
 what an on-call engineer does to test a scheduled task:
 
 ```bash
@@ -42,7 +42,7 @@ kubectl wait --for=condition=complete job/report-now --timeout=60s
 kubectl logs -l job-name=report-now
 ```
 
-**5. After a minute or two, list all Jobs** — the scheduler will have fired its
+**5. After a minute or two, list all Jobs**, the scheduler will have fired its
 own run named `report-<timestamp>`:
 
 ```bash
@@ -56,6 +56,6 @@ kubectl get jobs
 
 > [!TIP]
 > `kubectl create job <name> --from=cronjob/<name>` is the standard way to
-> trigger a one-off run from any CronJob template — no YAML editing needed.
+> trigger a one-off run from any CronJob template, no YAML editing needed.
 
 When CronJob **`report`** exists and Job **`report-now`** has completed, then hit **Verify**. ✅

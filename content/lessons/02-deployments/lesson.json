@@ -3,7 +3,7 @@
   "title": { "en": "Deployments & ReplicaSets", "fr": "Deployments & ReplicaSets" },
   "summary": {
     "en": "Run apps the real way: declare a desired state and let Kubernetes keep it. Scale, self-heal, roll out and roll back.",
-    "fr": "Lancez vos apps comme en vrai : déclarez un état désiré et laissez Kubernetes le maintenir. Scale, auto-réparation, déploiement et rollback."
+    "fr": "Lance tes apps comme en vrai : déclare un état désiré et laisse Kubernetes le maintenir. Scale, auto-réparation, déploiement et rollback."
   },
   "estMinutes": 18,
   "xp": 200,
@@ -45,8 +45,8 @@
       "md": { "en": "steps/en/05-rollout.md", "fr": "steps/fr/05-rollout.md" },
       "verify": "scripts/05-verify.sh",
       "hint": {
-        "en": "kubectl set image deployment/web nginx=nginx:1.27 — the container name is 'nginx'.",
-        "fr": "kubectl set image deployment/web nginx=nginx:1.27 — le conteneur s'appelle 'nginx'."
+        "en": "kubectl set image deployment/web nginx=nginx:1.27: the container name is 'nginx'.",
+        "fr": "kubectl set image deployment/web nginx=nginx:1.27 : le conteneur s'appelle 'nginx'."
       },
       "xp": 70
     }

@@ -1,7 +1,7 @@
 ## Run a Job to completion
 
 A Job creates Pods, runs them, and tracks whether they **succeeded**. When the
-required number exits 0 the Job is marked complete — and the Pods stick around
+required number exits 0 the Job is marked complete, and the Pods stick around
 so you can read their logs.
 
 ### Your task
@@ -25,7 +25,7 @@ NAME          READY   STATUS      RESTARTS   AGE
 hello-xxxxx   0/1     Completed   0          8s
 ```
 
-**3. Block until the Job is done** — handy in scripts and pipelines:
+**3. Block until the Job is done**, handy in scripts and pipelines:
 
 ```bash
 kubectl wait --for=condition=complete job/hello --timeout=60s
