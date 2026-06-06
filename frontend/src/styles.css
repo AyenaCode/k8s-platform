@@ -352,17 +352,68 @@ kbd {
 .lab__content { overflow: auto; padding: 1.6rem 1.8rem 0; min-width: 0; position: relative; }
 .lab__terminal {
   display: flex; flex-direction: column; min-width: 0;
-  border-left: 1px solid var(--line); background: #000;
+  position: relative;
+  border-left: 1px solid var(--line);
+  background: var(--ink-850);
+  /* depth at the seam — a soft inner vignette from the left border. Decorative
+     only; cannot affect the fit addon's height math. */
+  box-shadow: inset 22px 0 48px -34px rgba(0, 0, 0, 0.9);
 }
 .lab__terminal-bar {
-  display: flex; align-items: center; gap: 0.5rem;
-  padding: 0.5rem 0.85rem; font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted);
-  background: var(--ink-700); border-bottom: 1px solid var(--line);
+  position: relative;
+  display: flex; align-items: center; gap: 0.7rem;
+  padding: 0.55rem 0.9rem;
+  font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted);
+  background: linear-gradient(180deg, var(--ink-700), var(--ink-800));
+  border-bottom: 1px solid var(--line);
 }
-.lab__terminal-bar .dotled { width: 8px; height: 8px; border-radius: 50%; background: var(--good); box-shadow: 0 0 8px var(--good); animation: pulse 2s var(--ease) infinite; }
+/* signal hairline + glow along the bar/body seam — the one bright accent */
+.lab__terminal-bar::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--signal-glow), transparent);
+  opacity: 0.55;
+}
+.lab__session {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-size: 0.66rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--fg);
+}
+.lab__session .dotled {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--good); box-shadow: 0 0 9px var(--good);
+  animation: pulse 2s var(--ease) infinite;
+}
+.lab__helm { color: var(--signal); font-size: 0.9rem; line-height: 1;
+  filter: drop-shadow(0 0 7px var(--signal-glow)); }
+.lab__shell {
+  font-size: 0.66rem; letter-spacing: 0.08em; color: var(--faint);
+  padding-left: 0.7rem; border-left: 1px solid var(--line);
+}
 .lab__terminal-bar .spacer { flex: 1; }
-.lab__terminal-bar .keyhint { color: var(--faint); }
-.lab__terminal-body { flex: 1; min-height: 0; padding: 0.4rem; }
+.lab__terminal-bar .keyhint {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  color: var(--faint); font-size: 0.68rem;
+}
+.lab__terminal-bar .keyhint kbd {
+  font-family: var(--font-mono); font-size: 0.62rem; color: var(--muted);
+  background: var(--ink-600); border: 1px solid var(--line);
+  border-radius: 5px; padding: 0.12rem 0.42rem; line-height: 1.4;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
+}
+.lab__terminal-bar .keyhint__sep { color: var(--line); }
+.lab__terminal-body {
+  flex: 1; min-height: 0; padding: 0.55rem 0.6rem 0.5rem;
+  position: relative; background: var(--ink-850);
+}
+/* top inset shadow: darkens (never brightens) the first rows for depth, so it
+   can't wash out glyph legibility. Absolute + pointer-events:none keeps it out
+   of layout. */
+.lab__terminal-body::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 0; height: 22px;
+  z-index: 2; pointer-events: none;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.4), transparent);
+}
 .lab__terminal-body > div { height: 100%; }
 
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }

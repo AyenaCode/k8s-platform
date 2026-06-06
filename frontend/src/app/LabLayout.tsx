@@ -14,10 +14,18 @@ export function LabLayout() {
       </section>
       <aside className="lab__terminal">
         <div className="lab__terminal-bar">
-          <span className="dotled" aria-hidden="true" />
-          <span>live cluster</span>
+          <span className="lab__session">
+            <span className="dotled" aria-hidden="true" />
+            <span className="lab__helm" aria-hidden="true">⎈</span>
+            live&nbsp;cluster
+          </span>
+          <span className="lab__shell" aria-hidden="true">~ shell</span>
           <span className="spacer" />
-          <span className="keyhint">Ctrl+Shift+C / V to copy &amp; paste</span>
+          <span className="keyhint">
+            <kbd>Ctrl ⇧ C</kbd> copy
+            <span className="keyhint__sep" aria-hidden="true">·</span>
+            <kbd>Ctrl ⇧ V</kbd> paste
+          </span>
         </div>
         <div className="lab__terminal-body">
           <PtyTerminal />
