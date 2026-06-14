@@ -11,6 +11,14 @@ courses and advanced troubleshooting labs, plus the concrete work to unlock ever
 - **k3s covers ~90% of advanced topics out of the box.**
 - **3 small infra tweaks** unlock the rest. Only multi-node is a (small) real change.
 
+## Status, June 2026: CKAD track shipped
+
+A dedicated **CKAD exam-prep track** is in (lessons 20–25, bilingual, surfaced in
+its own `/ckad` section via the manifest `track: ckad` field). It mirrors the
+public CKAD 2026 domains/weights with original, auto-verified drills; all 21 of
+its verify scripts were run live against the running k3s. The earlier
+intermediate tier remains below.
+
 ## Status, June 2026: intermediate tier shipped
 
 The full intermediate curriculum is in (lessons 04–11, bilingual, every verify

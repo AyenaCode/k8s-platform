@@ -59,6 +59,15 @@ so you can start a task clean.
 
 More concepts and troubleshooting modules will be added, see *Adding a lesson*.
 
+### CKAD track
+
+A dedicated **CKAD** section (in the top nav, or `/ckad`) prepares for the
+*Certified Kubernetes Application Developer* exam. It follows the public 2026
+curriculum domains and weights with original, auto-verified hands-on drills
+(design & build, deployment & tools, observability, configuration & security,
+services & networking). Lessons carrying `"track": "ckad"` in their manifest are
+grouped here instead of in the core mission list.
+
 ---
 
 ## Make commands
