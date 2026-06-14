@@ -62,6 +62,7 @@ type stepManifest struct {
 
 type lessonManifest struct {
 	Slug       string         `json:"slug"`
+	Track      string         `json:"track"` // "core" (default) or "ckad"; groups lessons into UI sections
 	Title      i18n           `json:"title"`
 	Summary    i18n           `json:"summary"`
 	EstMinutes int            `json:"estMinutes"`
@@ -86,6 +87,7 @@ type Step struct {
 // LessonCard is a catalog entry (no step prose).
 type LessonCard struct {
 	Slug        string `json:"slug"`
+	Track       string `json:"track"` // "core" or "ckad"; lets the UI split lessons into sections
 	Title       string `json:"title"`
 	Summary     string `json:"summary"`
 	EstMinutes  int    `json:"estMinutes"`
@@ -137,8 +139,13 @@ func (m lessonManifest) verifyCount() int {
 }
 
 func (m lessonManifest) card(lang string) LessonCard {
+	track := m.Track
+	if track == "" {
+		track = "core"
+	}
 	return LessonCard{
 		Slug:        m.Slug,
+		Track:       track,
 		Title:       m.Title.get(lang),
 		Summary:     m.Summary.get(lang),
 		EstMinutes:  m.EstMinutes,

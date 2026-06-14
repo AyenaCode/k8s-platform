@@ -47,6 +47,9 @@ export function RootLayout() {
         <Link to="/lessons" activeProps={{ className: 'app__link--active' }}>
           Missions
         </Link>
+        <Link to="/ckad" activeProps={{ className: 'app__link--active' }}>
+          CKAD
+        </Link>
         <div className="app__nav-spacer" />
         <NavStreak />
         <LangToggle />

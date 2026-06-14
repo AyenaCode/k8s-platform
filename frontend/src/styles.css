@@ -611,6 +611,49 @@ kbd {
   *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }
 
+/* ============================== CKAD track =============================== */
+/* Callout on the Missions page pointing at the CKAD section. */
+.track-callout {
+  display: flex; align-items: center; gap: 0.8rem;
+  margin: 0 0 1.2rem; padding: 0.85rem 1rem;
+  background: var(--ink-700); border: 1px solid var(--line);
+  border-radius: var(--r); color: var(--fg); text-decoration: none;
+  transition: border-color 0.18s, background 0.18s, transform 0.18s;
+}
+.track-callout:hover { border-color: rgba(86, 214, 224, 0.45); background: var(--ink-600); transform: translateX(2px); }
+.track-callout span:nth-child(2) { flex: 1; color: var(--muted); font-size: 0.9rem; }
+.track-callout strong { color: var(--fg); }
+.track-callout__badge {
+  font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em;
+  color: var(--signal-ink); background: var(--cyan); padding: 0.24rem 0.5rem; border-radius: var(--r-pill);
+}
+.track-callout .arrow { color: var(--cyan); }
+
+/* Domain-weights reference table on the CKAD page. */
+.ckad-domains {
+  margin: 0 0 1.8rem; padding: 0.4rem 0.2rem;
+  border: 1px solid var(--line); border-radius: var(--r); background: var(--ink-800);
+}
+.ckad-domains__row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.5rem 0.9rem; border-bottom: 1px solid var(--line-soft);
+}
+.ckad-domains__row:last-child { border-bottom: none; }
+.ckad-domains__name { color: var(--fg); font-size: 0.9rem; }
+.ckad-domains__weight { font-family: var(--font-mono); color: var(--signal); font-weight: 700; }
+
+/* CKAD progress card on the dashboard. */
+.ckad-card {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1rem 1.1rem; background: var(--ink-700); border: 1px solid var(--line);
+  border-radius: var(--r); color: var(--fg); text-decoration: none;
+  transition: border-color 0.18s, background 0.18s, transform 0.18s;
+}
+.ckad-card:hover { border-color: rgba(86, 214, 224, 0.45); background: var(--ink-600); transform: translateX(2px); }
+.ckad-card__body { display: flex; flex-direction: column; gap: 0.18rem; flex: 1; min-width: 0; }
+.ckad-card__body strong { font-family: var(--font-display); font-size: 1rem; }
+.ckad-card .arrow { color: var(--cyan); font-size: 1.1rem; }
+
 /* ============================== Responsive ============================== */
 @media (max-width: 860px) {
   .lab { grid-template-columns: 1fr; grid-template-rows: 1fr 320px; }

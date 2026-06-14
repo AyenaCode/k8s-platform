@@ -13,6 +13,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { streamSSE } from '@/core/api/sse'
 import { useLang } from '@/core/i18n/lang'
 import { lessonDetailQuery, lessonsListQuery } from '@/features/lessons/api/lessons.queries'
+import { isCkadLesson } from '@/features/lessons/types'
 import { Confetti } from '@/features/gamification/Confetti'
 import { RewardToast, type Reward } from '@/features/gamification/RewardToast'
 import { progressSummaryQuery } from '@/features/progress/api/progress.queries'
@@ -49,18 +50,26 @@ export function LessonPage({ slug }: { slug: string }) {
     }
   }
 
-  // The next mission in catalog order, so finishing one rolls straight on.
-  const nextSlug = useMemo(() => {
+  // Lessons of the same track (core vs CKAD) in catalog order: auto-advance and
+  // the "Mission NN" number both stay within the track the learner is in.
+  const trackItems = useMemo(() => {
     const items = lessons.data
     if (!items) return undefined
-    const here = items.findIndex((l) => l.slug === slug)
-    return here >= 0 ? items[here + 1]?.slug : undefined
+    const inCkad = isCkadLesson({ slug })
+    return items.filter((l) => isCkadLesson(l) === inCkad)
   }, [lessons.data, slug])
 
+  // The next mission in the track, so finishing one rolls straight on.
+  const nextSlug = useMemo(() => {
+    if (!trackItems) return undefined
+    const here = trackItems.findIndex((l) => l.slug === slug)
+    return here >= 0 ? trackItems[here + 1]?.slug : undefined
+  }, [trackItems, slug])
+
   const lessonNo = useMemo(() => {
-    const i = lessons.data?.findIndex((l) => l.slug === slug) ?? -1
+    const i = trackItems?.findIndex((l) => l.slug === slug) ?? -1
     return i >= 0 ? i + 1 : null
-  }, [lessons.data, slug])
+  }, [trackItems, slug])
 
   const goNextLesson = () => {
     if (nextSlug) navigate({ to: '/lessons/$slug', params: { slug: nextSlug } })

@@ -163,11 +163,19 @@ func (h *handlers) summary(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	streak := progress.Streak(recs, time.Now())
+	// The "Graduate" badge means "finish every core lesson", so it counts only
+	// the core track, not the separate CKAD track.
+	coreLessons := 0
+	for _, c := range h.d.Content.Lessons(content.DefaultLang) {
+		if c.Track != "ckad" {
+			coreLessons++
+		}
+	}
 	writeJSON(w, http.StatusOK, progressSummary{
 		Records: recs,
 		TotalXP: total,
 		Level:   progress.Level(total),
 		Streak:  streak,
-		Badges:  progress.Badges(recs, len(h.d.Content.Lessons(content.DefaultLang)), streak),
+		Badges:  progress.Badges(recs, coreLessons, streak),
 	})
 }

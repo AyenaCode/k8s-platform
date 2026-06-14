@@ -5,6 +5,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { lessonsListQuery } from '@/features/lessons/api/lessons.queries'
+import { isCkadLesson } from '@/features/lessons/types'
 import { BadgeGrid } from '@/features/gamification/BadgeGrid'
 import { XpBar } from '@/features/gamification/XpBar'
 import { completedLessonSlugs, solvedStepKeys, useProgressSummary } from '@/features/progress/hooks'
@@ -29,9 +30,14 @@ export function DashboardPage() {
   if (summary.isLoading || lessons.isLoading) return <p className="dashboard">Loading…</p>
 
   const data = summary.data
-  const list = lessons.data ?? []
+  // The Console tracks the core track; the CKAD track gets its own card + page.
+  const all = lessons.data ?? []
+  const list = all.filter((l) => !isCkadLesson(l))
+  const ckadList = all.filter(isCkadLesson)
   const done = completedLessonSlugs(data)
   const solvedSteps = solvedStepKeys(data)
+  const ckadDone = ckadList.filter((l) => done.has(l.slug)).length
+  const ckadPct = ckadList.length ? ckadDone / ckadList.length : 0
 
   const masteryOf = (slug: string, verifyCount: number) => {
     if (verifyCount <= 0) return done.has(slug) ? 1 : 0
@@ -148,6 +154,26 @@ export function DashboardPage() {
             })}
           </ul>
         </section>
+
+        {/* ---- CKAD track ---- */}
+        {ckadList.length > 0 && (
+          <section className="reveal">
+            <div className="section-title">
+              <h2>CKAD track</h2>
+              <span className="count">{ckadDone}/{ckadList.length} complete</span>
+            </div>
+            <Link to="/ckad" className="ckad-card">
+              <ProgressRing value={ckadPct} size={52} stroke={5} label={`${Math.round(ckadPct * 100)}%`} />
+              <div className="ckad-card__body">
+                <strong>Prepare for the CKAD exam</strong>
+                <span className="card-meta">
+                  {ckadList.length} modules across the 5 official domains · open the track
+                </span>
+              </div>
+              <span className="arrow">→</span>
+            </Link>
+          </section>
+        )}
       </div>
     </div>
   )

@@ -7,6 +7,7 @@ import { RootLayout } from '@/app/RootLayout'
 import { LabLayout } from '@/app/LabLayout'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { LessonsListPage } from '@/features/lessons/pages/LessonsListPage'
+import { CkadListPage } from '@/features/ckad/pages/CkadListPage'
 import { LessonPage } from '@/features/lessons/pages/LessonPage'
 
 const rootRoute = createRootRoute({ component: RootLayout })
@@ -21,6 +22,12 @@ const lessonsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/lessons',
   component: () => <LessonsListPage />,
+})
+
+const ckadRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/ckad',
+  component: () => <CkadListPage />,
 })
 
 // Pathless layout route (declared with `id`, not `path`): persistent terminal.
@@ -42,6 +49,7 @@ const lessonDetailRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   dashboardRoute,
   lessonsRoute,
+  ckadRoute,
   labRoute.addChildren([lessonDetailRoute]),
 ])
 
