@@ -12,4 +12,53 @@ Dans le namespace **`ckad-deploy`** :
 - Deployment `web-canary` : `1` replica, image `nginx:1.27`, labels `app=web,track=canary`
 - Service `web` : port `80`, selector **seulement** `app=web`
 
-Le Service doit voir des endpoints issus des deux Deployments.
+Le Service doit voir des endpoints issus des deux Deployments. Comme pour le
+blue/green, fixe le `selector` et les labels de template dès le depart (le
+selector est immuable) :
+
+```bash
+kubectl apply -f - <<'YAML'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-stable
+  namespace: ckad-deploy
+spec:
+  replicas: 4
+  selector:
+    matchLabels: { app: web, track: stable }
+  template:
+    metadata:
+      labels: { app: web, track: stable }
+    spec:
+      containers:
+      - { name: web, image: nginx:1.27 }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-canary
+  namespace: ckad-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: web, track: canary }
+  template:
+    metadata:
+      labels: { app: web, track: canary }
+    spec:
+      containers:
+      - { name: web, image: nginx:1.27 }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: ckad-deploy
+spec:
+  selector: { app: web }
+  ports:
+  - { port: 80, targetPort: 80 }
+YAML
+kubectl get endpoints web -n ckad-deploy
+```

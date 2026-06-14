@@ -11,17 +11,58 @@ In namespace **`ckad-deploy`**:
 - Deployment `shop-green`: `2` replicas, image `nginx:1.27`, labels `app=shop,track=green`
 - Service `shop`: port `80`, selector **`app=shop,track=green`**
 
-Imperative commands can get you most of the way, then patch labels/selectors:
+> [!IMPORTANT]
+> A Deployment's `spec.selector` is **immutable**, and it must match the Pod
+> template labels. So you cannot `kubectl create deployment` then patch the
+> template labels to a different set — apply the manifest with the right
+> `selector` and template labels from the start.
 
 ```bash
-kubectl create deployment shop-blue -n ckad-deploy --image=nginx:1.27 --replicas=1
-kubectl create deployment shop-green -n ckad-deploy --image=nginx:1.27 --replicas=2
-kubectl label deployment shop-blue -n ckad-deploy app=shop track=blue --overwrite
-kubectl label deployment shop-green -n ckad-deploy app=shop track=green --overwrite
-kubectl patch deployment shop-blue -n ckad-deploy -p '{"spec":{"template":{"metadata":{"labels":{"app":"shop","track":"blue"}}}}}'
-kubectl patch deployment shop-green -n ckad-deploy -p '{"spec":{"template":{"metadata":{"labels":{"app":"shop","track":"green"}}}}}'
-kubectl expose deployment shop-green -n ckad-deploy --name=shop --port=80
+kubectl apply -f - <<'YAML'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-blue
+  namespace: ckad-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: shop, track: blue }
+  template:
+    metadata:
+      labels: { app: shop, track: blue }
+    spec:
+      containers:
+      - { name: web, image: nginx:1.27 }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-green
+  namespace: ckad-deploy
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: shop, track: green }
+  template:
+    metadata:
+      labels: { app: shop, track: green }
+    spec:
+      containers:
+      - { name: web, image: nginx:1.27 }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shop
+  namespace: ckad-deploy
+spec:
+  selector: { app: shop, track: green }
+  ports:
+  - { port: 80, targetPort: 80 }
+YAML
 kubectl get endpoints shop -n ckad-deploy
 ```
 
-The Service must end on green, not blue.
+The Service must end on green, not blue. To switch back to blue, you would only
+change the Service's `selector` to `track: blue`.

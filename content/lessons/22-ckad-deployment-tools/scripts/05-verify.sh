@@ -18,8 +18,8 @@ if [ "$replicas" != "2" ] || [ "${available:-0}" -lt 2 ] 2>/dev/null; then
   echo "x Helm release Deployment must have 2 available replicas."
   exit 1
 fi
-if [ "$image" != "nginx:1.27" ] || [ "$port" != "8080" ]; then
-  echo "x Expected image nginx:1.27 and Service port 8080 (got image='$image', port='$port')."
+if [ "$image" != "nginxinc/nginx-unprivileged:1.27" ] || [ "$port" != "8080" ]; then
+  echo "x Expected image nginxinc/nginx-unprivileged:1.27 and Service port 8080 (got image='$image', port='$port')."
   exit 1
 fi
 

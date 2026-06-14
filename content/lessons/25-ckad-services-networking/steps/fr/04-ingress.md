@@ -16,8 +16,10 @@ Cree l'Ingress **`ckad-web`** dans le namespace **`ckad-net`** :
 Exemple :
 
 ```bash
+# Le '*' final dans le chemin de la rule est ce qui donne pathType Prefix
+# (sans lui, kubectl create ingress utilise pathType Exact par defaut).
 kubectl create ingress ckad-web -n ckad-net \
-  --rule='ckad.localhost/=ingress-web:80'
+  --rule='ckad.localhost/*=ingress-web:80'
 kubectl get ingress ckad-web -n ckad-net -o yaml
 ```
 

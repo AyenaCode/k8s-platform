@@ -54,8 +54,8 @@
       "md": { "en": "steps/en/05-helm.md", "fr": "steps/fr/05-helm.md" },
       "verify": "scripts/05-verify.sh",
       "hint": {
-        "en": "Use helm create /root/ckad-chart, then helm upgrade --install ckad-demo with replicaCount=2, image nginx:1.27, service.port=8080.",
-        "fr": "Utilise helm create /root/ckad-chart, puis helm upgrade --install ckad-demo avec replicaCount=2, image nginx:1.27, service.port=8080."
+        "en": "Use helm create /root/ckad-chart, then helm upgrade --install ckad-demo with replicaCount=2, image nginxinc/nginx-unprivileged:1.27, service.port=8080.",
+        "fr": "Utilise helm create /root/ckad-chart, puis helm upgrade --install ckad-demo avec replicaCount=2, image nginxinc/nginx-unprivileged:1.27, service.port=8080."
       },
       "xp": 95
     },
