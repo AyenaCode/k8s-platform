@@ -1,0 +1,74 @@
+{
+  "slug": "22-ckad-deployment-tools",
+  "track": "ckad",
+  "title": { "en": "CKAD: deployment and tools", "fr": "CKAD : deploiement et outils" },
+  "summary": {
+    "en": "Practice rolling updates, blue/green, canary, Helm installs, and Kustomize overlays.",
+    "fr": "Pratique les rolling updates, blue/green, canary, installations Helm et overlays Kustomize."
+  },
+  "estMinutes": 58,
+  "xp": 440,
+  "steps": [
+    {
+      "id": "domain",
+      "title": { "en": "Domain map", "fr": "Carte du domaine" },
+      "md": { "en": "steps/en/01-domain.md", "fr": "steps/fr/01-domain.md" },
+      "xp": 0
+    },
+    {
+      "id": "rolling-update",
+      "title": { "en": "Rolling update a Deployment", "fr": "Mettre a jour un Deployment en rolling update" },
+      "md": { "en": "steps/en/02-rolling-update.md", "fr": "steps/fr/02-rolling-update.md" },
+      "verify": "scripts/02-verify.sh",
+      "hint": {
+        "en": "Deployment api must have 3 replicas, image httpd:2.4, and rollingUpdate maxSurge/maxUnavailable set to 1.",
+        "fr": "Le Deployment api doit avoir 3 replicas, l'image httpd:2.4, et rollingUpdate maxSurge/maxUnavailable a 1."
+      },
+      "xp": 80
+    },
+    {
+      "id": "blue-green",
+      "title": { "en": "Switch traffic blue to green", "fr": "Basculer le trafic de blue vers green" },
+      "md": { "en": "steps/en/03-blue-green.md", "fr": "steps/fr/03-blue-green.md" },
+      "verify": "scripts/03-verify.sh",
+      "hint": {
+        "en": "Service shop must select app=shop and track=green. Green needs 2 available replicas.",
+        "fr": "Le Service shop doit selectionner app=shop et track=green. Green doit avoir 2 replicas disponibles."
+      },
+      "xp": 85
+    },
+    {
+      "id": "canary",
+      "title": { "en": "Run a replica-ratio canary", "fr": "Executer un canary par ratio de replicas" },
+      "md": { "en": "steps/en/04-canary.md", "fr": "steps/fr/04-canary.md" },
+      "verify": "scripts/04-verify.sh",
+      "hint": {
+        "en": "Run web-stable with 4 replicas and web-canary with 1. Service web should select only app=web.",
+        "fr": "Lance web-stable avec 4 replicas et web-canary avec 1. Le Service web doit selectionner seulement app=web."
+      },
+      "xp": 85
+    },
+    {
+      "id": "helm",
+      "title": { "en": "Install a local Helm chart", "fr": "Installer un chart Helm local" },
+      "md": { "en": "steps/en/05-helm.md", "fr": "steps/fr/05-helm.md" },
+      "verify": "scripts/05-verify.sh",
+      "hint": {
+        "en": "Use helm create /root/ckad-chart, then helm upgrade --install ckad-demo with replicaCount=2, image nginx:1.27, service.port=8080.",
+        "fr": "Utilise helm create /root/ckad-chart, puis helm upgrade --install ckad-demo avec replicaCount=2, image nginx:1.27, service.port=8080."
+      },
+      "xp": 95
+    },
+    {
+      "id": "kustomize",
+      "title": { "en": "Apply a Kustomize overlay", "fr": "Appliquer un overlay Kustomize" },
+      "md": { "en": "steps/en/06-kustomize.md", "fr": "steps/fr/06-kustomize.md" },
+      "verify": "scripts/06-verify.sh",
+      "hint": {
+        "en": "Apply an overlay that creates deployment kustom-web with 2 replicas, nginx:1.27, label environment=prod, and service kustom-web.",
+        "fr": "Applique un overlay qui cree deployment kustom-web avec 2 replicas, nginx:1.27, label environment=prod, et service kustom-web."
+      },
+      "xp": 95
+    }
+  ]
+}

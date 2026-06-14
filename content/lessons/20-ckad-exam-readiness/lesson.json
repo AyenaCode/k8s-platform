@@ -1,0 +1,36 @@
+{
+  "slug": "20-ckad-exam-readiness",
+  "track": "ckad",
+  "title": { "en": "CKAD exam readiness", "fr": "Preparation CKAD : conditions d'examen" },
+  "summary": {
+    "en": "Recreate the public CKAD conditions: timed, command-line, documentation-limited, and focused on original hands-on tasks.",
+    "fr": "Recree les conditions publiques de la CKAD : temps limite, ligne de commande, documentation limitee et taches pratiques originales."
+  },
+  "estMinutes": 18,
+  "xp": 80,
+  "steps": [
+    {
+      "id": "briefing",
+      "title": { "en": "What the 2026 CKAD measures", "fr": "Ce que mesure la CKAD 2026" },
+      "md": { "en": "steps/en/01-briefing.md", "fr": "steps/fr/01-briefing.md" },
+      "xp": 0
+    },
+    {
+      "id": "shell-drill",
+      "title": { "en": "Exam shell warm-up", "fr": "Echauffement shell d'examen" },
+      "md": { "en": "steps/en/02-shell-drill.md", "fr": "steps/fr/02-shell-drill.md" },
+      "verify": "scripts/02-verify.sh",
+      "hint": {
+        "en": "Create namespace ckad-ready, deploy nginx:1.27 as ready-nginx, then expose it on port 80 in that namespace.",
+        "fr": "Cree le namespace ckad-ready, deploie nginx:1.27 en ready-nginx, puis expose-le sur le port 80 dans ce namespace."
+      },
+      "xp": 80
+    },
+    {
+      "id": "rules",
+      "title": { "en": "Rules you must train with", "fr": "Regles a respecter a l'entrainement" },
+      "md": { "en": "steps/en/03-rules.md", "fr": "steps/fr/03-rules.md" },
+      "xp": 0
+    }
+  ]
+}

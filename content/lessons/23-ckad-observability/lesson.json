@@ -1,0 +1,66 @@
+{
+  "slug": "23-ckad-observability",
+  "track": "ckad",
+  "title": { "en": "CKAD: observability and maintenance", "fr": "CKAD : observabilite et maintenance" },
+  "summary": {
+    "en": "Practice health probes, logs, kubectl debugging, and API version migration.",
+    "fr": "Pratique les probes, les logs, le debug kubectl et la migration de versions d'API."
+  },
+  "estMinutes": 46,
+  "xp": 330,
+  "steps": [
+    {
+      "id": "domain",
+      "title": { "en": "Domain map", "fr": "Carte du domaine" },
+      "md": { "en": "steps/en/01-domain.md", "fr": "steps/fr/01-domain.md" },
+      "xp": 0
+    },
+    {
+      "id": "probes",
+      "title": { "en": "Implement probes", "fr": "Implementer des probes" },
+      "md": { "en": "steps/en/02-probes.md", "fr": "steps/fr/02-probes.md" },
+      "verify": "scripts/02-verify.sh",
+      "hint": {
+        "en": "Deployment probe-api needs readinessProbe and livenessProbe using httpGet path / on port 80.",
+        "fr": "Le Deployment probe-api doit avoir readinessProbe et livenessProbe avec httpGet path / sur le port 80."
+      },
+      "xp": 80
+    },
+    {
+      "id": "logs",
+      "title": { "en": "Capture logs as evidence", "fr": "Capturer les logs comme preuve" },
+      "md": { "en": "steps/en/03-logs.md", "fr": "steps/fr/03-logs.md" },
+      "setup": "scripts/03-setup.sh",
+      "verify": "scripts/03-verify.sh",
+      "hint": {
+        "en": "Run kubectl logs deploy/logger --tail=20, save it, then create ConfigMap logger-snapshot from the file.",
+        "fr": "Lance kubectl logs deploy/logger --tail=20, sauvegarde le resultat, puis cree ConfigMap logger-snapshot depuis le fichier."
+      },
+      "xp": 75
+    },
+    {
+      "id": "debug",
+      "title": { "en": "Fix a crashing container", "fr": "Reparer un conteneur qui crash" },
+      "md": { "en": "steps/en/04-debug.md", "fr": "steps/fr/04-debug.md" },
+      "setup": "scripts/04-setup.sh",
+      "verify": "scripts/04-verify.sh",
+      "hint": {
+        "en": "Describe the Pod and inspect logs. The command exits immediately; patch the Deployment to sleep 3600 or run a long loop.",
+        "fr": "Decris le Pod et inspecte les logs. La commande sort immediatement ; patch le Deployment pour sleep 3600 ou une boucle longue."
+      },
+      "xp": 85
+    },
+    {
+      "id": "api-deprecation",
+      "title": { "en": "Migrate a deprecated API manifest", "fr": "Migrer un manifest d'API depreciee" },
+      "md": { "en": "steps/en/05-api-deprecation.md", "fr": "steps/fr/05-api-deprecation.md" },
+      "setup": "scripts/05-setup.sh",
+      "verify": "scripts/05-verify.sh",
+      "hint": {
+        "en": "Rewrite /root/ckad-deprecated-ingress.yaml to networking.k8s.io/v1, add pathType, and use service.name/service.port.number.",
+        "fr": "Reecris /root/ckad-deprecated-ingress.yaml en networking.k8s.io/v1, ajoute pathType, et utilise service.name/service.port.number."
+      },
+      "xp": 90
+    }
+  ]
+}

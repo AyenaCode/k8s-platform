@@ -1,0 +1,54 @@
+{
+  "slug": "25-ckad-services-networking",
+  "track": "ckad",
+  "title": { "en": "CKAD: services and networking", "fr": "CKAD : services et reseau" },
+  "summary": {
+    "en": "Practice NetworkPolicies, Service endpoint troubleshooting, and Ingress exposure.",
+    "fr": "Pratique NetworkPolicies, depannage d'endpoints Service, et exposition Ingress."
+  },
+  "estMinutes": 38,
+  "xp": 285,
+  "steps": [
+    {
+      "id": "domain",
+      "title": { "en": "Domain map", "fr": "Carte du domaine" },
+      "md": { "en": "steps/en/01-domain.md", "fr": "steps/fr/01-domain.md" },
+      "xp": 0
+    },
+    {
+      "id": "network-policy",
+      "title": { "en": "Allow only the frontend to reach the API", "fr": "Autoriser seulement le frontend vers l'API" },
+      "md": { "en": "steps/en/02-network-policy.md", "fr": "steps/fr/02-network-policy.md" },
+      "verify": "scripts/02-verify.sh",
+      "hint": {
+        "en": "NetworkPolicy api-allow-frontend must select app=api and allow ingress from pods labeled app=frontend on TCP port 80.",
+        "fr": "NetworkPolicy api-allow-frontend doit selectionner app=api et autoriser l'ingress depuis les Pods app=frontend sur TCP 80."
+      },
+      "xp": 95
+    },
+    {
+      "id": "service-debug",
+      "title": { "en": "Fix a Service with no endpoints", "fr": "Reparer un Service sans endpoints" },
+      "md": { "en": "steps/en/03-service-debug.md", "fr": "steps/fr/03-service-debug.md" },
+      "setup": "scripts/03-setup.sh",
+      "verify": "scripts/03-verify.sh",
+      "hint": {
+        "en": "Compare kubectl get pods --show-labels with kubectl get svc svc-api -o yaml. The selector is wrong.",
+        "fr": "Compare kubectl get pods --show-labels avec kubectl get svc svc-api -o yaml. Le selector est faux."
+      },
+      "xp": 90
+    },
+    {
+      "id": "ingress",
+      "title": { "en": "Expose an app with Ingress", "fr": "Exposer une app avec Ingress" },
+      "md": { "en": "steps/en/04-ingress.md", "fr": "steps/fr/04-ingress.md" },
+      "setup": "scripts/04-setup.sh",
+      "verify": "scripts/04-verify.sh",
+      "hint": {
+        "en": "Create Ingress ckad-web host ckad.localhost path / pathType Prefix backend service ingress-web port 80.",
+        "fr": "Cree Ingress ckad-web host ckad.localhost path / pathType Prefix backend service ingress-web port 80."
+      },
+      "xp": 100
+    }
+  ]
+}

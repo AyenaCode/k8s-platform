@@ -1,0 +1,74 @@
+{
+  "slug": "24-ckad-config-security",
+  "track": "ckad",
+  "title": { "en": "CKAD: configuration and security", "fr": "CKAD : configuration et securite" },
+  "summary": {
+    "en": "Practice ConfigMaps, Secrets, requests, limits, quotas, RBAC, ServiceAccounts, SecurityContext, capabilities, and CRDs.",
+    "fr": "Pratique ConfigMaps, Secrets, requests, limits, quotas, RBAC, ServiceAccounts, SecurityContext, capabilities et CRDs."
+  },
+  "estMinutes": 68,
+  "xp": 470,
+  "steps": [
+    {
+      "id": "domain",
+      "title": { "en": "Domain map", "fr": "Carte du domaine" },
+      "md": { "en": "steps/en/01-domain.md", "fr": "steps/fr/01-domain.md" },
+      "xp": 0
+    },
+    {
+      "id": "config-secret",
+      "title": { "en": "Inject ConfigMaps and Secrets", "fr": "Injecter ConfigMaps et Secrets" },
+      "md": { "en": "steps/en/02-config-secret.md", "fr": "steps/fr/02-config-secret.md" },
+      "verify": "scripts/02-verify.sh",
+      "hint": {
+        "en": "Create ConfigMap app-settings MODE=prod, Secret db-secret PASSWORD=ckad-pass, then run Pod secure-app with envFrom both.",
+        "fr": "Cree ConfigMap app-settings MODE=prod, Secret db-secret PASSWORD=ckad-pass, puis lance Pod secure-app avec envFrom pour les deux."
+      },
+      "xp": 85
+    },
+    {
+      "id": "resources",
+      "title": { "en": "Requests, limits, quota, admission", "fr": "Requests, limits, quota, admission" },
+      "md": { "en": "steps/en/03-resources.md", "fr": "steps/fr/03-resources.md" },
+      "verify": "scripts/03-verify.sh",
+      "hint": {
+        "en": "ResourceQuota compute-quota, LimitRange container-defaults (with cpu + memory defaults), and Deployment limited-api must all exist in ckad-sec.",
+        "fr": "ResourceQuota compute-quota, LimitRange container-defaults (avec defauts cpu + memoire), et Deployment limited-api doivent exister dans ckad-sec."
+      },
+      "xp": 95
+    },
+    {
+      "id": "rbac",
+      "title": { "en": "ServiceAccount and RBAC", "fr": "ServiceAccount et RBAC" },
+      "md": { "en": "steps/en/04-rbac.md", "fr": "steps/fr/04-rbac.md" },
+      "verify": "scripts/04-verify.sh",
+      "hint": {
+        "en": "Bind ServiceAccount reader to Role pod-reader. It should list pods, but not delete them.",
+        "fr": "Lie le ServiceAccount reader au Role pod-reader. Il doit lister les pods, mais pas les supprimer."
+      },
+      "xp": 90
+    },
+    {
+      "id": "security-context",
+      "title": { "en": "Harden a Pod security context", "fr": "Durcir le security context d'un Pod" },
+      "md": { "en": "steps/en/05-security-context.md", "fr": "steps/fr/05-security-context.md" },
+      "verify": "scripts/05-verify.sh",
+      "hint": {
+        "en": "Use nginxinc/nginx-unprivileged:1.27, runAsNonRoot true, seccomp RuntimeDefault, allowPrivilegeEscalation false, drop ALL capabilities.",
+        "fr": "Utilise nginxinc/nginx-unprivileged:1.27, runAsNonRoot true, seccomp RuntimeDefault, allowPrivilegeEscalation false, drop ALL capabilities."
+      },
+      "xp": 95
+    },
+    {
+      "id": "crd",
+      "title": { "en": "Create and use a CRD", "fr": "Creer et utiliser une CRD" },
+      "md": { "en": "steps/en/06-crd.md", "fr": "steps/fr/06-crd.md" },
+      "verify": "scripts/06-verify.sh",
+      "hint": {
+        "en": "Create CRD widgets.ckad.dev, then create Widget sample in namespace ckad-sec with spec.size=small.",
+        "fr": "Cree la CRD widgets.ckad.dev, puis un Widget sample dans ckad-sec avec spec.size=small."
+      },
+      "xp": 105
+    }
+  ]
+}

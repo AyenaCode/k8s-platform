@@ -1,0 +1,52 @@
+{
+  "slug": "21-ckad-design-build",
+  "track": "ckad",
+  "title": { "en": "CKAD: Application design and build", "fr": "CKAD : conception et build applicatif" },
+  "summary": {
+    "en": "Practice image selection, workload choice, multi-container Pod patterns, and persistent plus ephemeral volumes.",
+    "fr": "Pratique le choix d'image, le type de workload, les patterns multi-conteneurs, et les volumes persistants et ephemeres."
+  },
+  "estMinutes": 42,
+  "xp": 260,
+  "steps": [
+    {
+      "id": "domain",
+      "title": { "en": "Domain map", "fr": "Carte du domaine" },
+      "md": { "en": "steps/en/01-domain.md", "fr": "steps/fr/01-domain.md" },
+      "xp": 0
+    },
+    {
+      "id": "workload-image",
+      "title": { "en": "Choose the workload and image", "fr": "Choisir le workload et l'image" },
+      "md": { "en": "steps/en/02-workload-image.md", "fr": "steps/fr/02-workload-image.md" },
+      "verify": "scripts/02-verify.sh",
+      "hint": {
+        "en": "Use a CronJob named image-audit in namespace ckad-design with image busybox:1.36 and schedule */5 * * * *.",
+        "fr": "Utilise un CronJob nomme image-audit dans ckad-design avec l'image busybox:1.36 et le schedule */5 * * * *."
+      },
+      "xp": 80
+    },
+    {
+      "id": "pod-patterns",
+      "title": { "en": "Init container plus sidecar", "fr": "Init container plus sidecar" },
+      "md": { "en": "steps/en/03-pod-patterns.md", "fr": "steps/fr/03-pod-patterns.md" },
+      "verify": "scripts/03-verify.sh",
+      "hint": {
+        "en": "Create pattern-pod with an emptyDir named shared, init-content writes index.html, app runs nginx:1.27, sidecar runs busybox:1.36.",
+        "fr": "Cree pattern-pod avec un emptyDir nomme shared, init-content ecrit index.html, app lance nginx:1.27, sidecar lance busybox:1.36."
+      },
+      "xp": 90
+    },
+    {
+      "id": "volumes",
+      "title": { "en": "Persistent and ephemeral volumes", "fr": "Volumes persistants et ephemeres" },
+      "md": { "en": "steps/en/04-volumes.md", "fr": "steps/fr/04-volumes.md" },
+      "verify": "scripts/04-verify.sh",
+      "hint": {
+        "en": "Create PVC ckad-data and Pod volume-worker. Mount the PVC at /data and an emptyDir at /cache.",
+        "fr": "Cree le PVC ckad-data et le Pod volume-worker. Monte le PVC sur /data et un emptyDir sur /cache."
+      },
+      "xp": 90
+    }
+  ]
+}
