@@ -20,6 +20,19 @@ services:
     command: server
     privileged: true
     restart: unless-stopped
+    # Forward external lookups to reliable resolvers. The Docker default forwards
+    # to the host resolver, which on a flaky network times out ("lookup
+    # registry-1.docker.io: Try again") and leaves pods in ImagePullBackOff.
+    # Override with LAB_DNS1/LAB_DNS2 if you are on a VPN / corporate network that
+    # only permits an internal resolver. Docker's embedded DNS still resolves the
+    # compose service names (e.g. registry-cache), so this only changes upstream.
+    dns:
+      - ${LAB_DNS1:-1.1.1.1}
+      - ${LAB_DNS2:-8.8.8.8}
+    # Start the pull-through cache first so the very first image pull can use it.
+    depends_on:
+      registry-cache:
+        condition: service_started
     tmpfs:
       - /run
       - /var/run
@@ -39,6 +52,8 @@ services:
     volumes:
       - k3s-data:/var/lib/rancher/k3s
       - kubeconfig:/kubeconfig
+      # Route docker.io through the local pull-through cache (read at startup).
+      - ./docker/registries.yaml:/etc/rancher/k3s/registries.yaml:ro
     ports:
       - "8088:8080"        # the app (shares this netns) is reachable on the host here
       - "6443:6443"        # k8s API (optional, for host kubectl)
@@ -48,6 +63,41 @@ services:
       timeout: 5s
       retries: 20
       start_period: 30s
+
+  # Pull-through cache of Docker Hub. k3s pulls docker.io images via this service
+  # (see docker/registries.yaml): the first pull is fetched upstream and cached in
+  # the registry-cache volume, every later pull is served locally — fast, offline,
+  # immune to Docker Hub rate limits, and surviving a `make clean` of the cluster.
+  # This is the ONLY container that talks to Docker Hub, so the DNS pin lives here
+  # too (same override knobs as k3s).
+  registry-cache:
+    image: registry:2
+    restart: unless-stopped
+    environment:
+      - REGISTRY_PROXY_REMOTEURL=https://registry-1.docker.io
+    dns:
+      - ${LAB_DNS1:-1.1.1.1}
+      - ${LAB_DNS2:-8.8.8.8}
+    volumes:
+      - registry-cache:/var/lib/registry
+
+  # One-shot: warm the cache with the lab images at startup so the learner's very
+  # first pod pull is served locally, not blocked on a flaky Docker Hub lookup
+  # mid-lesson. Non-blocking (nothing waits on it) and idempotent (a per-image
+  # marker in warm-state means only the first `up` downloads). Override the list
+  # with LAB_IMAGES. See docker/warm-cache.sh.
+  warm-cache:
+    image: gcr.io/go-containerregistry/crane:debug
+    restart: "no"
+    depends_on:
+      registry-cache:
+        condition: service_started
+    entrypoint: ["/busybox/sh", "/warm-cache.sh"]
+    environment:
+      - LAB_IMAGES=${LAB_IMAGES:-library/nginx:1.27 library/nginx:1.26 library/busybox:1.36}
+    volumes:
+      - ./docker/warm-cache.sh:/warm-cache.sh:ro
+      - warm-state:/state
 
   postgres:
     image: postgres:17-alpine
@@ -82,3 +132,5 @@ volumes:
   k3s-data: {}
   kubeconfig: {}
   pgdata: {}
+  registry-cache: {}
+  warm-state: {}

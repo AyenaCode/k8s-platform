@@ -1,0 +1,14 @@
+# k3s reads this at startup (/etc/rancher/k3s/registries.yaml) and routes every
+# docker.io pull through the local pull-through cache service (registry-cache in
+# docker-compose.yml). Effect: an image is fetched from Docker Hub once, cached
+# in a local volume, then served from disk on every later pull — fast, offline
+# after the first pull, and immune to Docker Hub rate limits.
+#
+# http:// (not https): the in-cluster cache is plain HTTP on the compose network.
+# Mirroring docker.io keeps the lessons' commands untouched — `kubectl run web
+# --image=nginx` still works, it just resolves the internal cache, not the
+# flaky external registry-1.docker.io.
+mirrors:
+  docker.io:
+    endpoint:
+      - "http://registry-cache:5000"
