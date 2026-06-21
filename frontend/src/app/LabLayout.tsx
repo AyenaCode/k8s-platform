@@ -6,6 +6,7 @@
 import { useState } from 'react'
 import { Outlet } from '@tanstack/react-router'
 import { streamSSE } from '@/core/api/sse'
+import { LabExamClock } from '@/features/ckad/LabExamClock'
 import { PtyTerminal } from '@/shared/components/Terminal/PtyTerminal'
 
 export function LabLayout() {
@@ -40,6 +41,7 @@ export function LabLayout() {
           </span>
           <span className="lab__shell" aria-hidden="true">~ shell</span>
           <span className="spacer" />
+          <LabExamClock />
           <button
             type="button"
             className="lab__reset"

@@ -14,6 +14,7 @@ import { streamSSE } from '@/core/api/sse'
 import { useLang } from '@/core/i18n/lang'
 import { lessonDetailQuery, lessonsListQuery } from '@/features/lessons/api/lessons.queries'
 import { isCkadLesson } from '@/features/lessons/types'
+import { ExamTimer } from '@/features/ckad/ExamTimer'
 import { Confetti } from '@/features/gamification/Confetti'
 import { RewardToast, type Reward } from '@/features/gamification/RewardToast'
 import { progressSummaryQuery } from '@/features/progress/api/progress.queries'
@@ -223,7 +224,10 @@ export function LessonPage({ slug }: { slug: string }) {
           </span>
           <h1>{data.title}</h1>
         </div>
-        {lessonDone && <span className="lesson__done">✓ mission complete</span>}
+        <div className="lesson__head-aside">
+          {isCkadLesson(data) && <ExamTimer slug={slug} budgetMin={data.estMinutes} />}
+          {lessonDone && <span className="lesson__done">✓ mission complete</span>}
+        </div>
       </header>
 
       <ol className="steprail" ref={railRef}>
