@@ -95,14 +95,26 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   background-color: var(--ink-900);
-  /* layered atmosphere: control-plane glow + blueprint grid */
+  /* soft control-plane mesh: diffuse ambient blobs over flat navy (KodeKloud-style,
+     no rigid grid). The faint dot texture lives in ::before, masked to fade out. */
   background-image:
-    radial-gradient(1100px 520px at 82% -10%, rgba(50, 108, 229, 0.12), transparent 60%),
-    radial-gradient(820px 460px at 6% 0%, rgba(63, 200, 214, 0.05), transparent 55%),
-    linear-gradient(var(--line-soft) 1px, transparent 1px),
-    linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
-  background-size: auto, auto, 44px 44px, 44px 44px;
+    radial-gradient(1000px 720px at 82% -8%, rgba(50, 108, 229, 0.13), transparent 62%),
+    radial-gradient(760px 580px at 3% 6%, rgba(63, 200, 214, 0.06), transparent 58%),
+    radial-gradient(920px 780px at 58% 112%, rgba(96, 102, 224, 0.07), transparent 60%);
   background-attachment: fixed;
+}
+/* faint dot trama — masked to a soft top-down fade so density varies and it never
+   reads as a rigid blueprint grid. Decorative, behind app content. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(124, 150, 210, 0.08) 1px, transparent 1.5px);
+  background-size: 38px 38px;
+  -webkit-mask-image: radial-gradient(1200px 820px at 50% -12%, #000 0%, transparent 72%);
+  mask-image: radial-gradient(1200px 820px at 50% -12%, #000 0%, transparent 72%);
 }
 /* film grain overlay, subtle, never interactive */
 body::after {
