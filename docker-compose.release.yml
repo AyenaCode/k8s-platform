@@ -14,7 +14,6 @@ services:
     image: rancher/k3s:v1.36.1-k3s1
     command: server
     privileged: true
-    restart: unless-stopped
     dns:
       - ${LAB_DNS1:-1.1.1.1}
       - ${LAB_DNS2:-8.8.8.8}
@@ -52,7 +51,6 @@ services:
 
   registry-cache:
     image: registry:2
-    restart: unless-stopped
     environment:
       - REGISTRY_PROXY_REMOTEURL=https://registry-1.docker.io
     dns:
@@ -63,7 +61,6 @@ services:
 
   warm-cache:
     image: gcr.io/go-containerregistry/crane:debug
-    restart: "no"
     depends_on:
       registry-cache:
         condition: service_started
@@ -76,7 +73,6 @@ services:
 
   postgres:
     image: postgres:17-alpine
-    restart: unless-stopped
     environment:
       POSTGRES_USER: k8s
       POSTGRES_PASSWORD: k8s
@@ -93,7 +89,6 @@ services:
     # The published image. Override the whole ref with LAB_IMAGE to pin a version,
     # e.g. LAB_IMAGE=ghcr.io/ayenacode/k8s-platform:1.0.0
     image: ${LAB_IMAGE:-ghcr.io/ayenacode/k8s-platform:latest}
-    restart: unless-stopped
     network_mode: "service:k3s"     # share the cluster node's network stack
     depends_on:
       k3s:

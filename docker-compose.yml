@@ -19,7 +19,6 @@ services:
     # left ENABLED so the intermediate Ingress + autoscaling labs work out of the box.
     command: server
     privileged: true
-    restart: unless-stopped
     # Forward external lookups to reliable resolvers. The Docker default forwards
     # to the host resolver, which on a flaky network times out ("lookup
     # registry-1.docker.io: Try again") and leaves pods in ImagePullBackOff.
@@ -72,7 +71,6 @@ services:
   # too (same override knobs as k3s).
   registry-cache:
     image: registry:2
-    restart: unless-stopped
     environment:
       - REGISTRY_PROXY_REMOTEURL=https://registry-1.docker.io
     dns:
@@ -88,7 +86,6 @@ services:
   # with LAB_IMAGES. See docker/warm-cache.sh.
   warm-cache:
     image: gcr.io/go-containerregistry/crane:debug
-    restart: "no"
     depends_on:
       registry-cache:
         condition: service_started
@@ -101,7 +98,6 @@ services:
 
   postgres:
     image: postgres:17-alpine
-    restart: unless-stopped
     environment:
       POSTGRES_USER: k8s
       POSTGRES_PASSWORD: k8s
@@ -116,7 +112,6 @@ services:
 
   app:
     build: .
-    restart: unless-stopped
     network_mode: "service:k3s"     # share the cluster node's network stack
     depends_on:
       k3s:

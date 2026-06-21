@@ -75,9 +75,10 @@ ${B}klab${N} — manage your K8s Lab from anywhere (install dir: ${HOME_DIR})
 ${B}Usage:${N}  klab <command>
 
 ${B}Commands:${N}
-  run, up        Start the lab (pulls images on first run) and open the browser
+  run, up        Start the lab in this terminal (logs stream, Ctrl-C stops all).
+                 Add -d to run in the background instead.
   stop           Stop the lab (keeps your progress + cluster data)
-  restart        Stop then start again
+  restart        Stop, then start again in this terminal
   status, ps     Show service status
   logs           Tail the app logs (Ctrl-C to quit)
   shell          Open a shell inside the lab container
@@ -97,16 +98,26 @@ cmd="${1:-help}"; [ $# -gt 0 ] && shift || true
 case "$cmd" in
   run|up|start)
     need_install
-    dc up -d
-    ok "Lab is starting (first boot pulls k3s + the app, ~30s+)."
-    printf '%s\n' "  Open: ${B}$(lab_url)${N}"
-    open_browser
+    if [ "${1:-}" = "-d" ] || [ "${1:-}" = "--detach" ]; then
+      dc up -d
+      ok "Lab is starting in the background. Open: ${B}$(lab_url)${N}"
+      open_browser
+    else
+      # Foreground: logs stream here and Ctrl-C stops the whole stack. No daemon.
+      printf '%s\n' "Starting the lab in this terminal — logs stream below."
+      printf '%s\n' "Open in your browser: ${B}$(lab_url)${N}  (ready ~30s on first boot)"
+      printf '%s\n' "Press ${B}Ctrl-C${N} to stop everything. Start again with: klab run"
+      dc up
+    fi
     ;;
   stop|down)
     need_install; dc stop; ok "Lab stopped (data kept). Start again: klab run"
     ;;
   restart)
-    need_install; dc stop; dc up -d; ok "Lab restarted. Open: $(lab_url)"
+    need_install
+    dc stop
+    printf '%s\n' "Restarting in this terminal — Ctrl-C stops everything. URL: ${B}$(lab_url)${N}"
+    dc up
     ;;
   status|ps)
     need_install; dc ps
@@ -121,7 +132,11 @@ case "$cmd" in
     need_install; dc exec "$APP_SERVICE" bash /app/content/reset.sh; ok "Scratch cluster state wiped."
     ;;
   update|upgrade)
-    need_install; dc pull; dc up -d; ok "Updated to the latest image. Open: $(lab_url)"
+    need_install
+    dc pull
+    ok "Pulled the latest image."
+    printf '%s\n' "Starting in this terminal — Ctrl-C stops everything. URL: ${B}$(lab_url)${N}"
+    dc up
     ;;
   url)
     lab_url; echo

@@ -13,10 +13,10 @@ help: ## Show this help
 	@echo ""
 	@echo "Quick start:  make up   then open $(URL)"
 
-up: ## Build + start the whole lab (k3s + postgres + app)
-	$(COMPOSE) up -d --build
-	@echo ""
-	@echo "✓ Lab is starting (k3s takes ~30s on first boot). Open $(URL)"
+up: ## Build + start the whole lab in this terminal (Ctrl-C stops it)
+	@echo "Starting the lab — logs stream below. Open $(URL) (ready ~30s on first boot)."
+	@echo "Press Ctrl-C to stop everything."
+	$(COMPOSE) up --build
 
 down: ## Stop the lab (keeps your progress + cluster data)
 	$(COMPOSE) down
