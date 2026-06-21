@@ -30,5 +30,3 @@ kubectl get pods       # what's running now (probably nothing)
 > how one verb works. You'll lean on this constantly.
 
 📖 Docs: [Pods](https://kubernetes.io/docs/concepts/workloads/pods/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
-
-**Continue →**

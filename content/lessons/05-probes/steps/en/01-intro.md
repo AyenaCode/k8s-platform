@@ -35,5 +35,3 @@ kubectl explain pod.spec.containers.livenessProbe --recursive
 📖 Docs: [Configure Liveness, Readiness and Startup Probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)
 
 Next, you will make readiness gate traffic, then watch liveness restart a stuck container.
-
-**Continue →**

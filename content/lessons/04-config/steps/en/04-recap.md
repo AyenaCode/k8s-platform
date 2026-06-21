@@ -36,4 +36,4 @@ ConfigMap / Secret → Pod
   + subPath    one file  (no auto-update)
 ```
 
-You now know how to keep config out of images, inject it two ways, and why Secrets demand real access control. **Continue →**
+You now know how to keep config out of images, inject it two ways, and why Secrets demand real access control.

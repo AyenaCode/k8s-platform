@@ -34,5 +34,3 @@ kubectl explain service.spec.type
 ```
 
 📖 Docs: [Service](https://kubernetes.io/docs/concepts/services-networking/service/)
-
-**Continue →**

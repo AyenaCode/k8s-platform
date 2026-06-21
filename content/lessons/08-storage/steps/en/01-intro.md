@@ -46,4 +46,4 @@ kubectl explain persistentvolumeclaim.spec
 
 📖 Docs: [Volumes](https://kubernetes.io/docs/concepts/storage/volumes/) · [Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
 
-Next, claim storage and prove it survives a Pod restart. **Continue →**
+Next, claim storage and prove it survives a Pod restart.

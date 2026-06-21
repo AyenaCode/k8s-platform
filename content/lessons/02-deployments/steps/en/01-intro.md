@@ -28,5 +28,3 @@ kubectl explain deployment.spec.strategy
 ```
 
 📖 Docs: [Deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
-
-**Continue →**

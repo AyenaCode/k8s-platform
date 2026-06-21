@@ -31,4 +31,4 @@ You should see the count drop to 4 for a split second, then a new Pod appear in 
 > [!WARNING]
 > A bare Pod (created with `kubectl run`, no Deployment) is **not** recreated when deleted. Only objects owned by a controller get this superpower.
 
-This step is observation only. No verification needed. **Continue →**
+This step is observation only. No verification needed.

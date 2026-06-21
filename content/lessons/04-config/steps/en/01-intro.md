@@ -31,5 +31,3 @@ kubectl get secrets
 In this lesson you will create a ConfigMap, inject it into a Pod as env vars, then create a Secret and mount it as a file.
 
 📖 Docs: [ConfigMaps](https://kubernetes.io/docs/concepts/configuration/configmap/) · [Secrets](https://kubernetes.io/docs/concepts/configuration/secret/)
-
-**Continue →**

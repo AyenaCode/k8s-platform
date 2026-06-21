@@ -23,5 +23,3 @@ The **STATUS** column tells you which category of problem you are facing before 
 > `get` shows the symptom. `describe` shows the clues (scroll to **Events**). `logs` shows the app's own voice. Always run them in that order. Do not skip steps.
 
 The platform will break three workloads on purpose. For each one: click **Prepare task**, read the clues, figure out what is wrong, fix it, then click **Verify**.
-
-**Continue →**

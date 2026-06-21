@@ -19,6 +19,6 @@ You don't say "start this container on that server". You **declare** what you wa
 ("I want 3 copies of this app, always") and Kubernetes figures out the how, and
 **keeps it true** even as machines fail.
 
-In the next steps you will meet the machinery that makes this happen. **Continue →**
+In the next steps you will meet the machinery that makes this happen.
 
 📖 Docs: [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
