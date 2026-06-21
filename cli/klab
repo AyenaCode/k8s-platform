@@ -1,0 +1,165 @@
+#!/usr/bin/env bash
+# klab — a thin wrapper around `docker compose` for the K8s Lab.
+#
+# It remembers WHERE the lab is installed (~/.k8s-lab) and runs Compose with the
+# right -f / --project-directory, so you never have to `cd` into the folder.
+# All the real logic lives in Docker + the installer; this just drives them.
+#
+#   klab run | stop | restart | status | logs | shell | reset | update
+#   klab url | uninstall | clean | version | help
+#
+# Knobs (env vars):
+#   KLAB_HOME   install directory   (default: ~/.k8s-lab)
+set -euo pipefail
+
+HOME_DIR="${KLAB_HOME:-$HOME/.k8s-lab}"
+COMPOSE_FILE="${HOME_DIR}/docker-compose.yml"
+APP_SERVICE="app"
+
+# Pretty output (no-op if not a TTY).
+if [ -t 1 ]; then B=$'\033[1m'; G=$'\033[32m'; Y=$'\033[33m'; R=$'\033[31m'; N=$'\033[0m'; else B=; G=; Y=; R=; N=; fi
+ok()   { printf '%s\n' "${G}✓${N} $*"; }
+warn() { printf '%s\n' "${Y}!${N} $*" >&2; }
+die()  { printf '%s\n' "${R}✗${N} $*" >&2; exit 1; }
+
+# Pick the available Compose command (plugin or legacy binary).
+if docker compose version >/dev/null 2>&1; then
+  COMPOSE=(docker compose)
+elif command -v docker-compose >/dev/null 2>&1; then
+  COMPOSE=(docker-compose)
+else
+  die "Docker Compose is missing. Install Docker Desktop or the compose plugin."
+fi
+
+# Run Compose against the lab, from anywhere on disk.
+dc() { "${COMPOSE[@]}" -f "$COMPOSE_FILE" --project-directory "$HOME_DIR" "$@"; }
+
+# Read the host app port the installer persisted, default 8088.
+lab_url() {
+  local port=8088
+  if [ -f "${HOME_DIR}/.env" ]; then
+    port="$(grep -E '^LAB_PORT=' "${HOME_DIR}/.env" 2>/dev/null | cut -d= -f2 || true)"
+    [ -n "$port" ] || port=8088
+  fi
+  printf 'http://localhost:%s' "$port"
+}
+
+need_install() {
+  [ -f "$COMPOSE_FILE" ] || die "Lab is not installed at ${HOME_DIR}.
+  Install it:  curl -fsSL https://raw.githubusercontent.com/AyenaCode/k8s-platform/main/install.sh | bash"
+}
+
+open_browser() {
+  local url; url="$(lab_url)"
+  if   command -v open     >/dev/null 2>&1; then open "$url"     >/dev/null 2>&1 || true
+  elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$url" >/dev/null 2>&1 || true
+  fi
+}
+
+# Remove the klab symlink from wherever the installer put it on the PATH.
+remove_cli_link() {
+  local dir removed=0
+  for dir in /usr/local/bin "$HOME/.local/bin"; do
+    if [ -L "$dir/klab" ]; then
+      rm -f "$dir/klab" 2>/dev/null && removed=1 || \
+        { command -v sudo >/dev/null 2>&1 && sudo rm -f "$dir/klab" 2>/dev/null && removed=1; }
+    fi
+  done
+  [ "$removed" -eq 1 ] && ok "Removed the 'klab' command from your PATH."
+}
+
+usage() {
+  cat <<EOF
+${B}klab${N} — manage your K8s Lab from anywhere (install dir: ${HOME_DIR})
+
+${B}Usage:${N}  klab <command>
+
+${B}Commands:${N}
+  run, up        Start the lab (pulls images on first run) and open the browser
+  stop           Stop the lab (keeps your progress + cluster data)
+  restart        Stop then start again
+  status, ps     Show service status
+  logs           Tail the app logs (Ctrl-C to quit)
+  shell          Open a shell inside the lab container
+  reset          Wipe the scratch cluster state (keeps the install)
+  update         Pull the latest image and recreate the lab
+  url            Print the lab URL
+  uninstall, rm  Stop and DELETE the lab's data (containers + volumes)
+  clean          FULL cleanup of your PC: removes containers, volumes, all of
+                 the lab's Docker images, the install dir, and the klab command
+  version        Show the running app image
+  help           Show this help (also: klab -h, klab --help)
+EOF
+}
+
+cmd="${1:-help}"; [ $# -gt 0 ] && shift || true
+
+case "$cmd" in
+  run|up|start)
+    need_install
+    dc up -d
+    ok "Lab is starting (first boot pulls k3s + the app, ~30s+)."
+    printf '%s\n' "  Open: ${B}$(lab_url)${N}"
+    open_browser
+    ;;
+  stop|down)
+    need_install; dc stop; ok "Lab stopped (data kept). Start again: klab run"
+    ;;
+  restart)
+    need_install; dc stop; dc up -d; ok "Lab restarted. Open: $(lab_url)"
+    ;;
+  status|ps)
+    need_install; dc ps
+    ;;
+  logs)
+    need_install; dc logs -f "$APP_SERVICE"
+    ;;
+  shell|sh|exec)
+    need_install; dc exec "$APP_SERVICE" bash
+    ;;
+  reset)
+    need_install; dc exec "$APP_SERVICE" bash /app/content/reset.sh; ok "Scratch cluster state wiped."
+    ;;
+  update|upgrade)
+    need_install; dc pull; dc up -d; ok "Updated to the latest image. Open: $(lab_url)"
+    ;;
+  url)
+    lab_url; echo
+    ;;
+  uninstall|rm|destroy)
+    need_install
+    dc down -v
+    ok "Lab containers and data removed (images + files kept)."
+    printf '%s\n' "  To wipe everything off your PC instead, run: ${B}klab clean${N}"
+    ;;
+  clean|nuke|purge)
+    # Full cleanup: nothing about the lab should be left on the machine.
+    if [ "${1:-}" != "-y" ] && [ "${1:-}" != "--yes" ]; then
+      printf '%s' "This deletes the lab's containers, volumes, ALL its Docker images, ${HOME_DIR}, and the klab command. Continue? [y/N] "
+      read -r reply || reply=n
+      case "$reply" in y|Y|yes|YES) ;; *) die "Cancelled." ;; esac
+    fi
+    if [ -f "$COMPOSE_FILE" ]; then
+      # --rmi all drops every image used by the stack (app, k3s, postgres,
+      # registry, crane); -v drops the volumes; --remove-orphans cleans strays.
+      dc down -v --rmi all --remove-orphans || warn "Compose teardown reported errors; continuing."
+    else
+      warn "No install found at ${HOME_DIR}; just cleaning up leftovers."
+    fi
+    rm -rf "$HOME_DIR" && ok "Removed ${HOME_DIR}."
+    remove_cli_link
+    ok "Done. The K8s Lab is fully removed from this machine."
+    ;;
+  version|--version|-v)
+    need_install
+    dc config --images 2>/dev/null | grep -E 'k8s-platform' || dc ps "$APP_SERVICE"
+    ;;
+  help|-h|--help)
+    usage
+    ;;
+  *)
+    warn "Unknown command: ${cmd}"
+    usage
+    exit 1
+    ;;
+esac

@@ -72,7 +72,39 @@ fetch "docker-compose.release.yml" "docker-compose.yml"
 fetch "docker/registries.yaml"     "docker/registries.yaml"
 fetch "docker/warm-cache.sh"       "docker/warm-cache.sh"
 fetch "release-readme.md"          "README.md"
+fetch "cli/klab"                   "klab"
+chmod +x "${HOME_DIR}/klab"
 ok "Lab files downloaded."
+
+# ── 2b) Put the `klab` manager command on the PATH ───────────────────────────
+# So the user can run `klab run|stop|logs|update|…` from anywhere, never needing
+# to cd into the install dir. Prefer a system bin, fall back to a user one. The
+# script itself lives in HOME_DIR; we just drop a symlink in the PATH.
+install_cli() {
+  local target="${HOME_DIR}/klab" dir
+  for dir in /usr/local/bin "$HOME/.local/bin"; do
+    if [ -d "$dir" ] && [ -w "$dir" ]; then
+      ln -sf "$target" "$dir/klab" && { CLI_BIN="$dir/klab"; return 0; }
+    fi
+  done
+  # /usr/local/bin usually needs sudo; try it without prompting hard.
+  if command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
+    sudo ln -sf "$target" /usr/local/bin/klab && { CLI_BIN="/usr/local/bin/klab"; return 0; }
+  fi
+  # Last resort: ~/.local/bin, creating it if needed.
+  mkdir -p "$HOME/.local/bin" && ln -sf "$target" "$HOME/.local/bin/klab" \
+    && { CLI_BIN="$HOME/.local/bin/klab"; return 0; }
+  return 1
+}
+if install_cli; then
+  ok "Installed the 'klab' command at ${CLI_BIN}."
+  case ":${PATH}:" in
+    *":$(dirname "$CLI_BIN"):"*) : ;;
+    *) warn "$(dirname "$CLI_BIN") is not on your PATH. Add it, e.g.:  echo 'export PATH=\"$(dirname "$CLI_BIN"):\$PATH\"' >> ~/.bashrc" ;;
+  esac
+else
+  warn "Could not install the 'klab' command on your PATH. You can still run it: ${HOME_DIR}/klab"
+fi
 
 # ── 3) Start the stack (auto-picking free host ports) ────────────────────────
 export LAB_IMAGE="${LAB_IMAGE:-ghcr.io/ayenacode/k8s-platform:latest}"
@@ -143,12 +175,16 @@ cat <<EOF
 
 ${G}${B}K8s Lab is ready.${N}  Open:  ${B}${URL}${N}
 
-Manage it:
-  cd ${HOME_DIR}
-  ${COMPOSE} logs -f app     # watch logs
-  ${COMPOSE} stop            # stop (keeps progress + cluster)
-  ${COMPOSE} up -d           # start again
-  ${COMPOSE} down -v         # remove everything (fresh start)
+Manage it from anywhere with the ${B}klab${N} command:
+  klab logs        # watch logs
+  klab stop        # stop (keeps progress + cluster)
+  klab run         # start again
+  klab update      # pull the latest version
+  klab uninstall   # remove the lab's data (fresh start)
+  klab clean       # wipe EVERYTHING off this PC (images + files + command)
+  klab help        # all commands
+
+(If 'klab' is not found, restart your terminal or run ${HOME_DIR}/klab)
 
 Full guide:  ${HOME_DIR}/README.md      Help:  ayenacode1@gmail.com
 EOF
