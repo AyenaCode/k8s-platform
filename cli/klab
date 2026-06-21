@@ -9,12 +9,19 @@
 #   klab url | uninstall | clean | version | help
 #
 # Knobs (env vars):
-#   KLAB_HOME   install directory   (default: ~/.k8s-lab)
+#   KLAB_HOME   install directory                 (default: ~/.k8s-lab)
+#   KLAB_REPO   GitHub repo to update from         (default: AyenaCode/k8s-platform)
+#   LAB_REF     git ref to pull files from         (default: main)
 set -euo pipefail
 
 HOME_DIR="${KLAB_HOME:-$HOME/.k8s-lab}"
 COMPOSE_FILE="${HOME_DIR}/docker-compose.yml"
 APP_SERVICE="app"
+
+# Where `update` re-downloads the lab files from (same source as the installer).
+REPO="${KLAB_REPO:-AyenaCode/k8s-platform}"
+REF="${LAB_REF:-main}"
+RAW="https://raw.githubusercontent.com/${REPO}/${REF}"
 
 # Pretty output (no-op if not a TTY).
 if [ -t 1 ]; then B=$'\033[1m'; G=$'\033[32m'; Y=$'\033[33m'; R=$'\033[31m'; N=$'\033[0m'; else B=; G=; Y=; R=; N=; fi
@@ -33,6 +40,26 @@ fi
 
 # Run Compose against the lab, from anywhere on disk.
 dc() { "${COMPOSE[@]}" -f "$COMPOSE_FILE" --project-directory "$HOME_DIR" "$@"; }
+
+# Download a repo file into the install dir. Args: <repo path> <dest in HOME_DIR>
+fetch() { curl -fsSL "${RAW}/$1" -o "${HOME_DIR}/$2" || die "Could not download $1 (ref: ${REF})."; }
+
+# Single source of truth for the lab's files. Both the installer (via the hidden
+# `internal-sync` command) and `klab update` call this, so the list lives in one
+# place. Leaves .env (the user's ports) untouched.
+sync_files() {
+  command -v curl >/dev/null 2>&1 || die "curl is required to download the lab files."
+  mkdir -p "${HOME_DIR}/docker"
+  fetch "docker-compose.release.yml" "docker-compose.yml"
+  fetch "docker/registries.yaml"     "docker/registries.yaml"
+  fetch "docker/warm-cache.sh"       "docker/warm-cache.sh"
+  fetch "release-readme.md"          "README.md"
+  # Self-update klab safely: download to a temp file, then atomically replace.
+  # Never `curl -o` the script we're currently running — that corrupts it.
+  curl -fsSL "${RAW}/cli/klab" -o "${HOME_DIR}/klab.new" || die "Could not download cli/klab (ref: ${REF})."
+  chmod +x "${HOME_DIR}/klab.new"
+  mv -f "${HOME_DIR}/klab.new" "${HOME_DIR}/klab"
+}
 
 # Read the host app port the installer persisted, default 8088.
 lab_url() {
@@ -133,10 +160,20 @@ case "$cmd" in
     ;;
   update|upgrade)
     need_install
+    # Re-download the release files so topology changes (new services, ports,
+    # image refs) land too — not just a new app image. Also self-updates klab.
+    printf '%s\n' "Re-downloading the latest lab files (ref: ${REF})…"
+    sync_files
+    ok "Lab files updated."
     dc pull
     ok "Pulled the latest image."
     printf '%s\n' "Starting in this terminal — Ctrl-C stops everything. URL: ${B}$(lab_url)${N}"
     dc up
+    ;;
+  internal-sync)
+    # Hidden command used by install.sh to download the lab files after it has
+    # bootstrapped klab. Same file list as `update`, no Compose action.
+    sync_files
     ;;
   url)
     lab_url; echo

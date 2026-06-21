@@ -64,16 +64,15 @@ ok "Docker and Compose are ready."
 
 command -v curl >/dev/null 2>&1 || die "curl is required to download the lab files."
 
-# ── 2) Fetch the release files into the install dir ──────────────────────────
+# ── 2) Download the lab files (klab owns the list; we just bootstrap it) ─────
 say "Installing into ${HOME_DIR}"
 mkdir -p "${HOME_DIR}/docker"
-fetch() { curl -fsSL "${RAW}/$1" -o "${HOME_DIR}/$2" || die "Could not download $1 (ref: ${REF})."; }
-fetch "docker-compose.release.yml" "docker-compose.yml"
-fetch "docker/registries.yaml"     "docker/registries.yaml"
-fetch "docker/warm-cache.sh"       "docker/warm-cache.sh"
-fetch "release-readme.md"          "README.md"
-fetch "cli/klab"                   "klab"
+# Bootstrap the manager script, then let it download everything else. The file
+# list has a single source of truth: klab's sync_files() (run via internal-sync).
+curl -fsSL "${RAW}/cli/klab" -o "${HOME_DIR}/klab" || die "Could not download cli/klab (ref: ${REF})."
 chmod +x "${HOME_DIR}/klab"
+KLAB_HOME="${HOME_DIR}" KLAB_REPO="${REPO}" LAB_REF="${REF}" bash "${HOME_DIR}/klab" internal-sync \
+  || die "Could not download the lab files (ref: ${REF})."
 ok "Lab files downloaded."
 
 # ── 2b) Put the `klab` manager command on the PATH ───────────────────────────
