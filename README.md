@@ -1,5 +1,7 @@
 # K8s Lab: learn Kubernetes by doing
 
+**🌐 Landing page: https://ayenacode.github.io/k8s-platform/**
+
 A self-hosted, **bilingual (EN/FR)** interactive lab to learn Kubernetes the way
 Killercoda / KodeKloud do: **read a concept, then practise it immediately** in a
 **real cluster**, from a terminal that lives right next to the lesson, earning
