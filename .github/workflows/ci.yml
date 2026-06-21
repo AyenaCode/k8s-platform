@@ -1,0 +1,48 @@
+# Quality gate. Runs on every push to main and every pull request, AND is called
+# by release.yml before it builds/pushes the image (reusable via workflow_call).
+# If anything here fails, no image gets published.
+#
+#   backend  : go vet + go test
+#   frontend : npm ci + typecheck (tsc) + production build
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call: {}        # lets release.yml reuse this as a pre-build gate
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
+        with:
+          go-version: "1.26"
+          cache: true
+          cache-dependency-path: backend/go.sum
+      - run: go vet ./...
+      - run: go test ./...
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build

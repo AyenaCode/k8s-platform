@@ -12,6 +12,7 @@
 #   LAB_REF      git ref to pull files from   (default: main)
 #   LAB_IMAGE    app image to run             (default: ghcr.io/ayenacode/k8s-platform:latest)
 #   LAB_HOME     install directory            (default: %USERPROFILE%\.k8s-lab)
+#   LAB_PORT     host port for the app        (default: 8088; auto-bumped if busy)
 #   LAB_NO_OPEN  set to 1 to not open the browser
 
 $ErrorActionPreference = "Stop"
@@ -20,12 +21,17 @@ $Repo    = "AyenaCode/k8s-platform"
 $Ref     = if ($env:LAB_REF)  { $env:LAB_REF }  else { "main" }
 $Raw     = "https://raw.githubusercontent.com/$Repo/$Ref"
 $HomeDir = if ($env:LAB_HOME) { $env:LAB_HOME } else { Join-Path $env:USERPROFILE ".k8s-lab" }
-$Url     = "http://localhost:8088"
+$PortPinned = [bool]$env:LAB_PORT
+$Port    = if ($env:LAB_PORT) { [int]$env:LAB_PORT } else { 8088 }
+$Url     = "http://localhost:$Port"
 
 function Say  ($m) { Write-Host "==> $m" -ForegroundColor Cyan }
 function Ok   ($m) { Write-Host "OK  $m" -ForegroundColor Green }
 function Warn ($m) { Write-Host "!   $m" -ForegroundColor Yellow }
 function Die  ($m) { Write-Host "X   $m" -ForegroundColor Red; exit 1 }
+
+function PortBusy ($p) { [bool](Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction SilentlyContinue) }
+function FreePort ($p) { while ((PortBusy $p) -and $p -lt 8200) { $p++ }; $p }
 
 # ── 1) Preconditions ─────────────────────────────────────────────────────────
 if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
@@ -52,15 +58,25 @@ Fetch "docker/registries.yaml"     (Join-Path "docker" "registries.yaml")
 Fetch "docker/warm-cache.sh"       (Join-Path "docker" "warm-cache.sh")
 Ok "Lab files downloaded."
 
-# ── 3) Start the stack ───────────────────────────────────────────────────────
+# ── 3) Start the stack (auto-falling back if the port is taken) ──────────────
 if (-not $env:LAB_IMAGE) { $env:LAB_IMAGE = "ghcr.io/ayenacode/k8s-platform:latest" }
+
+# If the app port is busy and the user didn't pin LAB_PORT, pick a free one up front.
+if (-not $PortPinned -and (PortBusy $Port)) {
+  $new = FreePort ($Port + 1)
+  Warn "Port $Port is already in use on this machine. Using free port $new instead."
+  $Port = $new; $Url = "http://localhost:$Port"
+}
+$env:LAB_PORT = "$Port"
+
 Say "Pulling images and starting the lab (first boot pulls k3s + the app image)…"
 Push-Location $HomeDir
 try {
   & $Compose[0] $Compose[1..($Compose.Count-1)] pull --quiet *> $null
   & $Compose[0] $Compose[1..($Compose.Count-1)] up -d
-  if ($LASTEXITCODE -ne 0) { Die "Failed to start the stack. See: cd $HomeDir ; $($Compose -join ' ') logs" }
+  if ($LASTEXITCODE -ne 0) { Die "Failed to start the stack (port $Port may be busy — re-run with `$env:LAB_PORT=9090). See: cd $HomeDir ; $($Compose -join ' ') logs" }
 } finally { Pop-Location }
+Ok "Stack started on port $Port."
 
 # ── 4) Wait for the app (k3s needs ~30s on a cold start) ─────────────────────
 Say "Waiting for the cluster + app to come up (up to ~3 min on first run)…"

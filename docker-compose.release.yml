@@ -39,8 +39,10 @@ services:
       - kubeconfig:/kubeconfig
       - ./docker/registries.yaml:/etc/rancher/k3s/registries.yaml:ro
     ports:
-      - "8088:8080"        # the app (shares this netns) is reachable on the host here
-      - "6443:6443"        # k8s API (optional, for host kubectl)
+      # Host port for the app. Override with LAB_PORT if 8088 is taken; the
+      # installer auto-picks a free one and sets this for you.
+      - "${LAB_PORT:-8088}:8080"
+      - "${LAB_API_PORT:-6443}:6443"   # k8s API (optional, for host kubectl)
     healthcheck:
       test: ["CMD", "kubectl", "get", "nodes"]
       interval: 10s

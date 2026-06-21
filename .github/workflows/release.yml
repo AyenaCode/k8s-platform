@@ -23,11 +23,17 @@ permissions:
   packages: write
 
 jobs:
+  # Quality gate: reuse ci.yml (go vet + test, frontend typecheck + build).
+  # If it fails, the image job below never runs — nothing gets published.
+  ci:
+    uses: ./.github/workflows/ci.yml
+
   image:
+    needs: ci
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up QEMU (enables arm64 emulation on the amd64 runner)
         uses: docker/setup-qemu-action@v4

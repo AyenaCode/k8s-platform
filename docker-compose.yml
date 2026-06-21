@@ -55,8 +55,8 @@ services:
       # Route docker.io through the local pull-through cache (read at startup).
       - ./docker/registries.yaml:/etc/rancher/k3s/registries.yaml:ro
     ports:
-      - "8088:8080"        # the app (shares this netns) is reachable on the host here
-      - "6443:6443"        # k8s API (optional, for host kubectl)
+      - "${LAB_PORT:-8088}:8080"        # the app (shares this netns); override LAB_PORT if 8088 is taken
+      - "${LAB_API_PORT:-6443}:6443"    # k8s API (optional, for host kubectl)
     healthcheck:
       test: ["CMD", "kubectl", "get", "nodes"]
       interval: 10s
