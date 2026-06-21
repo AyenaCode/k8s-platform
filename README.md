@@ -9,6 +9,27 @@ Killercoda / KodeKloud do: **read a concept, then practise it immediately** in a
 > install. One command boots a real (lightweight) Kubernetes cluster, the app, and
 > a database.
 
+### One command, no clone (recommended)
+
+The fastest way in. It downloads a tiny compose file, pulls the **prebuilt
+image**, starts the lab, waits for it, and opens your browser. **Docker is the
+only thing you need installed.**
+
+**macOS / Linux**
+```bash
+curl -fsSL https://raw.githubusercontent.com/AyenaCode/k8s-platform/main/install.sh | bash
+```
+
+**Windows (PowerShell)** — needs Docker Desktop:
+```powershell
+irm https://raw.githubusercontent.com/AyenaCode/k8s-platform/main/install.ps1 | iex
+```
+
+It installs into `~/.k8s-lab` (`%USERPROFILE%\.k8s-lab` on Windows) and opens
+**http://localhost:8088** (k3s takes ~30s on first boot).
+
+### Or clone and build it yourself
+
 ```bash
 git clone <this-repo> && cd k8s-platform
 docker compose up --build        # or: make up

@@ -1,0 +1,111 @@
+# K8s Lab: the "release" stack. Same topology as docker-compose.yml, but the
+# `app` service PULLS its prebuilt image from GHCR instead of building it locally.
+# This is the file the `curl | bash` / `irm | iex` installer downloads, so a user
+# never needs the source tree or a local build — only Docker.
+#
+#   LAB_IMAGE=ghcr.io/ayenacode/k8s-platform:latest docker compose up -d
+#   then open http://localhost:8088
+#
+# The only host files this needs next to it are docker/registries.yaml and
+# docker/warm-cache.sh (bind-mounted below); the installer fetches those too.
+
+services:
+  k3s:
+    image: rancher/k3s:v1.36.1-k3s1
+    command: server
+    privileged: true
+    restart: unless-stopped
+    dns:
+      - ${LAB_DNS1:-1.1.1.1}
+      - ${LAB_DNS2:-8.8.8.8}
+    depends_on:
+      registry-cache:
+        condition: service_started
+    tmpfs:
+      - /run
+      - /var/run
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+    environment:
+      - K3S_TOKEN=${K3S_TOKEN:-labtoken}
+      - K3S_KUBECONFIG_OUTPUT=/kubeconfig/k3s.yaml
+      - K3S_KUBECONFIG_MODE=666
+      - K3S_NODE_NAME=k3s-lab
+    volumes:
+      - k3s-data:/var/lib/rancher/k3s
+      - kubeconfig:/kubeconfig
+      - ./docker/registries.yaml:/etc/rancher/k3s/registries.yaml:ro
+    ports:
+      - "8088:8080"        # the app (shares this netns) is reachable on the host here
+      - "6443:6443"        # k8s API (optional, for host kubectl)
+    healthcheck:
+      test: ["CMD", "kubectl", "get", "nodes"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  registry-cache:
+    image: registry:2
+    restart: unless-stopped
+    environment:
+      - REGISTRY_PROXY_REMOTEURL=https://registry-1.docker.io
+    dns:
+      - ${LAB_DNS1:-1.1.1.1}
+      - ${LAB_DNS2:-8.8.8.8}
+    volumes:
+      - registry-cache:/var/lib/registry
+
+  warm-cache:
+    image: gcr.io/go-containerregistry/crane:debug
+    restart: "no"
+    depends_on:
+      registry-cache:
+        condition: service_started
+    entrypoint: ["/busybox/sh", "/warm-cache.sh"]
+    environment:
+      - LAB_IMAGES=${LAB_IMAGES:-library/nginx:1.27 library/nginx:1.26 library/busybox:1.36}
+    volumes:
+      - ./docker/warm-cache.sh:/warm-cache.sh:ro
+      - warm-state:/state
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: k8s
+      POSTGRES_PASSWORD: k8s
+      POSTGRES_DB: k8s_platform
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U k8s -d k8s_platform"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    # The published image. Override the whole ref with LAB_IMAGE to pin a version,
+    # e.g. LAB_IMAGE=ghcr.io/ayenacode/k8s-platform:1.0.0
+    image: ${LAB_IMAGE:-ghcr.io/ayenacode/k8s-platform:latest}
+    restart: unless-stopped
+    network_mode: "service:k3s"     # share the cluster node's network stack
+    depends_on:
+      k3s:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgres://k8s:k8s@postgres:5432/k8s_platform?sslmode=disable
+    volumes:
+      - kubeconfig:/kubeconfig:ro
+
+volumes:
+  k3s-data: {}
+  kubeconfig: {}
+  pgdata: {}
+  registry-cache: {}
+  warm-state: {}

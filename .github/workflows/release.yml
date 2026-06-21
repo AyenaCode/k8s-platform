@@ -1,0 +1,67 @@
+# Build the lab "app" image and push it to GitHub Container Registry (GHCR),
+# multi-platform (amd64 + arm64) so it runs on Intel/AMD and Apple-Silicon.
+#
+# The app is the ONLY service we build (k3s, postgres, registry-cache and
+# warm-cache all use public images). Publishing this one image is what lets the
+# `curl | bash` installer skip the slow local build and just `docker compose up`.
+#
+# Triggers:
+#   - pushing a git tag like  v1.2.3   -> publishes 1.2.3, 1.2 and latest
+#   - manual run (Actions tab "Run workflow") -> publishes latest (+ edge)
+#
+# Image: ghcr.io/<owner>/<repo>  (metadata-action lowercases it for GHCR).
+name: release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU (enables arm64 emulation on the amd64 runner)
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image tags
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
+          flavor: |
+            latest=auto
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ github.event_name == 'workflow_dispatch' }}
+            type=raw,value=edge,enable=${{ github.event_name == 'workflow_dispatch' }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
