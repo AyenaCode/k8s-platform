@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>K8s Lab — Learn Kubernetes by doing</title>
+<meta name="description" content="A self-hosted, bilingual (EN/FR) interactive lab to learn Kubernetes in a real cluster. One command, the only dependency is Docker.">
+<meta property="og:title" content="K8s Lab — Learn Kubernetes by doing">
+<meta property="og:description" content="A real cluster, a terminal next to every lesson, XP as you go. One command boots the whole thing. The only thing you install is Docker.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://ayenacode.github.io/k8s-platform/">
+<meta name="theme-color" content="#2d353b">
+<style>
+  :root {
+    --ground: #2d353b;      /* everforest bg */
+    --panel:  #343f44;
+    --panel-2:#3d484d;
+    --text:   #d3c6aa;      /* everforest fg */
+    --muted:  #a6b0a6;
+    --faint:  #7e8b84;
+    --accent: #a7c080;      /* everforest green */
+    --accent-2:#7fbbb3;     /* everforest blue */
+    --warn:   #e69875;      /* everforest orange */
+    --line:   #45525a;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--ground);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { width: 100%; max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  a { color: inherit; }
+  ::selection { background: rgba(167,192,128,.3); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---- top bar ---- */
+  .bar {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(45,53,59,.82);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar-in { display: flex; align-items: center; gap: 20px; height: 60px; }
+  .brand { font-family: var(--mono); font-weight: 700; font-size: 16px; letter-spacing: -.3px; color: var(--text); text-decoration: none; }
+  .brand b { color: var(--accent); }
+  .nav { display: flex; gap: 22px; margin-left: auto; }
+  .nav a { font-family: var(--mono); font-size: 13px; color: var(--muted); text-decoration: none; }
+  .nav a:hover { color: var(--text); }
+  @media (max-width: 720px) { .nav { display: none; } }
+
+  .lang { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+  .lang button {
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    padding: 5px 11px; background: transparent; color: var(--faint);
+    border: 0; cursor: pointer; transition: .15s;
+  }
+  .lang button[aria-pressed="true"] { background: var(--accent); color: #243027; }
+  .gh {
+    font-family: var(--mono); font-size: 13px; text-decoration: none;
+    color: var(--text); border: 1px solid var(--line); border-radius: 7px;
+    padding: 6px 12px; transition: .15s;
+  }
+  .gh:hover { border-color: var(--accent); color: var(--accent); }
+  @media (max-width: 540px) { .gh { display: none; } }
+
+  /* ---- hero ---- */
+  .hero { padding: 72px 0 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+  @media (max-width: 880px) { .hero { grid-template-columns: 1fr; padding: 48px 0 24px; gap: 32px; } }
+
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin: 0 0 18px; }
+  h1 { font-family: var(--mono); font-weight: 700; font-size: clamp(34px, 5.2vw, 54px); line-height: 1.04; letter-spacing: -1.5px; margin: 0 0 18px; color: var(--text); }
+  h1 .g { color: var(--accent); }
+  .lede { font-size: 18px; color: var(--muted); margin: 0 0 28px; max-width: 30em; }
+
+  .dep { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12.5px; color: var(--accent-2); border: 1px solid var(--line); border-radius: 999px; padding: 5px 14px; margin-bottom: 26px; }
+  .dep .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-2); }
+
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .btn {
+    font-family: var(--mono); font-size: 14px; font-weight: 600;
+    border: 0; border-radius: 9px; padding: 13px 20px; cursor: pointer;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 9px; transition: .15s;
+  }
+  .btn-primary { background: var(--accent); color: #243027; }
+  .btn-primary:hover { background: #b6cd92; transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ---- terminal ---- */
+  .term { background: #242b30; border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 24px 60px -28px rgba(0,0,0,.7); overflow: hidden; }
+  .term-bar { display: flex; align-items: center; gap: 7px; padding: 12px 14px; background: var(--panel-2); border-bottom: 1px solid var(--line); }
+  .term-bar i { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+  .term-bar .t { margin-left: 10px; font-family: var(--mono); font-size: 11.5px; color: var(--faint); }
+  .term-body { font-family: var(--mono); font-size: 13px; line-height: 1.85; padding: 18px 18px 22px; min-height: 232px; }
+  .ln { display: block; white-space: pre-wrap; word-break: break-word; opacity: 0; transform: translateY(4px); transition: opacity .25s, transform .25s; }
+  .ln.show { opacity: 1; transform: none; }
+  .ln .p { color: var(--accent); }      /* prompt $ */
+  .ln .ok { color: var(--accent); }
+  .ln .arrow { color: var(--accent-2); }
+  .ln .url { color: var(--warn); }
+  .ln .cmd { color: var(--text); }
+  .cursor { display: inline-block; width: 8px; height: 15px; background: var(--accent); vertical-align: -2px; margin-left: 2px; animation: blink 1.1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ---- sections ---- */
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  .sec-head { margin: 0 0 36px; }
+  .kicker { font-family: var(--mono); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--faint); margin: 0 0 10px; }
+  h2 { font-family: var(--mono); font-weight: 700; font-size: clamp(24px, 3.4vw, 32px); letter-spacing: -.8px; margin: 0; color: var(--text); }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px; transition: .15s; }
+  .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .card .tag { font-family: var(--mono); font-size: 11.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin: 0 0 10px; }
+  .card h3 { font-size: 17px; margin: 0 0 6px; color: var(--text); }
+  .card p { font-size: 14.5px; color: var(--muted); margin: 0; }
+
+  /* ---- how it works ---- */
+  .stack { display: flex; flex-direction: column; gap: 14px; }
+  .svc { display: grid; grid-template-columns: 120px 1fr; gap: 20px; align-items: start; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; }
+  @media (max-width: 620px) { .svc { grid-template-columns: 1fr; gap: 8px; } }
+  .svc .name { font-family: var(--mono); font-weight: 700; font-size: 15px; color: var(--accent); }
+  .svc .role { font-size: 12px; color: var(--faint); font-family: var(--mono); }
+  .svc p { margin: 0; font-size: 14.5px; color: var(--muted); }
+  .svc.link { background: transparent; border-style: dashed; color: var(--accent-2); }
+  .svc.link p { color: var(--accent-2); font-family: var(--mono); font-size: 13px; }
+
+  /* ---- install ---- */
+  .installs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .installs { grid-template-columns: 1fr; } }
+  .ins { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .ins-h { display: flex; justify-content: space-between; align-items: center; padding: 13px 16px; border-bottom: 1px solid var(--line); }
+  .ins-h .os { font-family: var(--mono); font-size: 13px; font-weight: 600; }
+  .copy { font-family: var(--mono); font-size: 11.5px; font-weight: 600; background: transparent; color: var(--accent); border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: .15s; }
+  .copy:hover { border-color: var(--accent); }
+  .ins code { display: block; font-family: var(--mono); font-size: 12.5px; color: var(--text); padding: 16px; white-space: pre-wrap; word-break: break-all; line-height: 1.7; }
+  .ins code .p { color: var(--accent); }
+  .note { font-size: 13.5px; color: var(--faint); margin: 18px 0 0; font-family: var(--mono); }
+
+  /* ---- footer ---- */
+  footer { border-top: 1px solid var(--line); padding: 40px 0 56px; }
+  .foot { display: flex; flex-wrap: wrap; gap: 18px 40px; align-items: center; justify-content: space-between; }
+  .foot .left { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+  .foot .left b { color: var(--accent); }
+  .foot a { color: var(--text); text-decoration: none; font-family: var(--mono); font-size: 13px; border-bottom: 1px solid var(--line); padding-bottom: 1px; }
+  .foot a:hover { color: var(--accent); border-color: var(--accent); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ln { transition: none; }
+    .btn-primary:hover, .card:hover { transform: none; }
+    .cursor { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap bar-in">
+    <a class="brand" href="#top"><b>k8s</b>-lab</a>
+    <nav class="nav">
+      <a href="#how"   data-en="How it works" data-fr="Comment ça marche">How it works</a>
+      <a href="#what"  data-en="What you do"   data-fr="Ce que tu fais">What you do</a>
+      <a href="#install" data-en="Install"     data-fr="Installer">Install</a>
+    </nav>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <button type="button" data-lang="fr" aria-pressed="false">FR</button>
+    </div>
+    <a class="gh" href="https://github.com/AyenaCode/k8s-platform" target="_blank" rel="noopener">GitHub ↗</a>
+  </div>
+</header>
+
+<main id="top" class="wrap">
+  <!-- HERO -->
+  <section class="hero" style="border-top:0;">
+    <div>
+      <p class="eyebrow" data-en="Self-hosted · Open source · EN / FR" data-fr="Auto-hébergé · Open source · EN / FR">Self-hosted · Open source · EN / FR</p>
+      <h1 data-en='Learn Kubernetes by <span class="g">doing</span>.' data-fr='Apprends Kubernetes en <span class="g">pratiquant</span>.'>Learn Kubernetes by <span class="g">doing</span>.</h1>
+      <p class="lede" data-en="A real cluster, a terminal right next to every lesson, and XP as you go. One command boots the whole thing." data-fr="Un vrai cluster, un terminal juste à côté de chaque leçon, et de l'XP au fil de l'eau. Une seule commande lance tout.">A real cluster, a terminal right next to every lesson, and XP as you go. One command boots the whole thing.</p>
+      <div class="dep"><span class="dot"></span><span data-en="The only thing you install is Docker" data-fr="La seule chose à installer, c'est Docker">The only thing you install is Docker</span></div>
+      <div class="cta-row">
+        <button class="btn btn-primary" type="button" data-copy="curl -fsSL https://raw.githubusercontent.com/AyenaCode/k8s-platform/main/install.sh | bash" data-en="Copy install command" data-fr="Copier la commande">Copy install command</button>
+        <a class="btn btn-ghost" href="#install" data-en="See all installs" data-fr="Voir les installations">See all installs</a>
+      </div>
+    </div>
+
+    <div class="term" aria-hidden="true">
+      <div class="term-bar">
+        <i style="background:#e67e80;"></i><i style="background:#dbbc7f;"></i><i style="background:#a7c080;"></i>
+        <span class="t">bash — k8s-lab</span>
+      </div>
+      <div class="term-body" id="term">
+        <span class="ln"><span class="p">$</span> <span class="cmd">curl -fsSL …/install.sh | bash</span></span>
+        <span class="ln"><span class="ok">✓</span> Docker and Compose are ready.</span>
+        <span class="ln"><span class="arrow">==&gt;</span> Pulling images and starting the lab…</span>
+        <span class="ln"><span class="ok">✓</span> Stack started (app port 8088).</span>
+        <span class="ln"><span class="arrow">==&gt;</span> Waiting for the cluster + app…</span>
+        <span class="ln"><span class="ok">✓</span> The lab is up.</span>
+        <span class="ln">K8s Lab is ready.  Open: <span class="url">http://localhost:8088</span><span class="cursor"></span></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT -->
+  <section id="what">
+    <div class="sec-head">
+      <p class="kicker" data-en="What you do" data-fr="Ce que tu fais">What you do</p>
+      <h2 data-en="Read a concept, then run it — for real." data-fr="Lis un concept, puis lance-le — pour de vrai.">Read a concept, then run it — for real.</h2>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <p class="tag">k3s</p>
+        <h3 data-en="A real cluster" data-fr="Un vrai cluster">A real cluster</h3>
+        <p data-en="A genuine, lightweight Kubernetes cluster in a container — not a simulator." data-fr="Un vrai cluster Kubernetes léger dans un conteneur — pas un simulateur.">A genuine, lightweight Kubernetes cluster in a container — not a simulator.</p>
+      </div>
+      <div class="card">
+        <p class="tag" data-en="terminal" data-fr="terminal">terminal</p>
+        <h3 data-en="Terminal built in" data-fr="Terminal intégré">Terminal built in</h3>
+        <p data-en="kubectl, helm, vim, jq, curl, git — a full shell, right beside the lesson." data-fr="kubectl, helm, vim, jq, curl, git — un vrai shell, juste à côté de la leçon.">kubectl, helm, vim, jq, curl, git — a full shell, right beside the lesson.</p>
+      </div>
+      <div class="card">
+        <p class="tag" data-en="verify" data-fr="vérifier">verify</p>
+        <h3 data-en="Verify → XP" data-fr="Vérifier → XP">Verify → XP</h3>
+        <p data-en="Run the commands, hit Verify. A script checks your cluster and awards XP and badges." data-fr="Lance les commandes, clique sur Vérifier. Un script contrôle ton cluster et donne XP et badges.">Run the commands, hit Verify. A script checks your cluster and awards XP and badges.</p>
+      </div>
+      <div class="card">
+        <p class="tag" data-en="bilingual" data-fr="bilingue">bilingual</p>
+        <h3 data-en="English & French" data-fr="Anglais & Français">English &amp; French</h3>
+        <p data-en="Every lesson and the whole UI in EN and FR. Switch language anytime." data-fr="Chaque leçon et toute l'interface en EN et FR. Change de langue quand tu veux.">Every lesson and the whole UI in EN and FR. Switch language anytime.</p>
+      </div>
+      <div class="card">
+        <p class="tag">ckad</p>
+        <h3 data-en="CKAD track" data-fr="Piste CKAD">CKAD track</h3>
+        <p data-en="Auto-graded, hands-on drills mapped to the 2026 CKAD exam domains." data-fr="Des exercices pratiques auto-corrigés, alignés sur les domaines de l'examen CKAD 2026.">Auto-graded, hands-on drills mapped to the 2026 CKAD exam domains.</p>
+      </div>
+      <div class="card">
+        <p class="tag">docker</p>
+        <h3 data-en="One dependency" data-fr="Une seule dépendance">One dependency</h3>
+        <p data-en="No kubectl, kind, Go or Node to install. One command — Docker does the rest." data-fr="Pas de kubectl, kind, Go ni Node à installer. Une commande — Docker fait le reste.">No kubectl, kind, Go or Node to install. One command — Docker does the rest.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW -->
+  <section id="how">
+    <div class="sec-head">
+      <p class="kicker" data-en="How it works" data-fr="Comment ça marche">How it works</p>
+      <h2 data-en="Three containers. One command." data-fr="Trois conteneurs. Une commande.">Three containers. One command.</h2>
+    </div>
+    <div class="stack">
+      <div class="svc">
+        <div><div class="name">k3s</div><div class="role" data-en="cluster" data-fr="cluster">cluster</div></div>
+        <p data-en="A real, lightweight Kubernetes cluster in a container. It publishes the app on your machine." data-fr="Un vrai cluster Kubernetes léger dans un conteneur. Il publie l'app sur ta machine.">A real, lightweight Kubernetes cluster in a container. It publishes the app on your machine.</p>
+      </div>
+      <div class="svc link"><div></div><p>↕ <span data-en="shared network — the terminal IS the node" data-fr="réseau partagé — le terminal EST le nœud">shared network — the terminal IS the node</span></p></div>
+      <div class="svc">
+        <div><div class="name">app</div><div class="role" data-en="Go + React" data-fr="Go + React">Go + React</div></div>
+        <p data-en="The Go backend, the React UI, and the in-browser terminal. It shares k3s's network, so kubectl and Pod IPs just work." data-fr="Le backend Go, l'interface React et le terminal dans le navigateur. Il partage le réseau de k3s, donc kubectl et les IP de Pod marchent sans config.">The Go backend, the React UI, and the in-browser terminal. It shares k3s's network, so kubectl and Pod IPs just work.</p>
+      </div>
+      <div class="svc">
+        <div><div class="name">postgres</div><div class="role" data-en="progress" data-fr="progression">progress</div></div>
+        <p data-en="Stores your XP, your streak and your badges, so your progress survives restarts." data-fr="Stocke ton XP, ta série et tes badges — ta progression survit aux redémarrages.">Stores your XP, your streak and your badges, so your progress survives restarts.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSTALL -->
+  <section id="install">
+    <div class="sec-head">
+      <p class="kicker" data-en="Install" data-fr="Installer">Install</p>
+      <h2 data-en="Paste one line. Open your browser." data-fr="Colle une ligne. Ouvre ton navigateur.">Paste one line. Open your browser.</h2>
+    </div>
+    <div class="installs">
+      <div class="ins">
+        <div class="ins-h">
+          <span class="os">macOS / Linux</span>
+          <button class="copy" type="button" data-copy="curl -fsSL https://raw.githubusercontent.com/AyenaCode/k8s-platform/main/install.sh | bash" data-en="Copy" data-fr="Copier">Copy</button>
+        </div>
+        <code><span class="p">$</span> curl -fsSL https://raw.githubusercontent.com/AyenaCode/k8s-platform/main/install.sh | bash</code>
+      </div>
+      <div class="ins">
+        <div class="ins-h">
+          <span class="os">Windows · PowerShell</span>
+          <button class="copy" type="button" data-copy="irm https://raw.githubusercontent.com/AyenaCode/k8s-platform/main/install.ps1 | iex" data-en="Copy" data-fr="Copier">Copy</button>
+        </div>
+        <code><span class="p">&gt;</span> irm https://raw.githubusercontent.com/AyenaCode/k8s-platform/main/install.ps1 | iex</code>
+      </div>
+    </div>
+    <p class="note" data-en="# Needs Docker. The installer picks a free port if 8088 is taken, then opens the lab for you." data-fr="# Nécessite Docker. L'installeur choisit un port libre si 8088 est pris, puis ouvre le lab pour toi."># Needs Docker. The installer picks a free port if 8088 is taken, then opens the lab for you.</p>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div class="left"><b>k8s-lab</b> — <span data-en="MIT licensed · made by AyenaCode" data-fr="Licence MIT · par AyenaCode">MIT licensed · made by AyenaCode</span></div>
+    <div style="display:flex; gap:24px; align-items:center;">
+      <a href="https://github.com/AyenaCode/k8s-platform" target="_blank" rel="noopener">GitHub ↗</a>
+      <a href="mailto:ayenacode1@gmail.com" data-en="Contact" data-fr="Contact">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var STR = { en: { copy: "Copy", copied: "Copied ✓" }, fr: { copy: "Copier", copied: "Copié ✓" } };
+    var lang = "en";
+    try { lang = localStorage.getItem("k8slab-lang") || (navigator.language || "").slice(0,2); } catch (e) {}
+    if (lang !== "fr") lang = "en";
+
+    function apply(l) {
+      lang = l;
+      document.documentElement.lang = l;
+      document.querySelectorAll("[data-en]").forEach(function (el) {
+        var v = el.getAttribute("data-" + l);
+        if (v != null) el.innerHTML = v;
+      });
+      document.querySelectorAll(".lang button").forEach(function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-lang") === l ? "true" : "false");
+      });
+      try { localStorage.setItem("k8slab-lang", l); } catch (e) {}
+    }
+
+    document.querySelectorAll(".lang button").forEach(function (b) {
+      b.addEventListener("click", function () { apply(b.getAttribute("data-lang")); });
+    });
+
+    document.querySelectorAll("[data-copy]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var txt = b.getAttribute("data-copy");
+        navigator.clipboard && navigator.clipboard.writeText(txt);
+        b.innerHTML = STR[lang].copied;
+        setTimeout(function () { b.innerHTML = (b.getAttribute("data-" + lang)); }, 1500);
+      });
+    });
+
+    apply(lang);
+
+    var lines = document.querySelectorAll("#term .ln");
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) {
+      lines.forEach(function (l) { l.classList.add("show"); });
+    } else {
+      lines.forEach(function (l, i) { setTimeout(function () { l.classList.add("show"); }, 260 + i * 520); });
+    }
+  })();
+</script>
+</body>
+</html>
