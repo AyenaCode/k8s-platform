@@ -1,69 +1,53 @@
 ## Crée une ConfigMap et injecte-la en variables d'env
 
-Une ConfigMap stocke des paires clé/valeur. La façon la plus rapide de la créer est `--from-literal`. Tu vas créer **`app-config`**, puis lancer un Pod qui charge toutes les clés en variables d'environnement via `envFrom`.
+Une ConfigMap stocke des paires clé/valeur en dehors de ton image. Imagine un post-it de réglages que le cluster remet à ton conteneur au démarrage. Tu vas créer **`app-config`** avec deux clés, puis lancer un Pod qui charge toutes les clés en variables d'environnement.
 
-### Ta tâche
+### 🎯 Mission
 
-**1. Crée la ConfigMap** avec deux clés :
+| Quoi | Valeur |
+|------|--------|
+| Nom de la ConfigMap | `app-config` |
+| Clé 1 | `LOG_LEVEL=debug` |
+| Clé 2 | `GREETING=hello` |
+| Nom du Pod | `cm-demo` |
+| Image du Pod | `busybox:1.36` |
+| Méthode d'injection | toutes les clés en variables d'env (`envFrom`) |
+| Preuve | `printenv LOG_LEVEL` dans `cm-demo` affiche `debug` |
+
+### 🔍 Comment la trouver toi-même
+
+Commence par l'aide de l'outil. Tu veux créer une configmap à partir de valeurs littérales :
 
 ```bash
-kubectl create configmap app-config \
-  --from-literal=LOG_LEVEL=debug \
-  --from-literal=GREETING=hello
+kubectl create configmap --help
 ```
 
-**2. Inspecte ce que tu as créé**, observe la section `data` :
+Lis le flag `--from-literal` et les exemples. Construis ta propre commande à partir de là.
+
+Ensuite, tu as besoin d'une spec de Pod qui utilise `envFrom`. Explore le schéma :
 
 ```bash
+kubectl explain pod.spec.containers.envFrom
+kubectl explain pod.spec.containers.envFrom.configMapRef
+```
+
+Utilise `--dry-run=client -o yaml` pour prévisualiser ta ConfigMap avant de la créer :
+
+```bash
+kubectl create configmap demo --from-literal=CLE=val --dry-run=client -o yaml
+```
+
+Une fois les deux créés, inspecte ce que tu as fait :
+
+```bash
+kubectl get cm,pod
 kubectl get configmap app-config -o yaml
-```
-
-Ce que « bon » donne :
-
-```text
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: app-config
-data:
-  GREETING: hello
-  LOG_LEVEL: debug
-```
-
-**3. Lance un Pod qui charge toutes les clés en variables d'env** avec `envFrom` :
-
-```bash
-kubectl apply -f - <<'EOF'
-apiVersion: v1
-kind: Pod
-metadata:
-  name: cm-demo
-spec:
-  containers:
-  - name: app
-    image: busybox:1.36
-    command: ["sh", "-c", "sleep 3600"]
-    envFrom:
-    - configMapRef:
-        name: app-config
-EOF
-```
-
-**4. Attends Running, puis confirme l'injection :**
-
-```bash
-kubectl get pod cm-demo -w          # attends Running, puis Ctrl-C
-kubectl exec cm-demo -- printenv LOG_LEVEL GREETING
-```
-
-Ce que « bon » donne :
-
-```text
-debug
-hello
+kubectl exec cm-demo -- printenv LOG_LEVEL
 ```
 
 > [!TIP]
-> `envFrom` charge toutes les clés d'un coup. Si tu n'as besoin que d'une clé, utilise `env: valueFrom: configMapKeyRef`, tu contrôles le nom de la variable.
+> `envFrom` charge toutes les clés d'un coup. Si tu n'as besoin que d'une clé, `kubectl explain pod.spec.containers.env` montre le chemin `valueFrom.configMapKeyRef` pour contrôler le nom de la variable.
 
-Puis clique sur **Vérifier**. ✅
+📖 Docs : [ConfigMaps](https://kubernetes.io/docs/concepts/configuration/configmap/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
+
+Quand `cm-demo` est Running et que `printenv LOG_LEVEL` retourne `debug`, clique sur **Vérifier**. ✅

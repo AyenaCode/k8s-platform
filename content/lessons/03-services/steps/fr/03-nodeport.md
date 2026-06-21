@@ -1,47 +1,43 @@
 ## L'ouvrir vers l'extérieur avec NodePort
 
-Un ClusterIP n'est joignable qu'à l'intérieur du cluster. Un **NodePort** ouvre un
-port dans la plage 30000–32767 sur chaque nœud et redirige le trafic vers le Service.
+Un ClusterIP ne fonctionne qu'à l'intérieur du cluster. Un **NodePort** perce un trou : il choisit un port entre 30000-32767 sur chaque nœud et y redirige le trafic venant de l'extérieur.
 
-### Ta tâche
+C'est comme ouvrir une porte spécifique dans le bâtiment pour que les visiteurs puissent entrer depuis la rue.
 
-**1. Crée un Service NodePort nommé `web-np`.**
+### 🎯 Mission
+
+| Champ | Valeur |
+|-------|--------|
+| Ressource à créer | Service |
+| Nom | `web-np` |
+| Type | `NodePort` |
+| Port | `80` |
+| Preuve | `curl localhost:<nodePort>` retourne HTTP 200 |
+
+### 🔍 Comment la trouver toi-même
+
+Tu connais déjà `kubectl expose`. Maintenant tu dois changer le type et le nom :
 
 ```bash
-kubectl expose deployment web --name=web-np --type=NodePort --port=80
+kubectl expose --help              # cherche les flags --type et --name
+kubectl explain service.spec.type  # vois les valeurs de type valides
 ```
 
-**2. Trouve le port de nœud attribué.**
+Après la création, trouve le port de nœud attribué :
 
 ```bash
 kubectl get svc web-np
 ```
 
-Ce que « bon » donne :
-
-```text
-NAME     TYPE       CLUSTER-IP    EXTERNAL-IP   PORT(S)        AGE
-web-np   NodePort   10.43.5.67    <none>        80:31234/TCP   5s
-```
-
-`80:31234` signifie que le port 80 du Service correspond au port 31234 du nœud.
-
-**3. Appelle-le sur `localhost`**, ce terminal partage le réseau du nœud.
+La colonne `PORT(S)` affiche `80:<nodePort>/TCP`. Utilise ce port pour tester depuis ce terminal (il partage le réseau du nœud) :
 
 ```bash
-PORT=$(kubectl get svc web-np -o jsonpath='{.spec.ports[0].nodePort}')
-curl localhost:$PORT
+kubectl get svc web-np -o jsonpath='{.spec.ports[0].nodePort}'
 ```
 
-Tu obtiens la page nginx, atteinte depuis l'extérieur du cluster.
-
 > [!NOTE]
-> Sur un vrai cluster cloud, tu utiliserais l'IP externe du nœud plutôt que
-> `localhost`. Pour un accès externe en production, préfère **type: LoadBalancer**
-> (sur k3s, le ServiceLB intégré attribue automatiquement une vraie IP externe).
+> Sur un vrai cluster cloud, tu utilises l'IP externe du nœud plutôt que `localhost`. Pour la production, préfère **type: LoadBalancer**.
 
-> [!TIP]
-> Tu as déjà un Service ClusterIP `web` de l'étape précédente ? Parfait :
-> on peut avoir les deux types en parallèle devant le même Deployment.
+📖 Docs : [Service](https://kubernetes.io/docs/concepts/services-networking/service/) · [Aide-mémoire kubectl](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
 
-Puis clique sur **Vérifier**. ✅
+Quand `web-np` existe et que le port de nœud retourne HTTP 200, clique sur **Vérifier**. ✅

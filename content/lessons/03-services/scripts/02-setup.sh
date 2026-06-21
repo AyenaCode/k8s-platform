@@ -12,4 +12,4 @@ fi
 
 echo "Waiting for it to be ready..."
 kubectl rollout status deploy/web --timeout=90s
-echo "Ready. Now expose it: kubectl expose deployment web --port=80"
+echo "Ready. Your next step: expose the Deployment so it has a stable address."

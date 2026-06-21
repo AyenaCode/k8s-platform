@@ -1,40 +1,34 @@
 ## Scaler le Deployment
 
-Scaler, c'est une seule commande. Le Deployment demande au ReplicaSet de changer son nombre cible ; le ReplicaSet crée ou supprime des Pods immédiatement.
+Scaler, c'est changer le nombre de replicas désiré. Le Deployment le dit au ReplicaSet, qui crée ou supprime des Pods immédiatement. C'est comme dire à un manager « embauche 2 personnes de plus » : le manager s'occupe du reste.
 
-### Ta tâche
+### 🎯 Mission
 
-**1. Scale `web` de 3 à 5 replicas :**
+| Champ      | Valeur |
+|------------|--------|
+| Deployment | `web`  |
+| Replicas   | `5` (tous Running) |
+
+### 🔍 Comment la trouver toi-même
+
+Il existe un verbe `kubectl` conçu exactement pour changer le nombre de replicas :
 
 ```bash
-kubectl scale deployment web --replicas=5
+kubectl scale --help
 ```
 
-**2. Observe les deux nouveaux Pods démarrer :**
+Lis la ligne SYNOPSIS. Elle te donne le type de ressource, le nom et le flag nécessaire.
+
+Vérifie le résultat ensuite :
 
 ```bash
 kubectl get pods -l app=web
-```
-
-Ce que « bon » donne :
-
-```text
-NAME                READY   STATUS    RESTARTS
-web-74d9c-aaaa      1/1     Running   0
-web-74d9c-bbbb      1/1     Running   0
-web-74d9c-cccc      1/1     Running   0
-web-74d9c-dddd      1/1     Running   0
-web-74d9c-eeee      1/1     Running   0
+kubectl get deployment web
 ```
 
 > [!TIP]
-> Réduire fonctionne de la même façon : `--replicas=2` et Kubernetes arrête
-> les Pods superflus proprement. Le contrat du Deployment est simple :
-> *faire correspondre le nombre de Pods en cours au nombre désiré, toujours.*
+> Réduire fonctionne pareil : donne un nombre plus petit et Kubernetes arrête les Pods superflus proprement.
 
-> [!NOTE]
-> En production, on scale rarement à la main. Un **HorizontalPodAutoscaler** (HPA)
-> surveille CPU/mémoire et appelle `scale` pour toi, mais le mécanisme sous-jacent
-> est identique à ce que tu viens d'exécuter.
+📖 Docs : [Deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
 
-Quand les **5 replicas sont ready**, puis clique sur **Vérifier**. ✅
+Quand les **5 replicas sont ready**, clique sur **Vérifier**. ✅

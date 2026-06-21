@@ -1,28 +1,34 @@
 ## What is a Pod?
 
-A **Pod** is the smallest unit you deploy in Kubernetes: a wrapper around **one or
-more containers** that always run together on one node and share:
+Think of a **Pod** as a lunchbox 🍱. Inside there's usually **one app** (a
+container). Kubernetes never carries the bare app around: it always carries the
+whole box.
 
-- one **network identity**: a single Pod IP; containers talk over `localhost`
-- the same **storage volumes**
+Three things to remember:
 
-> [!NOTE]
-> Run one container per Pod ~99% of the time. A Pod is *ephemeral*: if it dies it
-> is **not** recreated (a Deployment does that, next mission), and its name and IP
-> are not stable. The **kubelet** on the node pulls the image and starts the container.
+- everything in the box shares **one IP** and talks over `localhost`
+- everything in the box shares the same **storage**
+- if the box breaks, **nobody picks it up**. A Pod is throw-away. (A *Deployment*
+  is the robot that replaces it; that's the next lesson.)
 
-You rarely create Pods by hand in production, but every higher-level object
-(Deployments, Jobs, StatefulSets) ultimately runs Pods. Master this and the rest
-falls into place.
+Every bigger object (Deployment, Job…) is just a machine that makes Pods. Get
+this and the rest is easy.
 
 ### Recon
 
-The terminal is a real shell with `kubectl` already wired to a live
-cluster. Survey it:
+Your terminal is a real shell, `kubectl` is already wired to a live cluster. Look
+around before you build:
 
 ```bash
-kubectl get nodes      # the machines that run your workloads
-kubectl get pods       # what's running right now (probably nothing yet)
+kubectl get nodes      # the machines that run your boxes
+kubectl get pods       # what's running now (probably nothing)
 ```
 
-Next, you'll put a Pod on one of those nodes. **Continue →**
+> [!TIP]
+> **The #1 reflex of this whole course:** when you don't know a command, ask the
+> tool, not Google. `kubectl --help` lists every verb; `kubectl run --help` shows
+> how one verb works. You'll lean on this constantly.
+
+📖 Docs: [Pods](https://kubernetes.io/docs/concepts/workloads/pods/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
+
+**Continue →**

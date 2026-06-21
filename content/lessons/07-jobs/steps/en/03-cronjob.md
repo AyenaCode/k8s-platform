@@ -1,61 +1,51 @@
-## Schedule work with a CronJob
+## Schedule it with a CronJob
 
-A CronJob fires a new Job on a timer. It holds a `jobTemplate`: the blueprint
-every triggered Job is stamped from. You never touch the schedule to test it;
-you trigger a manual run instead.
+A CronJob is a timer. Every time it fires, it stamps out a new Job using a `jobTemplate`. The CronJob itself never runs a container; it just creates Jobs on schedule.
 
-### Your task
+On a real team, you do not wait for the scheduler to test a CronJob. You trigger a manual run immediately. That reflex is what this step trains.
 
-**1. Create the CronJob** named `report`, firing every minute:
+### 🎯 Mission
+
+| Field | Value |
+|-------|-------|
+| Kind | CronJob |
+| Name | `report` |
+| Image | `busybox:1.36` |
+| Schedule | every minute (`*/1 * * * *`) |
+| Manual run | a Job named `report-now`, created from the CronJob template, that reaches `1/1` COMPLETIONS |
+
+### 🔍 How to find it yourself
+
+The `create cronjob` command has its own help page:
 
 ```bash
-kubectl create cronjob report \
-  --image=busybox:1.36 \
-  --schedule="*/1 * * * *" \
-  -- /bin/sh -c "date; echo nightly report done"
+kubectl create cronjob --help
 ```
 
-**2. Confirm it registered:**
+Look for the `--schedule` and `--image` flags. The schedule uses standard cron syntax from the intro step.
+
+Once the CronJob exists, check it registered correctly:
 
 ```bash
 kubectl get cronjob report
 ```
 
-What good looks like:
-
-```text
-NAME     SCHEDULE      SUSPEND   ACTIVE   LAST SCHEDULE   AGE
-report   */1 * * * *   False     0        <none>          5s
-```
-
-**3. Trigger a manual run now**, don't wait for the schedule. This is exactly
-what an on-call engineer does to test a scheduled task:
+To trigger a manual run without touching the schedule, look at this flag:
 
 ```bash
-kubectl create job report-now --from=cronjob/report
+kubectl create job --help    # search for the --from flag
 ```
 
-**4. Wait for it to complete and check the output:**
+After triggering the manual run, watch it finish and read its logs:
 
 ```bash
-kubectl wait --for=condition=complete job/report-now --timeout=60s
-kubectl logs -l job-name=report-now
+kubectl get jobs,pods
+kubectl logs job/report-now
 ```
-
-**5. After a minute or two, list all Jobs**, the scheduler will have fired its
-own run named `report-<timestamp>`:
-
-```bash
-kubectl get jobs
-```
-
-> [!NOTE]
-> A CronJob keeps only the last few finished Jobs by default
-> (`successfulJobsHistoryLimit` defaults to **3**). History never piles up
-> unboundedly.
 
 > [!TIP]
-> `kubectl create job <name> --from=cronjob/<name>` is the standard way to
-> trigger a one-off run from any CronJob template, no YAML editing needed.
+> The `--from=cronjob/<name>` flag is how on-call engineers test a scheduled task in production without editing YAML or waiting for midnight.
 
-When CronJob **`report`** exists and Job **`report-now`** has completed, then hit **Verify**. ✅
+📖 Docs: [Jobs](https://kubernetes.io/docs/concepts/workloads/controllers/job/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
+
+When CronJob **`report`** exists and Job **`report-now`** has **`1/1` COMPLETIONS**, hit **Verify**. ✅

@@ -5,7 +5,7 @@ set -uo pipefail
 
 host=$(kubectl get ingress site -o jsonpath='{.spec.rules[0].host}' 2>/dev/null)
 if [ -z "$host" ]; then
-  echo "✗ No Ingress 'site' with a host rule. Create one for host 'site.local' -> site-svc:80."
+  echo "✗ No Ingress 'site' with a host rule found. Use 'kubectl explain ingress.spec.rules' and 'kubectl create ingress --help' to build one that routes host 'site.local' to service 'site-svc' on port 80."
   exit 1
 fi
 if [ "$host" != "site.local" ]; then

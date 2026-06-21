@@ -2,7 +2,6 @@ export interface LessonStep {
   id: string
   title: string
   markdown: string
-  hint?: string
   hasSetup: boolean
   hasVerify: boolean
   xp: number

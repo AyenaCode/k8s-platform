@@ -1,51 +1,60 @@
 ## Recon: explore your live cluster
 
-Enough theory. You have a **real** cluster in the terminal. Map it.
+Enough theory. You have a **real** cluster in the terminal. Map it first, then
+carve out your own slice of it.
 
-### Drills
+A **namespace** is how a cluster is partitioned: different teams or apps share
+the same cluster but stay isolated in their own slice. Think of it like a folder:
+same drive, separate space.
 
-**1. Where is the API server?**
+### Explore first
+
+Run these recon commands and read the output:
 
 ```bash
 kubectl cluster-info
-```
-
-**2. The machines (nodes):**
-
-```bash
-kubectl get nodes -o wide      # IPs, OS, kernel, container runtime
-```
-
-**3. Everything running, in every namespace:**
-
-```bash
-kubectl get pods -A            # -A = all namespaces; see the kube-system add-ons
-```
-
-**4. What can this cluster even do?**
-
-```bash
-kubectl api-resources          # every object type, with its short name
+kubectl get nodes -o wide
+kubectl get pods -A
 ```
 
 > [!NOTE]
-> Because this is **k3s**, `kube-system` shows add-ons like `coredns`, `traefik`,
-> `metrics-server` and `local-path-provisioner`, not the control-plane pods you'd
-> meet on a kubeadm cluster (those live inside the k3s process).
+> Because this is **k3s**, `kube-system` shows add-ons like `coredns` and
+> `traefik`, not separate control-plane pods. That is normal.
 
-### Your task
+### 🎯 Mission
 
-A **namespace** is how a cluster is partitioned into isolated slices: different
-teams or apps, same cluster. Carve out your own:
+| What | Spec |
+|------|------|
+| Resource | Namespace |
+| Name | `recon` |
+| State | must exist in the cluster |
+
+### 🔍 How to find it yourself
+
+You need to **create** a namespace. Which `kubectl` verb does that? Ask the tool:
 
 ```bash
-kubectl create namespace recon
+kubectl create --help
 ```
 
-Confirm it exists:
+Then narrow down to the specific resource:
+
+```bash
+kubectl create namespace --help
+```
+
+Read the synopsis. Build your own command from the flags shown there.
+
+To check what namespaces exist before and after:
 
 ```bash
 kubectl get namespaces
 ```
 
-Then hit **Verify** to complete your first mission. ✅
+> [!TIP]
+> `kubectl api-resources` lists every object type the cluster knows. Short names
+> are shown there too, which saves typing.
+
+📖 Docs: [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/) · [Command line tool (kubectl)](https://kubernetes.io/docs/reference/kubectl/)
+
+When namespace `recon` exists, hit **Verify**. ✅

@@ -1,74 +1,55 @@
 ## Contrôler le trafic avec une probe de readiness
 
-Déploie un Pod dont la probe de readiness ne passe que lorsque `/tmp/healthy`
-existe. Il démarre *sans* ce fichier, il tourne donc, mais reste **not ready** et
-ne reçoit aucun trafic.
+Une probe de readiness dit à Kubernetes : « ce Pod n'est pas encore prêt à recevoir
+du trafic. » Tant qu'elle ne passe pas, le Pod tourne mais ne reçoit aucune requête.
+Pas de redémarrage, juste le silence. C'est comme une pancarte « Ne pas déranger »
+que l'application contrôle elle-même.
 
-### Ta tâche
+### 🎯 Mission
 
-**1. Applique le Pod.**
+Crée un Pod qui utilise une probe de readiness de type `exec`. La probe doit vérifier
+l'existence d'un fichier qui n'existe pas au démarrage, de sorte que le Pod démarre
+mais reste `0/1 READY`. Ensuite, fais passer la probe sans redémarrer le conteneur.
 
-```bash
-kubectl apply -f - <<'EOF'
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ready-demo
-  labels:
-    app: ready-demo
-spec:
-  containers:
-  - name: app
-    image: busybox:1.36
-    command: ["sh", "-c", "sleep 3600"]
-    readinessProbe:
-      exec:
-        command: ["cat", "/tmp/healthy"]
-      initialDelaySeconds: 2
-      periodSeconds: 3
-      failureThreshold: 1
-EOF
-```
+| Champ | Valeur |
+|---|---|
+| Nom du Pod | `ready-demo` |
+| Image | `busybox:1.36` |
+| Commande du conteneur | garder le conteneur vivant pendant au moins une heure |
+| Type de probe | `exec` |
+| Commande de la probe | vérifier qu'un fichier spécifique existe (ton choix de chemin) |
+| État initial | `0/1 READY` (fichier absent au démarrage) |
+| État final | `1/1 READY`, `RESTARTS` toujours à `0` |
 
-**2. Observe la colonne READY**, elle reste à `0/1` même si STATUS indique `Running` :
+### 🔍 Comment la trouver toi-même
+
+Commence par lire les champs exacts que la probe accepte :
 
 ```bash
-kubectl get pod ready-demo -w        # READY 0/1, Ctrl-C quand tu l'as vu
+kubectl explain pod.spec.containers.readinessProbe --recursive
 ```
 
-Ce que tu devrais voir :
+Cherche : `exec`, `command`, `initialDelaySeconds`, `periodSeconds`, `failureThreshold`.
+La page de documentation officielle contient des exemples courts et copiables ;
+adapte-les à ta spec, ne les copie pas mot pour mot.
 
-```text
-NAME         READY   STATUS    RESTARTS   AGE
-ready-demo   0/1     Running   0          5s
-```
-
-Le conteneur tourne, mais Kubernetes ne lui achemine aucun trafic.
-
-> [!NOTE]
-> Une probe de readiness en échec **ne redémarre jamais** le conteneur. Elle retire
-> simplement le Pod des endpoints de son Service. Le trafic s'arrête ; le processus
-> continue de tourner.
-
-**3. Fais passer la probe** en créant le fichier dans le conteneur :
+Pour observer le Pod pendant qu'il n'est pas prêt :
 
 ```bash
-kubectl exec ready-demo -- touch /tmp/healthy
+kubectl get pod ready-demo -w
+kubectl describe pod ready-demo
 ```
 
-**4. Confirme** que le Pod est passé à `1/1` READY, avec RESTARTS toujours à `0` :
+Pour faire passer la probe sans redémarrer le conteneur, exécute une commande à l'intérieur :
 
 ```bash
-kubectl get pod ready-demo
+kubectl exec ready-demo -- <ta commande ici>
 ```
 
-Ce que « bon » donne :
+> [!TIP]
+> **`READY 0/1` ne veut pas dire cassé.** Cela signifie que la probe n'a pas encore
+> passé. Le conteneur est vivant. Seul le trafic est bloqué.
 
-```text
-NAME         READY   STATUS    RESTARTS   AGE
-ready-demo   1/1     Running   0          30s
-```
+📖 Docs : [Configure Liveness, Readiness and Startup Probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
 
-`RESTARTS 0` est la preuve : la readiness a contrôlé le trafic sans toucher au conteneur.
-
-Puis clique sur **Vérifier**. ✅
+Quand `ready-demo` affiche `1/1 READY` avec `RESTARTS 0`, clique sur **Vérifier**. ✅

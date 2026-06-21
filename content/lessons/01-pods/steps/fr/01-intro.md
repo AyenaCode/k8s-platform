@@ -1,30 +1,34 @@
 ## Qu'est-ce qu'un Pod ?
 
-Un **Pod** est la plus petite unité que tu déploies dans Kubernetes : une
-enveloppe autour d'**un ou plusieurs conteneurs** qui tournent toujours ensemble
-sur un même nœud et partagent :
+Imagine un **Pod** comme une boîte à goûter 🍱. Dedans, il y a en général **une
+appli** (un conteneur). Kubernetes ne transporte jamais l'appli toute nue : il
+transporte toujours la boîte entière.
 
-- une **identité réseau** unique : une seule IP de Pod ; les conteneurs dialoguent via `localhost`
-- les mêmes **volumes** de stockage
+Trois choses à retenir :
 
-> [!NOTE]
-> Un seul conteneur par Pod dans ~99 % des cas. Un Pod est *éphémère* : s'il meurt,
-> il n'est **pas** recréé (c'est le rôle d'un Deployment, prochaine mission), et son
-> nom comme son IP ne sont pas stables. Le **kubelet** du nœud récupère l'image et
-> démarre le conteneur.
+- tout ce qui est dans la boîte partage **une seule IP** et se parle via `localhost`
+- tout ce qui est dans la boîte partage le même **stockage**
+- si la boîte casse, **personne ne la ramasse**. Un Pod est jetable. (Le
+  *Deployment* est le robot qui la remplace ; c'est la prochaine leçon.)
 
-En production, on crée rarement les Pods à la main, mais tout objet de plus haut
-niveau (Deployments, Jobs, StatefulSets) finit par exécuter des Pods. Maîtrise
-ceci et le reste suivra.
+Tout objet plus gros (Deployment, Job…) n'est qu'une machine à fabriquer des
+Pods. Maîtrise ça et le reste suit.
 
 ### Reconnaissance
 
-Le terminal est un vrai shell, avec `kubectl` déjà connecté à un cluster
-en direct. Fais le tour :
+Ton terminal est un vrai shell, `kubectl` est déjà branché à un cluster en
+direct. Fais le tour avant de construire :
 
 ```bash
-kubectl get nodes      # les machines qui exécutent tes charges
-kubectl get pods       # ce qui tourne maintenant (sans doute rien encore)
+kubectl get nodes      # les machines qui exécutent tes boîtes
+kubectl get pods       # ce qui tourne maintenant (sans doute rien)
 ```
 
-Ensuite, tu placeras un Pod sur l'un de ces nœuds. **Continuer →**
+> [!TIP]
+> **Le réflexe n°1 de tout ce cours :** quand tu ne connais pas une commande,
+> demande à l'outil, pas à Google. `kubectl --help` liste tous les verbes ;
+> `kubectl run --help` montre comment un verbe marche. Tu vas t'en servir sans arrêt.
+
+📖 Doc : [Pods](https://kubernetes.io/docs/concepts/workloads/pods/) · [Cheat sheet kubectl](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
+
+**Continuer →**

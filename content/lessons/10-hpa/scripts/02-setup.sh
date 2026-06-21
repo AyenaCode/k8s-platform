@@ -31,4 +31,4 @@ YAML
 
 echo "Waiting for 'web-hpa' to be ready..."
 kubectl rollout status deploy/web-hpa --timeout=90s
-echo "Ready (cpu request = 100m). Now: kubectl autoscale deployment web-hpa --cpu=50% --min=1 --max=5"
+echo "Ready. Deployment 'web-hpa' is running with a CPU request set. Check the step instructions to create the HPA."

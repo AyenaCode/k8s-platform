@@ -1,34 +1,27 @@
-## Understand requests, limits & QoS classes
+## Requests, limits, and QoS classes
 
-Every container can declare two resource numbers for CPU and memory.
+Think of a container like a guest at a restaurant.
 
-- **`requests`**: what the container is *guaranteed*. The scheduler uses requests
-  to find a node with enough room. This is a **reservation**.
-- **`limits`**: the hard *ceiling*. Exceed the **memory** limit and the kernel
-  **OOMKills** the container (exit 137). Exceed the **CPU** limit and the container
-  is **throttled**: slowed, never killed.
+- **`requests`**: the seat it **reserves**. The kitchen (scheduler) will not seat a guest on a node that does not have room.
+- **`limits`**: the max food it is **allowed to eat**. Eat past the memory limit and the kernel kicks it out (OOMKill, exit 137). Go over the CPU limit and it just gets slowed down, never killed.
 
-```yaml
-resources:
-  requests: { cpu: "100m", memory: "64Mi" }   # 100m = 0.1 CPU core
-  limits:   { cpu: "200m", memory: "128Mi" }
-```
+From those two numbers Kubernetes gives every Pod a **Quality of Service (QoS) class**, which sets the eviction order when a node runs low on memory:
 
-From those two numbers Kubernetes assigns each Pod a **Quality of Service class**,
-which determines who gets evicted first when a node runs low on memory:
-
-| QoS class | Rule | Evicted… |
+| QoS class | Rule | Evicted |
 |---|---|---|
-| **Guaranteed** | every container sets cpu **and** memory, and `limits == requests` | **last** |
-| **Burstable** | has some request or limit, but not Guaranteed | in the middle |
-| **BestEffort** | no requests or limits at all | **first** |
+| **Guaranteed** | every container sets cpu AND memory, limits == requests | last |
+| **Burstable** | some request or limit set, but not Guaranteed | middle |
+| **BestEffort** | nothing set at all | first |
 
 > [!IMPORTANT]
-> `requests` = scheduling protection: the scheduler will not place a Pod on a node
-> that cannot satisfy them. `limits` = runtime containment: the kernel enforces them
-> live. Set memory `requests == limits` for anything that must not be OOMKilled.
+> `requests` protect the Pod at **scheduling time**. `limits` protect the node at **runtime**. They are different levers, both matter.
 
-In this lesson you will build a **Guaranteed** Pod, then deliberately blow past a
-memory limit and watch the kernel kill it.
+Explore the resource fields before you touch anything:
 
-**Continue →**
+```bash
+kubectl explain pod.spec.containers.resources --recursive
+```
+
+📖 Docs: [Resource Management for Pods and Containers](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) · [Pod QoS Classes](https://kubernetes.io/docs/concepts/workloads/pods/pod-qos/)
+
+**Continue to the first task.**

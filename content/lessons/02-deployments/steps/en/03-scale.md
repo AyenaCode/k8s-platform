@@ -1,40 +1,34 @@
 ## Scale the Deployment
 
-Scaling is a single command. The Deployment tells the ReplicaSet to change its target count; the ReplicaSet creates or terminates Pods immediately.
+Scaling means changing the desired replica count. The Deployment tells the ReplicaSet to adjust; the ReplicaSet creates or removes Pods right away. Think of it like telling a manager "hire 2 more people": the manager handles who and when.
 
-### Your task
+### 🎯 Mission
 
-**1. Scale `web` from 3 replicas to 5:**
+| Field    | Value |
+|----------|-------|
+| Deployment | `web` |
+| Replicas | `5` (all Running) |
+
+### 🔍 How to find it yourself
+
+There is a `kubectl` verb designed exactly for changing replica counts:
 
 ```bash
-kubectl scale deployment web --replicas=5
+kubectl scale --help
 ```
 
-**2. Watch the two new Pods come up:**
+Read the SYNOPSIS line. It tells you the resource type, resource name, and the flag you need.
+
+Check the result afterward:
 
 ```bash
 kubectl get pods -l app=web
-```
-
-What good looks like:
-
-```text
-NAME                READY   STATUS    RESTARTS
-web-74d9c-aaaa      1/1     Running   0
-web-74d9c-bbbb      1/1     Running   0
-web-74d9c-cccc      1/1     Running   0
-web-74d9c-dddd      1/1     Running   0
-web-74d9c-eeee      1/1     Running   0
+kubectl get deployment web
 ```
 
 > [!TIP]
-> Scaling down works the same way: `--replicas=2` and Kubernetes terminates
-> the extra Pods gracefully. The Deployment's contract is simple:
-> *make the running count equal the desired count, always.*
+> Scaling down works the same way: point to a smaller number and Kubernetes terminates the extra Pods cleanly.
 
-> [!NOTE]
-> In production you rarely scale by hand. A **HorizontalPodAutoscaler** (HPA)
-> watches CPU/memory and calls `scale` for you, but the underlying mechanism
-> is identical to what you just ran.
+📖 Docs: [Deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
 
-When all **5 replicas are ready**, then hit **Verify**. ✅
+When all **5 replicas are ready**, hit **Verify**. ✅

@@ -20,10 +20,6 @@
       "md": { "en": "steps/en/02-imagepull.md", "fr": "steps/fr/02-imagepull.md" },
       "setup": "scripts/02-setup.sh",
       "verify": "scripts/02-verify.sh",
-      "hint": {
-        "en": "kubectl describe pod shows 'Failed to pull image'. The tag does not exist. Re-apply the Deployment with a real image like nginx:1.27.",
-        "fr": "kubectl describe pod montre 'Failed to pull image'. Le tag n'existe pas. Ré-applique le Deployment avec une vraie image comme nginx:1.27."
-      },
       "xp": 90
     },
     {
@@ -32,10 +28,6 @@
       "md": { "en": "steps/en/03-crashloop.md", "fr": "steps/fr/03-crashloop.md" },
       "setup": "scripts/03-setup.sh",
       "verify": "scripts/03-verify.sh",
-      "hint": {
-        "en": "The container command exits 1 immediately, so the kubelet keeps restarting it. Re-apply with a command that stays alive.",
-        "fr": "La commande du conteneur sort en 1 immédiatement, donc le kubelet le redémarre sans cesse. Ré-applique avec une commande qui reste vivante."
-      },
       "xp": 90
     },
     {
@@ -44,10 +36,6 @@
       "md": { "en": "steps/en/04-endpoints.md", "fr": "steps/fr/04-endpoints.md" },
       "setup": "scripts/04-setup.sh",
       "verify": "scripts/04-verify.sh",
-      "hint": {
-        "en": "kubectl get endpoints api shows <none>. The Service selector (app=api-v2) does not match the Pod labels (app=api). Fix the selector.",
-        "fr": "kubectl get endpoints api affiche <none>. Le sélecteur du Service (app=api-v2) ne correspond pas aux labels des Pods (app=api). Corrige le sélecteur."
-      },
       "xp": 100
     }
   ]

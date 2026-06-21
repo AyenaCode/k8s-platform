@@ -1,112 +1,56 @@
 ## Réserver du stockage qui survit au Pod
 
-Tu vas créer un PVC, y attacher un Pod, écrire un fichier, supprimer le
-Pod, puis prouver que le fichier est toujours là au retour du Pod.
+Un PVC, c'est ta demande de casier. Une fois qu'un Pod le monte, le casier est
+provisionné et lié. Supprime le Pod et le casier reste ; seule la suppression
+du PVC détruit les données.
 
-### Ta tâche
+Ta mission : prouver que des données écrites dans un volume monté survivent à
+la suppression et à la recréation du Pod.
 
-**1. Crée le PVC** `data-pvc` demandant 1 Gi :
+### 🎯 Mission
+
+| Objet | Nom | Champs clés |
+|-------|-----|-------------|
+| PersistentVolumeClaim | `data-pvc` | 1 Gi, `ReadWriteOnce` |
+| Pod | `writer` | image `busybox:1.36`, monte `data-pvc` sur `/data` |
+| Preuve | fichier `/data/hello.txt` | doit contenir `persisted` après recréation du Pod |
+
+Étapes pour y parvenir :
+1. Applique le PVC.
+2. Applique un Pod nommé `writer` qui le monte sur `/data`.
+3. Écris la chaîne `persisted` dans `/data/hello.txt` via `kubectl exec`.
+4. Supprime le Pod, recrée-le avec le même PVC, relis le fichier.
+
+### 🔍 Comment la trouver toi-même
+
+Commence par explorer les champs dont tu as besoin :
 
 ```bash
-kubectl apply -f - <<'EOF'
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: data-pvc
-spec:
-  accessModes: ["ReadWriteOnce"]
-  resources:
-    requests:
-      storage: 1Gi
-EOF
+kubectl explain persistentvolumeclaim.spec
+kubectl explain persistentvolumeclaim.spec.accessModes
+kubectl explain pod.spec.volumes --recursive
+kubectl explain pod.spec.containers.volumeMounts
 ```
 
-**2. Vérifie l'état du PVC**, il doit être `Pending` :
+Pour écrire dans le Pod en cours d'exécution et relire ensuite :
+
+```bash
+kubectl exec <pod> -- sh -c "echo persisted > /data/hello.txt"
+kubectl exec <pod> -- cat /data/hello.txt
+```
+
+Pour observer le PVC passer de Pending à Bound une fois le Pod planifié :
 
 ```bash
 kubectl get pvc data-pvc
-```
-
-```text
-NAME       STATUS    VOLUME   CAPACITY   ACCESS MODES
-data-pvc   Pending
-```
-
-> [!NOTE]
-> `Pending` est attendu ici. `local-path` est en mode `WaitForFirstConsumer` :
-> le disque n'est pas provisionné tant qu'un Pod n'utilise pas réellement la
-> demande.
-
-**3. Crée le Pod `writer`** qui monte `data-pvc` sur `/data`. Au moment où il
-est planifié, le volume est provisionné et le PVC passe à `Bound` :
-
-```bash
-kubectl apply -f - <<'EOF'
-apiVersion: v1
-kind: Pod
-metadata:
-  name: writer
-spec:
-  containers:
-  - name: app
-    image: busybox:1.36
-    command: ["sh", "-c", "sleep 3600"]
-    volumeMounts:
-    - name: data
-      mountPath: /data
-  volumes:
-  - name: data
-    persistentVolumeClaim:
-      claimName: data-pvc
-EOF
-
-kubectl wait --for=condition=Ready pod/writer --timeout=60s
-kubectl get pvc data-pvc
-```
-
-```text
-NAME       STATUS   VOLUME         CAPACITY   ACCESS MODES
-data-pvc   Bound    pvc-abc123…    1Gi        RWO
-```
-
-**4. Écris un fichier dans le volume :**
-
-```bash
-kubectl exec writer -- sh -c "echo persisted > /data/hello.txt"
-```
-
-**5. Prouve que cela survit.** Supprime le Pod, recrée-le, puis relis le
-fichier (les données résident dans le PVC, pas dans le Pod) :
-
-```bash
-kubectl delete pod writer
-
-kubectl apply -f - <<'EOF'
-apiVersion: v1
-kind: Pod
-metadata: { name: writer }
-spec:
-  containers:
-  - name: app
-    image: busybox:1.36
-    command: ["sh", "-c", "sleep 3600"]
-    volumeMounts: [{ name: data, mountPath: /data }]
-  volumes:
-  - name: data
-    persistentVolumeClaim: { claimName: data-pvc }
-EOF
-
-kubectl wait --for=condition=Ready pod/writer --timeout=60s
-kubectl exec writer -- cat /data/hello.txt
-```
-
-```text
-persisted
+kubectl describe pvc data-pvc
 ```
 
 > [!TIP]
-> Le fichier a survécu parce que `data-pvc` n'a pas été supprimé. Supprime le
-> *PVC* et les données disparaissent, le Pod n'a aucun rôle dans la durabilité.
+> **Le PVC reste Pending ?** C'est normal jusqu'à ce qu'un Pod qui le référence
+> soit planifié. `local-path` utilise le mode `WaitForFirstConsumer`. Applique
+> ton Pod `writer` et le PVC se liera automatiquement.
 
-Lorsque `data-pvc` est **Bound** et que `/data/hello.txt` affiche **`persisted`**,
-clique sur **Vérifier**. ✅
+📖 Docs : [Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) · [Volumes](https://kubernetes.io/docs/concepts/storage/volumes/)
+
+Quand `data-pvc` est **Bound** et que `/data/hello.txt` affiche `persisted`, clique sur **Vérifier**. ✅

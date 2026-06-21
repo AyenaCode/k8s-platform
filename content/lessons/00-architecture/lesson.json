@@ -37,10 +37,6 @@
       "title": { "en": "Recon: your live cluster", "fr": "Reconnaissance : ton cluster" },
       "md": { "en": "steps/en/05-recon.md", "fr": "steps/fr/05-recon.md" },
       "verify": "scripts/05-verify.sh",
-      "hint": {
-        "en": "Run: kubectl create namespace recon, then confirm with kubectl get namespaces.",
-        "fr": "Lance : kubectl create namespace recon, puis confirme avec kubectl get namespaces."
-      },
       "xp": 60
     }
   ]

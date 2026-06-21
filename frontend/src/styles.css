@@ -485,14 +485,6 @@ kbd {
   font-family: var(--font-mono); font-size: 0.78rem; color: #d6ffd0; margin: 1rem 0 0;
 }
 
-/* hint */
-.hint {
-  margin: 1rem 0 0; padding: 0.7rem 0.95rem; border-radius: var(--r-sm);
-  background: rgba(240, 180, 41, 0.1); border: 1px solid rgba(240, 180, 41, 0.45);
-  color: #f3d588; font-size: 0.9rem;
-}
-.hint code { font-family: var(--font-mono); color: #ffe9b0; }
-
 .task__solved { color: var(--good); font-family: var(--font-mono); font-size: 0.8rem; }
 
 /* sticky action bar: Verify is ALWAYS reachable */

@@ -1,63 +1,46 @@
-## Exécuter un Job jusqu'à sa complétion
+## Executer un Job jusqu'au bout
 
-Un Job crée des Pods, les exécute et enregistre s'ils ont **réussi**. Quand le
-nombre requis sort avec le code 0, le Job est marqué terminé, et les Pods
-restent présents pour que tu puisses lire leurs logs.
+Un Job, c'est confier une corvee a Kubernetes : "lance ce conteneur jusqu'a ce qu'il sorte proprement, puis arrete-toi." Pas de redemarrage infini. Juste : fini ou pas fini.
 
-### Ta tâche
+Ton objectif : creer un Job, regarder son Pod se terminer, et lire la sortie qu'il a laissee.
 
-**1. Crée le Job** nommé `hello` :
+### 🎯 Mission
 
-```bash
-kubectl create job hello --image=busybox:1.36 -- /bin/sh -c "echo hello from a job; sleep 2"
-```
+| Champ | Valeur |
+|-------|--------|
+| Kind | Job |
+| Nom | `hello` |
+| Image | `busybox:1.36` |
+| Commande | affiche quelque chose, puis sort proprement (exit 0) |
+| Etat | le Job affiche `1/1` COMPLETIONS |
 
-**2. Observe le Pod passer de `Running` à `Completed` :**
+### 🔍 Comment la trouver toi-meme
 
-```bash
-kubectl get pods -l job-name=hello -w     # Ctrl-C quand Completed
-```
-
-Ce que « bon » donne :
-
-```text
-NAME          READY   STATUS      RESTARTS   AGE
-hello-xxxxx   0/1     Completed   0          8s
-```
-
-**3. Attends la fin du Job**, utile dans les scripts et les pipelines :
+Commence par l'aide integree pour voir la forme de la commande :
 
 ```bash
-kubectl wait --for=condition=complete job/hello --timeout=60s
+kubectl create job --help
 ```
 
-**4. Confirme le résultat :**
+Lis la ligne synopsis et les exemples. Remarque comment une commande est passee apres `--`.
+
+Une fois le Job cree, suis son Pod et lis la sortie :
 
 ```bash
-kubectl get job hello
+kubectl get jobs,pods
+kubectl logs job/hello
 ```
 
-Ce que « bon » donne :
-
-```text
-NAME    COMPLETIONS   DURATION   AGE
-hello   1/1           4s         20s
-```
-
-**5. Lis la sortie :**
+Tu veux comprendre quels champs du spec controlent les tentatives et le parallelisme ?
 
 ```bash
-kubectl logs -l job-name=hello
+kubectl explain job.spec.backoffLimit
+kubectl explain job.spec.completions
 ```
 
 > [!TIP]
-> Le Pod terminé **reste présent** pour que tu puisses consulter ses logs
-> après coup. Définis `ttlSecondsAfterFinished` dans le spec du Job pour
-> un nettoyage automatique.
+> Tu n'es pas sur que le Pod a termine ? `kubectl get pods -l job-name=hello` te montre la colonne STATUS. `Completed` veut dire exit 0.
 
-> [!NOTE]
-> Champs clés du spec Job : `completions` (combien de Pods doivent réussir,
-> défaut 1), `parallelism` (combien tournent en parallèle, défaut 1),
-> `backoffLimit` (nombre max de tentatives avant échec, défaut 6).
+📖 Docs : [Jobs](https://kubernetes.io/docs/concepts/workloads/controllers/job/) · [Cheat sheet kubectl](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
 
-Quand `hello` affiche **`1/1` COMPLETIONS**, puis clique sur **Vérifier**. ✅
+Quand `hello` affiche **`1/1` COMPLETIONS**, clique sur **Verifier**. ✅

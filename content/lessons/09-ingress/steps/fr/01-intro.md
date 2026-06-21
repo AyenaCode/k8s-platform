@@ -1,23 +1,24 @@
-## Comprendre l'Ingress : une seule porte, plusieurs apps
+## Ingress : une seule porte, plusieurs apps
 
-Les Services NodePort fonctionnent, mais ils deviennent vite ingérables à grande échelle : un port élevé aléatoire par app, pas de noms d'hôte, pas de routage par chemin, pas de TLS. Les vrais clusters exposent le HTTP via une seule porte d'entrée intelligente : un **Ingress**.
+Imagine un hôtel avec un seul accueil. Chaque client entre, donne le nom de sa chambre, et le réceptionniste l'envoie au bon étage. Un **Ingress** fonctionne pareil : une seule IP publique et un seul port (80/443), et il lit le header `Host` de chaque requête HTTP pour l'envoyer vers le bon Service.
 
-Un Ingress est un ensemble de **règles de routage L7** : on filtre sur le nom d'hôte et le chemin, puis on transmet vers un Service. Une seule IP, un seul port (80/443), un nombre illimité d'apps derrière.
+Sans Ingress, il faut un NodePort par app, chacun sur un port élevé aléatoire. C'est ingérable. Avec un Ingress, tu obtiens des noms d'hôte propres et un seul point d'entrée.
 
-```text
-client ─▶ Traefik (:80)
-           ├─ site.local ─▶ svc/site-svc
-           └─ shop.local ─▶ svc/shop
-```
+La chaîne est toujours la même :
 
-La chaîne est toujours **Ingress → Service → Pods**. L'Ingress ne parle jamais directement aux Pods : il transmet au Service, qui répartit la charge vers les Pods.
+- Le client envoie une requête sur le port 80 avec un header `Host`.
+- L'**Ingress Controller** (Traefik sur ce cluster) lit les règles et choisit le Service correspondant.
+- Le Service transmet aux bons Pods.
 
 > [!IMPORTANT]
-> Un Ingress n'est qu'un objet de configuration. Sans un **Ingress Controller** en cours d'exécution pour lire et appliquer ces règles, rien ne se passe. Ce cluster fait tourner **Traefik** comme contrôleur : il surveille les objets Ingress et met à jour sa table de routage en temps réel. L'IngressClass s'appelle **`traefik`** ; tu dois définir `ingressClassName: traefik` pour que Traefik prenne en charge ton Ingress.
+> Un objet Ingress n'est qu'un fichier de configuration. Sans un **Ingress Controller** en cours d'exécution pour le lire, rien ne se passe. Ce cluster fait tourner **Traefik** comme contrôleur. Tu dois définir `ingressClassName: traefik` sur ton Ingress pour que Traefik sache qu'il doit le prendre en charge.
 
-> [!NOTE]
-> Traefik est fourni avec k3s et écoute sur le port **80** (HTTP) et **443** (HTTPS) sur le nœud. Il n'y a rien à installer : il tourne déjà.
+Explore ce que Kubernetes sait sur la ressource Ingress avant de commencer :
 
-Dans cette leçon, tu vas exposer une app via un Service, puis router le trafic HTTP public vers elle avec un Ingress, et le prouver avec une vraie requête en direct.
+```bash
+kubectl explain ingress.spec --recursive
+```
 
-**Continuer →**
+📖 Docs : [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) · [Service](https://kubernetes.io/docs/concepts/services-networking/service/)
+
+**Continue vers la première tâche.**

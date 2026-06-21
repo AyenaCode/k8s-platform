@@ -15,5 +15,5 @@ if [ "${avail:-0}" -ge 1 ] 2>/dev/null; then
 fi
 
 echo "✗ 'crasher' still has no available replicas: its container is still crashing."
-echo "  Re-apply with a command that stays alive, e.g.: sleep 3600  (or run a real server)."
+echo "  Run: kubectl logs -l app=crasher --previous   and check the exit code in: kubectl describe pod -l app=crasher"
 exit 1

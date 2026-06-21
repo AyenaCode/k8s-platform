@@ -19,10 +19,6 @@
       "title": { "en": "Claim storage that survives the Pod", "fr": "Réclamer un stockage qui survit au Pod" },
       "md": { "en": "steps/en/02-pvc.md", "fr": "steps/fr/02-pvc.md" },
       "verify": "scripts/02-verify.sh",
-      "hint": {
-        "en": "A PVC stays Pending until a Pod uses it (WaitForFirstConsumer). Apply the PVC AND the writer Pod, then write a file into /data.",
-        "fr": "Un PVC reste Pending tant qu'un Pod ne l'utilise pas (WaitForFirstConsumer). Applique le PVC ET le Pod writer, puis écris un fichier dans /data."
-      },
       "xp": 100
     },
     {
@@ -30,10 +26,6 @@
       "title": { "en": "StatefulSets: stable names & disks", "fr": "StatefulSets : noms stables & disques dédiés" },
       "md": { "en": "steps/en/03-statefulset.md", "fr": "steps/fr/03-statefulset.md" },
       "verify": "scripts/03-verify.sh",
-      "hint": {
-        "en": "A StatefulSet needs a headless Service (clusterIP: None) named in serviceName. Each replica gets its own PVC: data-web-0, data-web-1.",
-        "fr": "Un StatefulSet a besoin d'un Service headless (clusterIP: None) nommé dans serviceName. Chaque replica reçoit son propre PVC : data-web-0, data-web-1."
-      },
       "xp": 100
     }
   ]

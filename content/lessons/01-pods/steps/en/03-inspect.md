@@ -1,46 +1,42 @@
 ## Inspect, logs & exec: the daily toolkit
 
-When something misbehaves, these are the commands you reach for first. Run each
-against your `web` Pod.
+When something breaks, these four commands are what you reach for first. Here's
+*what each is for*. You'll type them yourself.
 
-### Drills
+- **describe** → full config + recent **Events**. Your first stop when a Pod won't start.
+- **logs** → what the container printed (stdout/stderr). Add `-f` to follow, `--previous` after a crash.
+- **exec** → open a shell *inside* the container to poke around.
+- **get -o yaml** → the Pod exactly as the cluster stores it.
 
-**1. Describe**: full config plus recent **Events** (your first stop when a Pod
-won't start):
+Don't remember the exact flags? `kubectl describe --help`, `kubectl logs --help`,
+`kubectl exec --help`. Always ask the tool.
+
+### 🎯 Mission
+
+Your Pod landed on some node. **Find out which one**, then tag the Pod with it:
+
+| | |
+|-|-|
+| Label key | `node` |
+| Label value | the **name of the node** your `web` Pod runs on |
+
+So if it runs on a node called `k3d-server-0`, you'd set `node=k3d-server-0`.
+
+### 🔍 How to find it yourself
+
+The node a Pod runs on shows up in the **wide** output and in `describe`:
 
 ```bash
-kubectl describe pod web
+kubectl get pods -o wide       # look at the NODE column
 ```
 
-**2. Logs**: whatever the container wrote to stdout/stderr:
-
-```bash
-kubectl logs web          # add -f to stream live, --previous after a crash
-```
-
-**3. Exec**: drop into a shell *inside* the container:
-
-```bash
-kubectl exec -it web -- bash
-# you're inside nginx now:  ls /usr/share/nginx/html   then  exit
-```
-
-**4. Raw object**: the Pod exactly as the cluster stores it:
-
-```bash
-kubectl get pod web -o yaml | less
-```
+Found the name? Now you need the verb that *adds a label* to an object. Search
+the cheat sheet for "label", or run `kubectl label --help` for the shape.
 
 > [!TIP]
-> `kubectl events --for pod/web` (add `--watch`) is the cleaner, modern way to
-> read a Pod's events without scrolling through `describe`.
+> `kubectl get pod web -o yaml` shows the raw object. The node also lives at
+> `.spec.nodeName`. Learning where fields live in the YAML pays off forever.
 
-### Your task
+📖 Docs: [Debug Running Pods](https://kubernetes.io/docs/tasks/debug/debug-application/debug-running-pod/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
 
-Prove you worked the Pod: **label** it so the platform can confirm your run.
-
-```bash
-kubectl label pod web seen=true
-```
-
-Then hit **Verify**. ✅
+When the label matches the real node, hit **Verify**. ✅

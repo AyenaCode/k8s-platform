@@ -1,58 +1,55 @@
 ## Create a Secret and mount it as a file
 
-Secrets share the same structure as ConfigMaps, but the kubelet only delivers them to nodes that actually run a Pod using them, and access is controlled separately via RBAC. You will create **`app-secret`**, then mount it as a directory of files inside a Pod: each key becomes a file whose content is the value.
+A Secret is the same structure as a ConfigMap, but locked in a drawer: the kubelet only delivers it to nodes that actually run a consuming Pod, and RBAC controls who can read it. You will create **`app-secret`**, then mount it as a directory of files inside a Pod. Each key becomes a filename; its value becomes the file content.
 
 > [!WARNING]
-> A Secret is **base64-encoded, not encrypted** at rest by default. Anyone with `kubectl get secret` access can decode the value in seconds. Treat RBAC on Secrets as mandatory, not optional.
+> A Secret is **base64-encoded, not encrypted** at rest by default. Anyone with `kubectl get secret` access can decode the value instantly. RBAC on Secrets is mandatory, not optional.
 
-### Your task
+### 🎯 Mission
 
-**1. Create the Secret:**
+| What | Value |
+|------|-------|
+| Secret name | `app-secret` |
+| Key | `API_KEY=s3cr3t` |
+| Pod name | `secret-demo` |
+| Pod image | `busybox:1.36` |
+| Mount path | `/etc/secret` |
+| Proof | `cat /etc/secret/API_KEY` inside `secret-demo` prints `s3cr3t` |
+
+### 🔍 How to find it yourself
+
+Start with the create command:
 
 ```bash
-kubectl create secret generic app-secret --from-literal=API_KEY=s3cr3t
+kubectl create secret generic --help
 ```
 
-**2. Run a Pod that mounts the Secret as a volume** at `/etc/secret`:
+Read the `--from-literal` flag. Build your own line.
+
+For the Pod spec, you need a volume backed by a Secret and a volumeMount. Explore:
 
 ```bash
-kubectl apply -f - <<'EOF'
-apiVersion: v1
-kind: Pod
-metadata:
-  name: secret-demo
-spec:
-  containers:
-  - name: app
-    image: busybox:1.36
-    command: ["sh", "-c", "sleep 3600"]
-    volumeMounts:
-    - name: secret-vol
-      mountPath: /etc/secret
-      readOnly: true
-  volumes:
-  - name: secret-vol
-    secret:
-      secretName: app-secret
-EOF
+kubectl explain pod.spec.volumes.secret
+kubectl explain pod.spec.containers.volumeMounts
 ```
 
-**3. Wait for Running, then read the mounted file:**
+Use `--dry-run=client -o yaml` to preview your Secret without creating it yet:
 
 ```bash
-kubectl get pod secret-demo -w       # wait for Running, then Ctrl-C
+kubectl create secret generic demo --from-literal=KEY=val --dry-run=client -o yaml
+```
+
+Once both exist, inspect:
+
+```bash
+kubectl get secret app-secret -o jsonpath='{.data.API_KEY}'
+kubectl exec secret-demo -- ls /etc/secret
 kubectl exec secret-demo -- cat /etc/secret/API_KEY
 ```
 
-What good looks like:
-
-```text
-s3cr3t
-```
-
-The key `API_KEY` became the filename; its value is the file content.
-
 > [!TIP]
-> Volume-mounted Secrets (and ConfigMaps) **eventually update** when you change the object, the kubelet re-syncs within seconds to a minute. Env vars are **frozen** at container start and require a Pod restart. Exception: a `subPath` mount does **not** auto-update, even as a volume.
+> Volume-mounted Secrets eventually update when you edit the object (kubelet re-syncs within seconds to a minute). Env vars are frozen at container start and need a Pod restart. A `subPath` mount is the exception: it never auto-updates.
 
-Then hit **Verify**. ✅
+📖 Docs: [Secrets](https://kubernetes.io/docs/concepts/configuration/secret/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
+
+When `secret-demo` is Running and `cat /etc/secret/API_KEY` returns `s3cr3t`, hit **Verify**. ✅

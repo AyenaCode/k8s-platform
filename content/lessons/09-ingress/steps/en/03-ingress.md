@@ -1,70 +1,55 @@
 ## Route HTTP traffic with an Ingress
 
-Create the front door. This Ingress tells Traefik: any request with `Host: site.local` goes to `site-svc` on port 80.
+Time to create the front door. The Ingress tells the receptionist (Traefik): whenever a guest asks for `site.local`, send them to the `site-svc` Service on port 80.
 
-### Your task
+### 🎯 Mission
 
-**1. Apply the Ingress.**
+| Field | Value |
+|-------|-------|
+| Kind | Ingress |
+| Name | `site` |
+| `ingressClassName` | `traefik` |
+| Host rule | `site.local` |
+| Path | `/` (Prefix) |
+| Backend Service | `site-svc` on port `80` |
+| Proof | `curl -H "Host: site.local" localhost` returns HTTP 200 |
+
+### 🔍 How to find it yourself
+
+Start by exploring the Ingress spec so you know every field you need:
 
 ```bash
-kubectl apply -f - <<'EOF'
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: site
-spec:
-  ingressClassName: traefik
-  rules:
-  - host: site.local
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: site-svc
-            port:
-              number: 80
-EOF
+kubectl explain ingress.spec --recursive
+kubectl explain ingress.spec.rules --recursive
 ```
 
-**2. Watch Traefik assign an address** (may take a few seconds).
+Then look at the imperative helper to understand the shape:
+
+```bash
+kubectl create ingress --help
+```
+
+Read the examples. They show you the `--rule` flag format. You can use that flag to build the Ingress, or write a YAML file, or use `--dry-run=client -o yaml` to generate a starting template and then fill in the missing fields.
+
+After you create the Ingress, check that Traefik assigned it an address:
 
 ```bash
 kubectl get ingress site
+kubectl describe ingress site
 ```
 
-What good looks like:
-
-```text
-NAME   CLASS     HOSTS        ADDRESS       PORTS   AGE
-site   traefik   site.local   172.x.x.x     80      10s
-```
-
-**3. Prove the routing.** There is no DNS for `site.local`, so fake the hostname with a `Host:` header, and Traefik routes on that header alone.
+Then prove the routing works. Because there is no real DNS for `site.local`, you fake the hostname with a `Host:` header:
 
 ```bash
 curl -H "Host: site.local" http://localhost/
 ```
 
-You should see the nginx welcome page (HTTP 200).
-
-**4. Confirm wrong hosts are rejected**: no rule matches, so Traefik returns 404.
-
-```bash
-curl -i -H "Host: wrong.local" http://localhost/ | head -1
-```
-
-What good looks like:
-
-```text
-HTTP/1.1 404 Not Found
-```
-
 > [!TIP]
-> Traefik may take a few seconds to load a newly applied Ingress. If `curl` returns 404 right away, wait 5 seconds and retry.
+> Traefik can take a few seconds to load a new Ingress. If you get 404 right away, wait 5 seconds and run the `curl` again.
 
 > [!IMPORTANT]
-> `ingressClassName: traefik` tells Traefik this Ingress belongs to it. Leave it out and Traefik ignores the object entirely: your curl will return 404 no matter what.
+> Without `ingressClassName: traefik`, Traefik ignores the Ingress entirely. Your `curl` returns 404 no matter what you do. Double-check that field first if things look wrong.
 
-When `curl -H "Host: site.local" http://localhost/` returns HTTP 200, then hit **Verify**. ✅
+📖 Docs: [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
+
+When `curl -H "Host: site.local" http://localhost/` returns HTTP 200, hit **Verify**. ✅

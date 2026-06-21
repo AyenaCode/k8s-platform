@@ -1,35 +1,37 @@
 ## Launch your first Pod
 
-Time to put a real workload on the cluster: a single nginx Pod named **`web`**.
+Time to put a real workload on the cluster. No copy-paste here: **you find the
+command.** That's the whole point. On a real job nobody hands you the line, so
+you train that reflex now.
 
-### Your task
+### 🎯 Mission
 
-**1. Create the Pod.** In the terminal:
+| Field | Value |
+|-------|-------|
+| Kind  | Pod |
+| Name  | `web` |
+| Image | `nginx` |
+| State | `Running` (READY `1/1`) |
+
+### 🔍 How to find it yourself
+
+You want to *run* something. Which `kubectl` verb is that? Ask the tool:
 
 ```bash
-kubectl run web --image=nginx
+kubectl run --help        # read the SYNOPSIS line and the first example
 ```
 
-The scheduler places it on a node; the kubelet pulls `nginx` and starts it.
-
-**2. Watch it come up** until it reports `Running`:
+The help shows you the shape: a name, then `--image=`. Build your own line from
+that. Then watch it come up until `Running`:
 
 ```bash
 kubectl get pods -w        # live updates, Ctrl-C to stop
 ```
 
-What "good" looks like:
-
-```
-NAME   READY   STATUS    RESTARTS   AGE
-web    1/1     Running    0         20s
-```
-
-- `READY 1/1`: the container is up and passing its checks.
-- `STATUS Running`: the process started.
-
 > [!TIP]
-> **Stuck on `ContainerCreating`?** The image is still downloading on first pull.
-> Give it a few seconds and watch again. That's normal, not an error.
+> **Stuck on `ContainerCreating`?** The image is downloading (first pull). Wait a
+> few seconds and watch again. That's normal, not an error.
+
+📖 Docs: [kubectl run](https://kubernetes.io/docs/reference/kubectl/quick-reference/) · [Pods](https://kubernetes.io/docs/concepts/workloads/pods/)
 
 When `web` is **Running**, hit **Verify**. ✅

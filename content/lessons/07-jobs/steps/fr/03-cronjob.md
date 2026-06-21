@@ -1,62 +1,51 @@
-## Planifier une tâche avec un CronJob
+## Planifier avec un CronJob
 
-Un CronJob déclenche un nouveau Job sur minuteur. Il contient un `jobTemplate` :
-le modèle dont chaque Job déclenché est calqué. Pas besoin d'attendre le
-planning pour le tester : on lance une exécution manuelle.
+Un CronJob, c'est un minuteur. A chaque declenchement, il fabrique un nouveau Job a partir d'un `jobTemplate`. Le CronJob lui-meme n'execute jamais de conteneur ; il cree juste des Jobs selon le planning.
 
-### Ta tâche
+Dans une vraie equipe, on n'attend pas le planificateur pour tester un CronJob. On declenche une execution manuelle immediatement. C'est ce reflexe que cette etape t'entraine a avoir.
 
-**1. Crée le CronJob** nommé `report`, toutes les minutes :
+### 🎯 Mission
+
+| Champ | Valeur |
+|-------|--------|
+| Kind | CronJob |
+| Nom | `report` |
+| Image | `busybox:1.36` |
+| Planning | toutes les minutes (`*/1 * * * *`) |
+| Execution manuelle | un Job nomme `report-now`, cree depuis le template du CronJob, qui atteint `1/1` COMPLETIONS |
+
+### 🔍 Comment la trouver toi-meme
+
+La commande `create cronjob` a sa propre page d'aide :
 
 ```bash
-kubectl create cronjob report \
-  --image=busybox:1.36 \
-  --schedule="*/1 * * * *" \
-  -- /bin/sh -c "date; echo nightly report done"
+kubectl create cronjob --help
 ```
 
-**2. Confirme qu'il est enregistré :**
+Cherche les flags `--schedule` et `--image`. Le planning utilise la syntaxe cron standard vue dans l'introduction.
+
+Une fois le CronJob cree, verifie qu'il est bien enregistre :
 
 ```bash
 kubectl get cronjob report
 ```
 
-Ce que « bon » donne :
-
-```text
-NAME     SCHEDULE      SUSPEND   ACTIVE   LAST SCHEDULE   AGE
-report   */1 * * * *   False     0        <none>          5s
-```
-
-**3. Déclenche une exécution immédiate**, sans attendre le planning. C'est
-exactement ce que fait un ingénieur d'astreinte pour tester une tâche planifiée :
+Pour declencher une execution manuelle sans toucher au planning, regarde ce flag :
 
 ```bash
-kubectl create job report-now --from=cronjob/report
+kubectl create job --help    # cherche le flag --from
 ```
 
-**4. Attends la fin et lis la sortie :**
+Apres avoir declenche l'execution manuelle, surveille-la se terminer et lis ses logs :
 
 ```bash
-kubectl wait --for=condition=complete job/report-now --timeout=60s
-kubectl logs -l job-name=report-now
+kubectl get jobs,pods
+kubectl logs job/report-now
 ```
-
-**5. Au bout d'une minute ou deux, liste tous les Jobs**, le planificateur
-aura créé son propre Job nommé `report-<timestamp>` :
-
-```bash
-kubectl get jobs
-```
-
-> [!NOTE]
-> Un CronJob ne conserve que les derniers Jobs terminés par défaut
-> (`successfulJobsHistoryLimit` vaut **3**). L'historique ne s'accumule jamais
-> indéfiniment.
 
 > [!TIP]
-> `kubectl create job <nom> --from=cronjob/<nom>` est la méthode standard pour
-> déclencher une exécution ponctuelle depuis n'importe quel CronJob, sans
-> modifier le moindre YAML.
+> Le flag `--from=cronjob/<nom>` permet aux ingenieurs d'astreinte de tester une tache planifiee en production sans modifier de YAML ni attendre minuit.
 
-Quand le CronJob **`report`** existe et que le Job **`report-now`** est terminé, puis clique sur **Vérifier**. ✅
+📖 Docs : [Jobs](https://kubernetes.io/docs/concepts/workloads/controllers/job/) · [Cheat sheet kubectl](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
+
+Quand le CronJob **`report`** existe et que le Job **`report-now`** affiche **`1/1` COMPLETIONS**, clique sur **Verifier**. ✅

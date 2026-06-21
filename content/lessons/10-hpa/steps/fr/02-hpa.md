@@ -1,64 +1,57 @@
 ## Attacher un HorizontalPodAutoscaler à un Deployment
 
-La plateforme a pré-créé **`web-hpa`** : un Deployment avec une **CPU request de
-100m** déjà déclarée. C'est le dénominateur que le HPA utilise dans son calcul ;
-sans lui, l'autoscaler est aveugle.
+Le script de setup a pré-créé **`web-hpa`** : un Deployment qui déclare déjà une CPU request.
+C'est le nombre que le HPA utilise comme dénominateur. Sans lui, l'autoscaler est aveugle.
 
-### Ta tâche
+### 🎯 Mission
 
-**1. Vérifie que le Deployment est prêt et que les métriques arrivent.**
+| Champ | Valeur |
+|---|---|
+| Kind | HorizontalPodAutoscaler |
+| Nom | `web-hpa` |
+| Deployment cible | `web-hpa` |
+| Utilisation CPU cible | `50%` |
+| Replicas min | `1` |
+| Replicas max | `5` |
+
+Le HPA doit lire une vraie métrique CPU (TARGETS affiche `%/50%`, pas `<unknown>`).
+
+### 🔍 Comment la trouver toi-même
+
+D'abord, vérifie que le Deployment est prêt et que les métriques arrivent :
 
 ```bash
 kubectl get deploy web-hpa
 kubectl top pods -l app=web-hpa
 ```
 
-> [!NOTE]
-> Si `kubectl top pods` renvoie `<unknown>`, attends ~15 s et relance :
-> metrics-server collecte à intervalle court.
-
-**2. Attache l'autoscaler.** Cible : **50% de CPU moyen**, entre **1 et 5** replicas :
+Tu dois maintenant créer le HPA. Quel verbe `kubectl` attache un autoscaler à un Deployment ? Demande à l'outil :
 
 ```bash
-kubectl autoscale deployment web-hpa --cpu=50% --min=1 --max=5
+kubectl autoscale --help
 ```
 
-**3. Observe le HPA jusqu'à ce que TARGETS affiche un vrai pourcentage.**
+Lis le SYNOPSIS et les exemples. Tu verras les flags dont tu as besoin : le nom du deployment cible, le seuil CPU et les bornes de replicas. Construis ta propre commande à partir de la.
+
+Une fois le HPA créé, observe-le jusqu'à ce que TARGETS affiche un vrai pourcentage :
 
 ```bash
 kubectl get hpa web-hpa -w
+kubectl describe hpa web-hpa
 ```
 
-Ce que « bon » donne :
-
-```text
-NAME      REFERENCE             TARGETS          MINPODS  MAXPODS  REPLICAS
-web-hpa   Deployment/web-hpa   cpu: <unknown>/50%   1        5        1   ← 30 premières s
-web-hpa   Deployment/web-hpa   cpu: 0%/50%          1        5        1   ← métriques actives
-```
-
-`cpu: 0%/50%` signifie : actuel 0%, cible 50%. L'application est inactive, donc
-1 replica suffit. Sous vraie charge, le HPA augmente les REPLICAS vers `max`, puis
-redescend une fois le pic terminé.
+> [!NOTE]
+> `<unknown>` pendant les 15-30 premières secondes est normal : metrics-server collecte
+> à intervalle court. Attends et observe. Si ca ne se résout jamais, consulte
+> `kubectl describe hpa web-hpa` pour voir les événements d'erreur.
 
 > [!TIP]
-> **Génère de la charge pour voir le scaling :** exécute une boucle occupée
-> directement dans le pod `web-hpa` pour que le HPA voie sa CPU augmenter
-> (`kubectl exec deploy/web-hpa -- sh -c "while true; do :; done"`),
-> puis regarde `kubectl get hpa -w` monter les REPLICAS. La descente est
-> volontairement lente (fenêtre de stabilisation) pour éviter les oscillations.
+> Tu veux voir le HPA réagir ? Lance une boucle CPU intensive dans le pod et regarde
+> les replicas augmenter :
+> `kubectl exec deploy/web-hpa -- sh -c "while true; do :; done"`
+> Puis surveille `kubectl get hpa -w`. La descente est volontairement lente pour
+> éviter les oscillations.
 
-> [!WARNING]
-> Un `<unknown>` qui ne se résout jamais indique que les Pods n'ont pas de CPU
-> request. Le script de setup positionne déjà `requests.cpu: 100m` sur `web-hpa`,
-> donc cela ne devrait pas arriver, mais si c'est le cas, consulte
-> `kubectl describe hpa web-hpa` pour en trouver la cause.
+📖 Docs : [Horizontal Pod Autoscaling](https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/) · [Deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
 
-**4. Confirme que le HPA est sain.**
-
-```bash
-kubectl describe hpa web-hpa | grep -i "metrics\|able to"
-```
-
-Quand TARGETS affiche un **vrai `%/50%`** (pas `<unknown>`), clique sur
-**Vérifier**. ✅
+Quand TARGETS affiche un vrai **`%/50%`** (pas `<unknown>`), clique sur **Vérifier**. ✅

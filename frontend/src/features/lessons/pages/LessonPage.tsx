@@ -31,7 +31,6 @@ export function LessonPage({ slug }: { slug: string }) {
   const [idx, setIdx] = useState(0)
   const [out, setOut] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
-  const [showHint, setShowHint] = useState(false)
   const [reward, setReward] = useState<Reward | null>(null)
   const [celebrate, setCelebrate] = useState(false)
   const outRef = useRef<HTMLPreElement>(null)
@@ -78,7 +77,6 @@ export function LessonPage({ slug }: { slug: string }) {
   useEffect(() => setIdx(0), [slug, lang])
   useEffect(() => {
     setOut([])
-    setShowHint(false)
     clearAdvance()
     // A new step is a new "slide": jump the scrolling content pane back to the top
     // (otherwise the next step opens wherever the previous one was scrolled to)…
@@ -150,10 +148,7 @@ export function LessonPage({ slug }: { slug: string }) {
     const xpBefore = before?.totalXp ?? 0
 
     const ok = await runStream(`/api/lessons/${slug}/steps/${step.id}/verify`, `verify ${step.id}`)
-    if (!ok) {
-      setShowHint(true)
-      return
-    }
+    if (!ok) return
     // Backend awarded XP; force a fresh refetch (staleTime: 0, otherwise the
     // global 30s staleTime makes fetchQuery resolve from cache, so the delta is
     // always 0 and neither the reward toast nor the confetti ever fire). This
@@ -238,8 +233,6 @@ export function LessonPage({ slug }: { slug: string }) {
       <article className="lesson__body">
         <MarkdownView>{step.markdown}</MarkdownView>
 
-        {showHint && step.hint && <div className="hint">💡 {step.hint}</div>}
-
         {out.length > 0 && (
           <pre className="run-output" ref={outRef}>
             {out.join('\n')}
@@ -270,11 +263,6 @@ export function LessonPage({ slug }: { slug: string }) {
         <div className="actionbar__spacer" />
 
         <div className="actionbar__task">
-          {step.hint && (
-            <button className="ghost" onClick={() => setShowHint((s) => !s)}>
-              {showHint ? 'Hide hint' : 'Hint'}
-            </button>
-          )}
           <button className="ghost" disabled={busy} onClick={onReset} title="Reset the cluster to a clean state">
             Reset
           </button>

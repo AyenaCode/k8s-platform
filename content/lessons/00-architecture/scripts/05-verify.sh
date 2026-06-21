@@ -8,5 +8,7 @@ if kubectl get namespace recon >/dev/null 2>&1; then
   exit 0
 fi
 
-echo "✗ No namespace 'recon' yet. Run: kubectl create namespace recon"
+echo "✗ Namespace 'recon' not found yet."
+echo "  Hint: use 'kubectl create --help' and 'kubectl create namespace --help' to find the right command."
+echo "  Then check with: kubectl get namespaces"
 exit 1

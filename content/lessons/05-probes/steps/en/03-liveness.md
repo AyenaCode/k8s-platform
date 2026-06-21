@@ -1,71 +1,62 @@
 ## Trigger a liveness restart on a stuck container
 
 A liveness probe is the cluster's self-repair mechanism. When it fails, the kubelet
-**kills and restarts** the container, no human required.
+kills and restarts the container without any human action. Think of it as a
+watchdog: "if the app stops responding, restart it."
 
-### Your task
+Your job is to build a Pod that deliberately breaks its own liveness check, then
+watch Kubernetes fix it automatically.
 
-**1. Apply the Pod.** It creates `/tmp/alive`, waits 15 s, deletes the file, then
-sleeps. The liveness probe runs `cat /tmp/alive`, and once the file is gone, the probe
-fails and the kubelet restarts the container:
+### 🎯 Mission
 
-```bash
-kubectl apply -f - <<'EOF'
-apiVersion: v1
-kind: Pod
-metadata:
-  name: live-demo
-spec:
-  containers:
-  - name: app
-    image: busybox:1.36
-    command: ["sh", "-c", "touch /tmp/alive; sleep 15; rm -f /tmp/alive; sleep 600"]
-    livenessProbe:
-      exec:
-        command: ["cat", "/tmp/alive"]
-      initialDelaySeconds: 5
-      periodSeconds: 5
-      failureThreshold: 1
-EOF
-```
+Create a Pod where the liveness probe passes at start, then fails on its own
+after a short delay, causing at least one container restart.
 
-**2. Watch the Pod.** For the first ~15 s, everything is fine. Then the probe fails
-and RESTARTS climbs:
+| Field | Value |
+|---|---|
+| Pod name | `live-demo` |
+| Image | `busybox:1.36` |
+| Container command | create a file, wait ~15 s, delete the file, then sleep |
+| Probe type | `exec` |
+| Probe command | check that the file still exists |
+| `initialDelaySeconds` | 5 |
+| `periodSeconds` | 5 |
+| `failureThreshold` | 1 |
+| End state | `RESTARTS >= 1` |
+
+### 🔍 How to find it yourself
+
+Read the liveness probe fields:
 
 ```bash
-kubectl get pod live-demo -w        # wait until RESTARTS >= 1, then Ctrl-C
+kubectl explain pod.spec.containers.livenessProbe --recursive
 ```
 
-What you should see after the restart fires:
+The structure is the same as `readinessProbe`; only the field name changes.
+The docs page shows a working `exec` example; copy the shape, not the content.
 
-```text
-NAME        READY   STATUS    RESTARTS   AGE
-live-demo   1/1     Running   0          10s
-live-demo   0/1     Running   1          22s
-live-demo   1/1     Running   1          24s
-```
-
-**3. Confirm why** it restarted, check the Pod events:
+Watch the Pod while it runs. You will see `RESTARTS` go from `0` to `1`:
 
 ```bash
-kubectl describe pod live-demo | grep -A2 -i liveness
+kubectl get pod live-demo -w
 ```
 
-Expected output:
+After the restart fires, check why it happened:
 
-```text
-Liveness probe failed: cat: can't open '/tmp/alive': No such file or directory
-Container app failed liveness probe, will be restarted
+```bash
+kubectl describe pod live-demo
 ```
 
 > [!IMPORTANT]
-> Each restart re-runs the container command, so the cycle repeats, exactly what
-> happens to a real app that deadlocks. A correctly tuned liveness probe means a
-> hung Pod heals itself without a pager alert.
+> Each restart re-runs the container command from scratch, so the cycle repeats.
+> This is exactly what happens to a real app that deadlocks: a correctly tuned
+> liveness probe makes it heal itself.
 
 > [!WARNING]
-> `failureThreshold: 1` restarts on the very first failure. In production, use
-> `failureThreshold: 3` (the default) so transient blips don't cause needless
+> `failureThreshold: 1` restarts on the very first failure. In production use
+> `failureThreshold: 3` (the default) so transient blips do not cause needless
 > restarts.
 
-Then hit **Verify**. ✅
+📖 Docs: [Configure Liveness, Readiness and Startup Probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
+
+When `live-demo` shows `RESTARTS >= 1`, hit **Verify**. ✅

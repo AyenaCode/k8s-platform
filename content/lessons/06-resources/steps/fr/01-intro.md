@@ -1,36 +1,27 @@
-## Comprendre les requests, limits et classes QoS
+## Requests, limits et classes QoS
 
-Chaque conteneur peut déclarer deux valeurs de ressources pour le CPU et la mémoire.
+Imagine un conteneur comme un client dans un restaurant.
 
-- **`requests`** : ce qui est *garanti* au conteneur. Le scheduler les utilise pour
-  trouver un nœud disposant de suffisamment de place. Il s'agit d'une **réservation**.
-- **`limits`** : le *plafond* strict. Dépasser la limite de **mémoire** déclenche
-  l'**OOMKill** du conteneur par le noyau (code de sortie 137). Dépasser la limite
-  de **CPU** provoque un simple **throttling** : un ralentissement, jamais un arrêt.
+- **`requests`**: la place qu'il **réserve**. Le scheduler refuse de placer un Pod sur un nœud qui ne peut pas honorer cette réservation.
+- **`limits`**: le maximum qu'il est **autorisé à consommer**. Dépasse la limite mémoire et le noyau l'expulse (OOMKill, code 137). Dépasse la limite CPU et il est simplement ralenti, jamais tué.
 
-```yaml
-resources:
-  requests: { cpu: "100m", memory: "64Mi" }   # 100m = 0,1 cœur CPU
-  limits:   { cpu: "200m", memory: "128Mi" }
-```
+À partir de ces deux valeurs, Kubernetes attribue à chaque Pod une **classe de Quality of Service (QoS)**, qui fixe l'ordre d'éviction quand un nœud manque de mémoire :
 
-À partir de ces deux valeurs, Kubernetes attribue à chaque Pod une **classe de
-Quality of Service (QoS)**, qui détermine l'ordre d'éviction lorsqu'un nœud manque
-de mémoire :
-
-| Classe QoS | Règle | Évicté… |
+| Classe QoS | Règle | Évicté |
 |---|---|---|
-| **Guaranteed** | chaque conteneur définit cpu **et** mémoire, et `limits == requests` | **en dernier** |
-| **Burstable** | possède au moins une request ou une limit, mais pas Guaranteed | entre les deux |
-| **BestEffort** | aucune request ni limit | **en premier** |
+| **Guaranteed** | chaque conteneur définit cpu ET memory, limits == requests | en dernier |
+| **Burstable** | au moins une request ou une limit, mais pas Guaranteed | entre les deux |
+| **BestEffort** | rien du tout | en premier |
 
 > [!IMPORTANT]
-> `requests` = protection à la planification : le scheduler refuse de placer un Pod
-> sur un nœud incapable de les satisfaire. `limits` = confinement à l'exécution :
-> le noyau les applique en temps réel. Définis `requests == limits` pour la
-> mémoire de tout ce qui ne doit pas être OOMKilled.
+> `requests` protègent le Pod au moment de la **planification**. `limits` protègent le nœud à l'**exécution**. Ce sont deux leviers distincts, tous deux importants.
 
-Dans cette leçon tu vas construire un Pod **Guaranteed**, puis dépasser
-délibérément une limite de mémoire et observer le noyau le tuer.
+Explore les champs de ressources avant de toucher quoi que ce soit :
 
-**Continuer →**
+```bash
+kubectl explain pod.spec.containers.resources --recursive
+```
+
+📖 Docs: [Resource Management for Pods and Containers](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) · [Pod QoS Classes](https://kubernetes.io/docs/concepts/workloads/pods/pod-qos/)
+
+**Continue vers la première tâche.**

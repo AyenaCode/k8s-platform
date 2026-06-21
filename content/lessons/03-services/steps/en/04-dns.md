@@ -1,50 +1,40 @@
 ## Discover Services by DNS
 
-This is how microservices find each other at runtime. CoreDNS, the cluster's
-built-in DNS server, automatically creates an A record for every Service:
+Your app should never hardcode an IP. Instead it calls `http://web` and lets the cluster figure out where `web` lives. This is DNS discovery, and it works because CoreDNS automatically creates a name for every Service.
+
+The full name pattern is:
 
 ```text
 <service>.<namespace>.svc.cluster.local
 ```
 
-Inside the **same namespace**, the short name resolves too: just `web`.
+Inside the **same namespace**, the short name works on its own: just `web`.
 
 ### See it live
 
-**1. Spin up a throwaway Pod and call the Service by name.**
+Spin up a throwaway debug Pod and look up the Service by name:
 
 ```bash
-kubectl run tmp --rm -it --image=busybox --restart=Never -- \
-  wget -qO- http://web
+kubectl run tmp --rm -it --image=busybox --restart=Never -- sh
 ```
 
-What good looks like:
-
-```text
-<!DOCTYPE html>
-<html>
-<head><title>Welcome to nginx!</title>
-...
-```
-
-CoreDNS resolved `web` → the ClusterIP → one of the ready Pods. No IP hardcoding.
-
-**2. From a different namespace, use the full FQDN.**
+Inside the shell, try:
 
 ```bash
+nslookup web
+wget -qO- http://web
 wget -qO- http://web.default.svc.cluster.local
 ```
 
+- `nslookup web` shows which ClusterIP CoreDNS returns.
+- `wget` shows the nginx page, reached by name with no IP hardcoded.
+
 > [!NOTE]
-> Every Pod's `/etc/resolv.conf` already points to the CoreDNS ClusterIP and
-> sets `search default.svc.cluster.local svc.cluster.local cluster.local`.
-> That's why the short name `web` works without any extra config.
+> Every Pod's `/etc/resolv.conf` already points to CoreDNS and sets a `search` path including `default.svc.cluster.local`. That is why the short name `web` resolves without extra config.
 
 > [!IMPORTANT]
-> Never hardcode Pod IPs in your app. Call the **Service name** (`http://web`,
-> `http://payments`) and let DNS + kube-proxy handle routing and load balancing.
-> This is the backbone of every microservice architecture on Kubernetes.
+> Always call Services by name in your app code (`http://web`, `http://payments`). Let DNS and kube-proxy handle routing. This is the backbone of every microservice architecture on Kubernetes.
 
-You now know the three pillars of Kubernetes networking: **Services** (stable
-identity), **Endpoints** (the live Pods behind them), and **DNS** (discovery).
-That closes the networking fundamentals, well done.
+📖 Docs: [DNS for Services and Pods](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/) · [Service](https://kubernetes.io/docs/concepts/services-networking/service/)
+
+You now know the three pillars of Kubernetes networking: **Services** (stable identity), **Endpoints** (live Pods behind them), and **DNS** (discovery). Well done.

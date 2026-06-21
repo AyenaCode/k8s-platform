@@ -1,26 +1,22 @@
-## Comprendre la boucle de contrôle du HPA
+## Comment fonctionne la boucle de contrôle du HPA
 
-Les pics de trafic n'attendent pas un humain. Le **HorizontalPodAutoscaler (HPA)**
-ajuste automatiquement le nombre de replicas d'un Deployment toutes les ~15 secondes,
-en fonction de la charge observée.
+Pense au **HorizontalPodAutoscaler (HPA)** comme à un thermostat pour les Pods.
+Trop de charge CPU ? Il ajoute des Pods. La charge baisse ? Il en retire.
+Tu définis juste la température cible et les bornes min/max.
 
-Le calcul est simple :
+Le calcul derrière tout ca :
 
 ```text
-         CPU consommé actuellement (tous les pods)
-util% = ──────────────────────────────────────────── × 100
-         CPU demandé par les pods (requests)
+util% = (CPU consommé par tous les pods / CPU demandé par tous les pods) x 100
 
-util% > cible  →  ajouter des replicas   (jusqu'à maxReplicas)
-util% < cible  →  supprimer des replicas  (jusqu'à minReplicas)
+util% > cible  -->  ajouter des replicas   (jusqu'a maxReplicas)
+util% < cible  -->  supprimer des replicas  (jusqu'a minReplicas)
 ```
 
 Deux conditions doivent être remplies avant que le HPA puisse fonctionner :
 
-1. **metrics-server doit tourner** : il alimente le HPA en chiffres CPU en direct.
-2. **Les Pods doivent déclarer `resources.requests.cpu`** : la formule divise par
-   la request. Sans request → pas de dénominateur → le HPA affiche `<unknown>`
-   indéfiniment et ne scale jamais.
+1. **metrics-server doit tourner** : il alimente le contrôleur HPA en chiffres CPU en direct.
+2. **Les Pods doivent déclarer `resources.requests.cpu`** : la formule divise par la request. Sans request, pas de dénominateur, et le HPA affiche `<unknown>` indéfiniment sans jamais scaler.
 
 > [!NOTE]
 > k3s embarque metrics-server comme composant intégré. Il **tourne déjà** dans ce
@@ -30,14 +26,14 @@ Deux conditions doivent être remplies avant que le HPA puisse fonctionner :
 Vue d'ensemble :
 
 ```text
-┌──────────── HPA ─────────────┐
-│ cible : 50% CPU              │
-│ replicas : min 1 … max 5     │
-└──────────────┬───────────────┘
-               │ scale
-               ▼
-       Deployment/web-hpa
-       (cpu request : 100m)
++-------------- HPA ---------------+
+| cible : 50% CPU                  |
+| replicas : min 1 ... max 5       |
++------------------+---------------+
+                   | scale
+                   v
+          Deployment/web-hpa
+          (cpu request : 100m)
 ```
 
 > [!IMPORTANT]
@@ -45,7 +41,13 @@ Vue d'ensemble :
 > Tu définis une utilisation cible et des bornes ; le HPA trouve le nombre
 > de replicas qui t'y maintient.
 
-À l'étape suivante tu attacheras un HPA à un Deployment pré-créé et le
-regarderas s'animer avec de vraies métriques.
+Explore ce que metrics-server voit en ce moment :
 
-**Continuer →**
+```bash
+kubectl top nodes
+kubectl top pods --all-namespaces
+```
+
+📖 Docs : [Horizontal Pod Autoscaling](https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
+
+**Passe à l'étape suivante pour mettre tout ca en pratique.**

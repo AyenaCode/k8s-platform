@@ -1,43 +1,37 @@
 ## Create a Deployment
 
-One command creates a Deployment, a ReplicaSet, and three Pods, all wired together.
+One command creates a Deployment, a ReplicaSet, and three Pods, all wired together. You need to find that command yourself: that is the whole point.
 
-### Your task
+### 🎯 Mission
 
-**1. Create the Deployment** named `web` with 3 nginx replicas:
+| Field    | Value  |
+|----------|--------|
+| Kind     | Deployment |
+| Name     | `web` |
+| Image    | `nginx` |
+| Replicas | `3` (all `Running`, READY `1/1`) |
+
+### 🔍 How to find it yourself
+
+You want to *create* something. What `kubectl` verb creates a Deployment imperatively? Start here:
 
 ```bash
-kubectl create deployment web --image=nginx --replicas=3
+kubectl create --help           # list sub-resources you can create
+kubectl create deployment --help  # read the SYNOPSIS and first examples
 ```
 
-**2. Watch the full ownership chain appear:**
+The help shows you every flag you need. Build your own line from that.
+
+After you create it, inspect the full ownership chain:
 
 ```bash
 kubectl get deploy,rs,pods
+kubectl describe deployment web
 ```
-
-What good looks like:
-
-```text
-NAME                  READY   UP-TO-DATE   AVAILABLE
-deployment.apps/web   3/3     3            3
-
-NAME                          DESIRED   CURRENT   READY
-replicaset.apps/web-74d9c     3         3         3
-
-NAME                    READY   STATUS
-pod/web-74d9c-aaaa      1/1     Running
-pod/web-74d9c-bbbb      1/1     Running
-pod/web-74d9c-cccc      1/1     Running
-```
-
-> [!NOTE]
-> Pod names follow the pattern `web-<replicaset-hash>-<random>`.
-> The Deployment created the ReplicaSet; the ReplicaSet created the Pods.
-> You'll never need to touch the ReplicaSet directly.
 
 > [!TIP]
-> **Pods still in `ContainerCreating`?** The node is pulling the `nginx` image
-> for the first time. Wait a few seconds and re-run the command: it clears on its own.
+> Pods stuck on `ContainerCreating`? The image is downloading for the first time. Wait a few seconds and check again. That is normal.
 
-When `web` shows **3/3 ready**, then hit **Verify**. ✅
+📖 Docs: [Deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
+
+When `web` shows **3/3 ready**, hit **Verify**. ✅

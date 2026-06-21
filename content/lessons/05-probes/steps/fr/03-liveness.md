@@ -1,72 +1,63 @@
 ## Déclencher un redémarrage de liveness sur un conteneur bloqué
 
 Une probe de liveness est le mécanisme d'autoréparation du cluster. Lorsqu'elle
-échoue, le kubelet **tue et redémarre** le conteneur, sans intervention humaine.
+échoue, le kubelet tue et redémarre le conteneur sans intervention humaine. C'est
+comme un chien de garde : « si l'app ne répond plus, redémarre-la. »
 
-### Ta tâche
+Ton travail est de construire un Pod qui casse délibérément sa propre vérification
+de liveness, puis de regarder Kubernetes le réparer tout seul.
 
-**1. Applique le Pod.** Il crée `/tmp/alive`, attend 15 s, supprime le fichier,
-puis se met en veille. La probe de liveness exécute `cat /tmp/alive`, et une fois
-le fichier supprimé, la probe échoue et le kubelet redémarre le conteneur :
+### 🎯 Mission
 
-```bash
-kubectl apply -f - <<'EOF'
-apiVersion: v1
-kind: Pod
-metadata:
-  name: live-demo
-spec:
-  containers:
-  - name: app
-    image: busybox:1.36
-    command: ["sh", "-c", "touch /tmp/alive; sleep 15; rm -f /tmp/alive; sleep 600"]
-    livenessProbe:
-      exec:
-        command: ["cat", "/tmp/alive"]
-      initialDelaySeconds: 5
-      periodSeconds: 5
-      failureThreshold: 1
-EOF
-```
+Crée un Pod dont la probe de liveness passe au démarrage, puis échoue d'elle-même
+après un court délai, provoquant au moins un redémarrage du conteneur.
 
-**2. Observe le Pod.** Pendant les ~15 premières secondes tout va bien. Ensuite la
-probe échoue et RESTARTS augmente :
+| Champ | Valeur |
+|---|---|
+| Nom du Pod | `live-demo` |
+| Image | `busybox:1.36` |
+| Commande du conteneur | créer un fichier, attendre ~15 s, supprimer le fichier, puis dormir |
+| Type de probe | `exec` |
+| Commande de la probe | vérifier que le fichier existe encore |
+| `initialDelaySeconds` | 5 |
+| `periodSeconds` | 5 |
+| `failureThreshold` | 1 |
+| État final | `RESTARTS >= 1` |
+
+### 🔍 Comment la trouver toi-même
+
+Lis les champs de la probe de liveness :
 
 ```bash
-kubectl get pod live-demo -w        # attends RESTARTS >= 1, puis Ctrl-C
+kubectl explain pod.spec.containers.livenessProbe --recursive
 ```
 
-Ce que tu devrais voir après le redémarrage :
+La structure est identique à `readinessProbe` ; seul le nom du champ change.
+La page de documentation montre un exemple `exec` fonctionnel ; copie la forme,
+pas le contenu.
 
-```text
-NAME        READY   STATUS    RESTARTS   AGE
-live-demo   1/1     Running   0          10s
-live-demo   0/1     Running   1          22s
-live-demo   1/1     Running   1          24s
-```
-
-**3. Confirme pourquoi** il a redémarré, consulte les événements du Pod :
+Observe le Pod pendant son exécution. Tu verras `RESTARTS` passer de `0` à `1` :
 
 ```bash
-kubectl describe pod live-demo | grep -A2 -i liveness
+kubectl get pod live-demo -w
 ```
 
-Sortie attendue :
+Après le redémarrage, vérifie pourquoi il s'est produit :
 
-```text
-Liveness probe failed: cat: can't open '/tmp/alive': No such file or directory
-Container app failed liveness probe, will be restarted
+```bash
+kubectl describe pod live-demo
 ```
 
 > [!IMPORTANT]
-> Chaque redémarrage réexécute la commande du conteneur, donc le cycle se répète,
-> exactement ce qui arriverait à une vraie application en deadlock. Une probe de
-> liveness bien calibrée signifie qu'un Pod bloqué se répare seul, sans alerte
-> d'astreinte.
+> Chaque redémarrage réexécute la commande du conteneur depuis le début, donc le
+> cycle se répète. C'est exactement ce qui arrive à une vraie application en deadlock :
+> une probe de liveness bien calibrée la fait se réparer toute seule.
 
 > [!WARNING]
 > `failureThreshold: 1` redémarre dès le premier échec. En production, utilise
 > `failureThreshold: 3` (la valeur par défaut) pour éviter les redémarrages
 > inutiles sur des incidents passagers.
 
-Puis clique sur **Vérifier**. ✅
+📖 Docs : [Configure Liveness, Readiness and Startup Probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
+
+Quand `live-demo` affiche `RESTARTS >= 1`, clique sur **Vérifier**. ✅

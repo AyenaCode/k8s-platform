@@ -106,7 +106,17 @@ export const MarkdownView = memo(function MarkdownView({ children }: { children:
     <div className="md">
       <Markdown
         remarkPlugins={[remarkGfm, remarkAlerts]}
-        components={{ code: Code, pre: ({ children }) => <>{children}</> }}
+        components={{
+          code: Code,
+          pre: ({ children }) => <>{children}</>,
+          // Doc links point to kubernetes.io: open them in a new tab so the
+          // learner never loses their place in the lesson/terminal.
+          a: ({ children, ...props }) => (
+            <a {...props} target="_blank" rel="noopener noreferrer">
+              {children}
+            </a>
+          ),
+        }}
       >
         {children}
       </Markdown>

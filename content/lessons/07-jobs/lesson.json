@@ -19,10 +19,6 @@
       "title": { "en": "Run a Job to completion", "fr": "Exécuter un Job jusqu'au bout" },
       "md": { "en": "steps/en/02-job.md", "fr": "steps/fr/02-job.md" },
       "verify": "scripts/02-verify.sh",
-      "hint": {
-        "en": "kubectl create job hello --image=busybox:1.36 -- /bin/sh -c \"echo hello; sleep 2\", then: kubectl wait --for=condition=complete job/hello",
-        "fr": "kubectl create job hello --image=busybox:1.36 -- /bin/sh -c \"echo hello; sleep 2\", puis : kubectl wait --for=condition=complete job/hello"
-      },
       "xp": 90
     },
     {
@@ -30,10 +26,6 @@
       "title": { "en": "Schedule it with a CronJob", "fr": "Le planifier avec un CronJob" },
       "md": { "en": "steps/en/03-cronjob.md", "fr": "steps/fr/03-cronjob.md" },
       "verify": "scripts/03-verify.sh",
-      "hint": {
-        "en": "Create a CronJob 'report' on schedule \"*/1 * * * *\", then trigger one run now: kubectl create job report-now --from=cronjob/report",
-        "fr": "Crée un CronJob 'report' au planning \"*/1 * * * *\", puis déclenche une exécution maintenant : kubectl create job report-now --from=cronjob/report"
-      },
       "xp": 90
     }
   ]

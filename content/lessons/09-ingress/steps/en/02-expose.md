@@ -1,42 +1,47 @@
 ## Expose the backend with a Service
 
-An Ingress routes to a **Service**, never straight to Pods. Before you can create an Ingress, you need a Service in place.
+An Ingress routes to a **Service**, never straight to Pods. Think of the Service as the internal hallway: the Ingress sends visitors to the right hallway, then the hallway distributes them to the rooms (Pods).
 
-The platform has pre-seeded a Deployment named **`site`** (nginx): click **Prepare task** if you have not already done so.
+The platform has pre-seeded a Deployment named **`site`** (nginx). Click **Prepare task** if you have not done so yet.
 
-### Your task
+### 🎯 Mission
 
-**1. Confirm the Deployment is ready.**
+| Field | Value |
+|-------|-------|
+| Kind | Service (ClusterIP) |
+| Name | `site-svc` |
+| Targets | Deployment `site` |
+| Port | `80` |
+| At least one endpoint | yes |
+
+### 🔍 How to find it yourself
+
+First, check what is already there:
 
 ```bash
 kubectl get deploy site
+kubectl get svc,endpoints
 ```
 
-**2. Expose it as a ClusterIP Service named `site-svc` on port 80.**
+You need to expose the Deployment. Which `kubectl` verb creates a Service from a Deployment? Ask:
 
 ```bash
-kubectl expose deployment site --name=site-svc --port=80
+kubectl expose --help
 ```
 
-**3. Verify the Service has endpoints** (at least one ready Pod behind it).
+Read the SYNOPSIS and examples. You want to expose a **deployment**, name the Service `site-svc`, and bind it on port `80`. Build your own command from what you read.
+
+After you create the Service, verify it has live endpoints:
 
 ```bash
 kubectl get endpoints site-svc
 ```
 
-What good looks like:
-
-```text
-NAME       ENDPOINTS         AGE
-site-svc   10.42.x.y:80      5s
-```
-
-An endpoint is a ready Pod the Service can forward to. If this column shows `<none>`, the selector matched no running Pod: wait a few seconds and retry.
+The `ENDPOINTS` column should show an IP, not `<none>`. If it shows `<none>`, wait a few seconds for the Pod to become Ready and try again.
 
 > [!NOTE]
-> A ClusterIP Service is reachable **only inside** the cluster, which is exactly what you want for an Ingress backend. The Ingress (next step) becomes the public front door.
+> A ClusterIP Service is reachable only inside the cluster. That is exactly what you want: the Ingress (next step) becomes the public face, and it talks to the Service internally.
 
-> [!WARNING]
-> If you already ran `kubectl expose` and see `Error: service "site-svc" already exists`, the Service is there: skip step 2 and continue to step 3.
+📖 Docs: [Service](https://kubernetes.io/docs/concepts/services-networking/service/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
 
-When `site-svc` exists on port 80 with at least one endpoint, then hit **Verify**. ✅
+When `site-svc` exists on port 80 with at least one endpoint, hit **Verify**. ✅

@@ -23,7 +23,7 @@ fi
 content=$(kubectl exec writer -- cat /data/hello.txt 2>/dev/null | tr -d '\r\n')
 if [ "$content" != "persisted" ]; then
   echo "✗ /data/hello.txt does not read 'persisted' (got '${content:-empty}')."
-  echo "  Write it: kubectl exec writer -- sh -c \"echo persisted > /data/hello.txt\""
+  echo "  Use kubectl exec to write the expected string into /data/hello.txt inside the writer Pod."
   exit 1
 fi
 

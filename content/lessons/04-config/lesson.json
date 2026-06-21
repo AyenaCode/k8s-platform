@@ -19,10 +19,6 @@
       "title": { "en": "Create a ConfigMap and inject as env vars", "fr": "Créer une ConfigMap et l'injecter en variables d'env" },
       "md": { "en": "steps/en/02-configmap.md", "fr": "steps/fr/02-configmap.md" },
       "verify": "scripts/02-verify.sh",
-      "hint": {
-        "en": "kubectl create configmap app-config --from-literal=LOG_LEVEL=debug --from-literal=GREETING=hello, then run a Pod that uses envFrom.",
-        "fr": "kubectl create configmap app-config --from-literal=LOG_LEVEL=debug --from-literal=GREETING=hello, puis lance un Pod qui utilise envFrom."
-      },
       "xp": 80
     },
     {
@@ -30,10 +26,6 @@
       "title": { "en": "Create a Secret and mount as a file", "fr": "Créer un Secret et le monter en fichier" },
       "md": { "en": "steps/en/03-secret.md", "fr": "steps/fr/03-secret.md" },
       "verify": "scripts/03-verify.sh",
-      "hint": {
-        "en": "kubectl create secret generic app-secret --from-literal=API_KEY=s3cr3t, then mount it at /etc/secret in a Pod.",
-        "fr": "kubectl create secret generic app-secret --from-literal=API_KEY=s3cr3t, puis monte-le sur /etc/secret dans un Pod."
-      },
       "xp": 90
     },
     {

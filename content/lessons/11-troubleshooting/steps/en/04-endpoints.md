@@ -1,99 +1,56 @@
-## Diagnose and fix a Service with no endpoints
+## Case 3: Service has no endpoints
 
-This one is subtle: nothing crashes. The Pod is healthy, the Service exists, yet traffic goes nowhere. This is the most common "it works locally" production mystery.
+This one is the trickiest. Nothing is crashing. The Pod is healthy, the Service exists. But traffic goes nowhere. This is a silent failure: no error, no log, just nothing. Your job: find why the Service is not reaching the Pod and fix it.
 
-### Diagnose
+### 🎯 Mission
 
-**1. Spot the symptom**: the Pod looks fine:
+| Field | Value |
+|-------|-------|
+| Deployment | `api` |
+| Service | `api` |
+| Target state | Service `api` has at least one endpoint |
+
+The Pod is already `Running`. Get the Service to route traffic to it.
+
+### 🔍 How to investigate
+
+Start by checking whether the Pod looks healthy:
 
 ```bash
 kubectl get pods -l app=api
 ```
 
-```text
-NAME                   READY   STATUS    RESTARTS   AGE
-api-7c9f6b8c5-m3xpw   1/1     Running   0          45s
-```
-
-**2. Check the Service**: it has a ClusterIP but something is wrong:
+Then check what the Service is actually routing to:
 
 ```bash
-kubectl get svc api
 kubectl get endpoints api
 ```
 
-```text
-NAME   TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
-api    ClusterIP   10.96.45.102   <none>        80/TCP    45s
+If you see `<none>`, the Service has no Pods to send traffic to. That is your smoking gun.
 
-NAME   ENDPOINTS   AGE
-api    <none>      45s
-```
-
-`<none>`: that is the smoking gun. A Service with no endpoints forwards traffic to nothing.
-
-**3. Compare the selector to the Pod labels**: a Service finds Pods by label selector:
+Now compare two things side by side. First, what the Service is looking for:
 
 ```bash
-kubectl get svc api -o jsonpath='{.spec.selector}{"\n"}'
+kubectl get svc api -o yaml
 ```
 
-```text
-{"app":"api-v2"}
-```
+Look at the `spec.selector` block.
+
+Then, what labels the Pods actually have:
 
 ```bash
 kubectl get pods -l app=api --show-labels
 ```
 
-```text
-NAME                   LABELS
-api-7c9f6b8c5-m3xpw   app=api, pod-template-hash=7c9f6b8c5
-```
-
-`app=api-v2` (Service) ≠ `app=api` (Pod). The selector points at a label no Pod has, so the Service is an empty shell.
-
-> [!WARNING]
-> This mismatch is the **#1 cause** of "my Service returns nothing" in production. A selector typo, a forgotten version suffix, or a copy-paste from a different Deployment, all of which produce the same silent failure: the Pod is healthy but unreachable.
-
-**4. Confirm with events**: the Service itself produces no event for this, so compare the raw objects:
+Compare them carefully. A Service finds Pods by matching its selector to Pod labels. If they do not match exactly, the Service routes to nothing.
 
 ```bash
-kubectl get svc api -o yaml | grep -A3 selector
-kubectl get deploy api -o yaml | grep -A3 matchLabels
-```
-
-### Your task
-
-**1. Re-apply the Service** with the correct selector, keeping the same Service name:
-
-```bash
-kubectl apply -f - <<'EOF'
-apiVersion: v1
-kind: Service
-metadata:
-  name: api
-spec:
-  selector:
-    app: api          # matches the Pod labels
-  ports:
-  - port: 80
-    targetPort: 80
-EOF
-```
-
-**2. Confirm the endpoints now show a Pod IP:**
-
-```bash
-kubectl get endpoints api
-```
-
-```text
-NAME   ENDPOINTS         AGE
-api    10.42.0.12:80     45s
+kubectl get events --sort-by=.lastTimestamp
 ```
 
 > [!TIP]
-> Endpoints appear within a second of the selector matching a Ready Pod. If you still see `<none>`, double-check `kubectl get pods -l app=api`: the Pod must be `1/1 Running`.
+> Services do not emit events when their selector matches nothing. That is why this failure is silent. The only clue is comparing `kubectl get endpoints` (shows `<none>`) against the selector and the Pod labels yourself.
 
-Then hit **Verify**. ✅
+📖 Docs: [Debug Running Pods](https://kubernetes.io/docs/tasks/debug/debug-application/debug-running-pod/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
+
+When `kubectl get endpoints api` shows a Pod IP instead of `<none>`, hit **Verify**. ✅

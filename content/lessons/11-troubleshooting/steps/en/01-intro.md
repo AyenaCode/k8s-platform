@@ -1,28 +1,27 @@
 ## Master the debugging loop
 
-Every production incident starts with the same three moves, from the outside in.
+Think of yourself as a detective at a crime scene. You do not touch anything until you have read all the clues. In Kubernetes, the clues are always in three places.
 
 ```bash
-kubectl get pods              # 1. Spot the STATUS (the headline symptom)
-kubectl describe pod <name>   # 2. Read the Events section (the cause)
-kubectl logs <name>           # 3. Hear what the app said (--previous after a crash)
+kubectl get pods                      # 1. Spot the STATUS (the headline symptom)
+kubectl describe pod <name>           # 2. Read the Events section at the bottom
+kubectl logs <name>                   # 3. Hear what the app said (add --previous after a crash)
 ```
 
-The **STATUS** column tells you which category of problem you are facing before you read a single log line:
+The **STATUS** column tells you which category of problem you are facing before you open a single log line:
 
-| STATUS | What it means |
-|---|---|
-| `ImagePullBackOff` / `ErrImagePull` | Bad image name, wrong tag, or missing registry credentials |
-| `CrashLoopBackOff` | Container starts, exits immediately: bad command, missing dep, failed config |
-| `OOMKilled` | Container hit its memory limit and was killed |
-| `CreateContainerConfigError` | References a ConfigMap / Secret key that does not exist |
-| `Pending` | Cannot be scheduled: no node has enough CPU/memory |
-| `Running` but `0/1` ready | Readiness probe failing, or, for a Service, no endpoints |
+| STATUS | What it signals |
+|--------|-----------------|
+| `ImagePullBackOff` / `ErrImagePull` | Something is wrong with the image reference |
+| `CrashLoopBackOff` | The container starts but exits right away |
+| `OOMKilled` | The container exceeded its memory limit |
+| `CreateContainerConfigError` | A ConfigMap or Secret key it needs does not exist |
+| `Pending` | No node accepted the Pod yet |
+| `Running` but `0/1` Ready | The container is up, but something is still not right |
 
 > [!IMPORTANT]
-> `get` surfaces the symptom. `describe` gives the cause (scroll to **Events** at the bottom). `logs` tells the app's own story. Always run them in that order: don't skip ahead.
+> `get` shows the symptom. `describe` shows the clues (scroll to **Events**). `logs` shows the app's own voice. Always run them in that order. Do not skip steps.
 
-This is the capstone. The platform will **break three workloads on purpose**. For each one:
-click **Prepare task** → diagnose with the three commands → fix it → click **Verify**.
+The platform will break three workloads on purpose. For each one: click **Prepare task**, read the clues, figure out what is wrong, fix it, then click **Verify**.
 
 **Continue →**

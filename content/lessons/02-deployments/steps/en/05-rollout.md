@@ -1,48 +1,43 @@
 ## Roll Out a New Image and Roll Back
 
-Ship a new container image with zero downtime. Kubernetes replaces Pods a few at a time (new ones start before old ones stop), so traffic never drops.
+Updating a running app without downtime is called a rolling update. Kubernetes starts new Pods with the new image before stopping old ones, so traffic never drops. You need to find the right command yourself.
 
-### Your task
+### 🎯 Mission
 
-**1. Update the `nginx` container to a pinned version:**
+| Field      | Value        |
+|------------|--------------|
+| Deployment | `web`        |
+| New image  | `nginx:1.27` |
+| Rollout    | fully finished (all replicas ready) |
+
+### 🔍 How to find it yourself
+
+You need to update the image on a running Deployment. There are two ways to discover the right command:
 
 ```bash
-kubectl set image deployment/web nginx=nginx:1.27
+kubectl set --help          # list what "set" can modify
+kubectl set image --help    # read the SYNOPSIS: resource, container=image
 ```
 
-> [!NOTE]
-> The container name `nginx` (before the `=`) must match what is in the Deployment's
-> pod template. It was set when you ran `create deployment --image=nginx`.
+The SYNOPSIS shows you the shape: `kubectl set image <resource> <container>=<new-image>`. To find the container name used inside `web`:
 
-**2. Watch the rollout progress Pod by Pod:**
+```bash
+kubectl get deployment web -o yaml | grep -A2 "containers:"
+```
+
+After you trigger the update, watch it progress:
 
 ```bash
 kubectl rollout status deployment/web
-```
-
-What good looks like:
-
-```text
-Waiting for deployment "web" rollout to finish: 2 out of 5 new replicas updated...
-Waiting for deployment "web" rollout to finish: 4 out of 5 new replicas updated...
-deployment "web" successfully rolled out
-```
-
-**3. Inspect history and practice rollback:**
-
-```bash
 kubectl rollout history deployment/web
-kubectl rollout undo deployment/web      # returns to the previous image
 ```
 
 > [!TIP]
-> Under the hood, `set image` creates a **new ReplicaSet** running `nginx:1.27`
-> and scales it up while the old ReplicaSet scales down. `undo` reverses that:
-> old ReplicaSet scales back up, new one scales to zero.
-> `maxSurge` and `maxUnavailable` (in the Deployment spec) control the pace.
+> Want to practice rollback? After the rollout finishes, run `kubectl rollout undo deployment/web` to flip back. Then check `rollout history` again to see both revisions.
 
-> [!WARNING]
-> `--record` (e.g., `kubectl apply --record`) is **deprecated**: do not use it.
-> Use `kubectl annotate` or rely on `rollout history` without it.
+> [!NOTE]
+> Under the hood, `set image` creates a new ReplicaSet for the new version and scales it up while the old one scales down. `maxSurge` and `maxUnavailable` in `deployment.spec.strategy.rollingUpdate` control the pace. Try `kubectl explain deployment.spec.strategy.rollingUpdate`.
 
-Set the image to **`nginx:1.27`**, wait for the rollout to finish, then hit **Verify**. ✅
+📖 Docs: [Deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
+
+When the rollout is **complete** with image `nginx:1.27`, hit **Verify**. ✅

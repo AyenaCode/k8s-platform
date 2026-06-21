@@ -1,30 +1,17 @@
-## base64 ≠ chiffrement, connais la réalité
+## base64 n'est pas du chiffrement
 
-Tout ingénieur qui touche à Kubernetes doit comprendre ceci : les Secrets ne sont **pas chiffrés au repos par défaut**. Ils sont encodés en base64 : un format de texte réversible que n'importe qui peut décoder en une commande.
+Tout ingénieur qui touche à Kubernetes doit comprendre ceci : les Secrets ne sont **pas chiffrés au repos par défaut**. Ils sont encodés en base64 : un format réversible que n'importe qui peut décoder en une commande.
 
-Vérifie-le toi-même :
+Vérifie-le toi-même sur ce que tu viens de créer :
 
 ```bash
 kubectl get secret app-secret -o jsonpath='{.data.API_KEY}'
 ```
 
-```text
-czNjcjN0
-```
-
-Décode-le :
-
-```bash
-kubectl get secret app-secret -o jsonpath='{.data.API_KEY}' | base64 -d
-```
-
-```text
-s3cr3t
-```
+Passe ce résultat dans `base64 -d`. Tu obtiens la valeur en clair immédiatement.
 
 > [!WARNING]
-> `czNjcjN0` n'est pas un texte chiffré. C'est simplement la chaîne `s3cr3t` avec un autre alphabet.
-> Tout utilisateur pouvant exécuter `kubectl get secret` lit tes identifiants instantanément.
+> base64 n'est pas un texte chiffré. C'est un encodage de transport. Tout utilisateur qui peut exécuter `kubectl get secret` lit tes identifiants instantanément.
 
 ### Ce qui différencie vraiment un Secret d'une ConfigMap
 
@@ -32,11 +19,11 @@ s3cr3t
 |---|---|---|
 | Affiché par `kubectl describe` | Oui (en clair) | Non (masqué) |
 | Ressource RBAC distincte | Non | Oui : verrouille l'accès |
-| Livraison par le kubelet | Tous les nœuds | Uniquement les nœuds exécutant un Pod consommateur |
+| Livraison par le kubelet | Tous les noeuds | Uniquement les noeuds exécutant un Pod consommateur |
 | Chiffrement au repos | Non | Optionnel : active `EncryptionConfiguration` |
 
 > [!IMPORTANT]
-> En production : active le **chiffrement au repos** (`EncryptionConfiguration` dans l'API server), utilise un gestionnaire de secrets (Vault, AWS Secrets Manager, Sealed Secrets) et applique un RBAC strict. Le base64 est un encodage de transport, pas un contrôle de sécurité.
+> En production : active le chiffrement au repos (`EncryptionConfiguration` dans l'API server), utilise un gestionnaire de secrets (Vault, AWS Secrets Manager, Sealed Secrets) et applique un RBAC strict. Le base64 est un encodage de transport, pas un contrôle de sécurité.
 
 ### Méthodes d'injection, référence rapide
 

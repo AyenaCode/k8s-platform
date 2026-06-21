@@ -19,10 +19,6 @@
       "title": { "en": "Gate traffic with a readiness probe", "fr": "Contrôler le trafic avec une probe de readiness" },
       "md": { "en": "steps/en/02-readiness.md", "fr": "steps/fr/02-readiness.md" },
       "verify": "scripts/02-verify.sh",
-      "hint": {
-        "en": "The readiness probe runs `cat /tmp/healthy`. Make the Pod ready: kubectl exec ready-demo -- touch /tmp/healthy",
-        "fr": "La sonde readiness exécute `cat /tmp/healthy`. Rends le Pod ready : kubectl exec ready-demo -- touch /tmp/healthy"
-      },
       "xp": 90
     },
     {
@@ -30,10 +26,6 @@
       "title": { "en": "Trigger a liveness restart on a stuck container", "fr": "Déclencher un redémarrage de liveness sur un conteneur bloqué" },
       "md": { "en": "steps/en/03-liveness.md", "fr": "steps/fr/03-liveness.md" },
       "verify": "scripts/03-verify.sh",
-      "hint": {
-        "en": "Apply the live-demo Pod, then watch `kubectl get pod live-demo -w`. The liveness probe fails after ~15s and the container restarts, RESTARTS climbs above 0.",
-        "fr": "Applique le Pod live-demo, puis observe `kubectl get pod live-demo -w`. La sonde liveness échoue après ~15s et le conteneur redémarre, RESTARTS dépasse 0."
-      },
       "xp": 90
     }
   ]

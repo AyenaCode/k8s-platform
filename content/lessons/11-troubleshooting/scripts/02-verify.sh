@@ -17,5 +17,5 @@ if [ "${avail:-0}" -ge 1 ] 2>/dev/null; then
 fi
 
 echo "✗ 'broken-img' still has no available replicas (image='$img')."
-echo "  The tag must be pullable: re-apply with e.g. image: nginx:1.27."
+echo "  Run: kubectl describe pod -l app=broken-img   and read the Events section for what failed."
 exit 1

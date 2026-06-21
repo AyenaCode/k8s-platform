@@ -17,5 +17,5 @@ if [ "$last" = "OOMKilled" ] || [ "$cur" = "OOMKilled" ]; then
 fi
 
 echo "✗ hog has not been OOMKilled yet (lastState reason='${last:-none}')."
-echo "  Give it a few seconds to allocate past 20Mi, then verify again."
+echo "  Is the pod running? Check: kubectl get pod hog and kubectl describe pod hog"
 exit 1

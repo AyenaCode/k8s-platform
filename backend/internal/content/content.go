@@ -56,7 +56,6 @@ type stepManifest struct {
 	Md     map[string]string `json:"md"`     // lang -> path relative to the lesson dir
 	Setup  string            `json:"setup"`  // optional script path, relative to lesson dir
 	Verify string            `json:"verify"` // optional script path, relative to lesson dir
-	Hint   i18n              `json:"hint"`
 	XP     int               `json:"xp"`
 }
 
@@ -78,7 +77,6 @@ type Step struct {
 	ID        string `json:"id"`
 	Title     string `json:"title"`
 	Markdown  string `json:"markdown,omitempty"`
-	Hint      string `json:"hint,omitempty"`
 	HasSetup  bool   `json:"hasSetup"`
 	HasVerify bool   `json:"hasVerify"`
 	XP        int    `json:"xp"`
@@ -193,7 +191,6 @@ func (r *Repo) Lesson(slug, lang string) (Lesson, bool) {
 			ID:        s.ID,
 			Title:     s.Title.get(lang),
 			Markdown:  r.stepMarkdown(slug, s, lang),
-			Hint:      s.Hint.get(lang),
 			HasSetup:  s.Setup != "",
 			HasVerify: s.Verify != "",
 			XP:        s.XP,

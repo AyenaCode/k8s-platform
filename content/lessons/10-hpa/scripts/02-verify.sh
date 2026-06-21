@@ -6,8 +6,7 @@ set -uo pipefail
 
 target=$(kubectl get hpa web-hpa -o jsonpath='{.spec.scaleTargetRef.name}' 2>/dev/null)
 if [ -z "$target" ]; then
-  echo "✗ No HPA 'web-hpa'. Create it:"
-  echo "  kubectl autoscale deployment web-hpa --cpu=50% --min=1 --max=5"
+  echo "✗ No HPA named 'web-hpa' found. Try: kubectl autoscale --help to see the right flags, then create one targeting the web-hpa Deployment."
   exit 1
 fi
 if [ "$target" != "web-hpa" ]; then

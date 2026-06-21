@@ -1,89 +1,47 @@
-## Diagnose and fix an ImagePullBackOff
+## Case 1: ImagePullBackOff
 
-The platform just deployed `broken-img` with a tag that does not exist. Nothing will run until you fix the image.
+A Deployment called `broken-img` is stuck. The Pod is not running. The container never even started. Your job: read the clues, find out what is wrong with the image, and make it healthy.
 
-### Diagnose
+### 🎯 Mission
 
-**1. Spot the symptom**: scan the STATUS column:
+| Field | Value |
+|-------|-------|
+| Deployment | `broken-img` |
+| Target state | `Running` (READY `1/1`) |
+
+The Pod is failing to start. Kubernetes keeps retrying with longer and longer waits. Find out why, fix it, and get one available replica.
+
+### 🔍 How to investigate
+
+Start with the status column, then go deeper:
 
 ```bash
 kubectl get pods
 ```
 
-```text
-NAME                          READY   STATUS             RESTARTS   AGE
-broken-img-7d9f6b8c5-xk2pq   0/1     ImagePullBackOff   0          30s
-```
-
-`ImagePullBackOff`: the kubelet tried to pull the image, failed, and is backing off (waiting longer each retry).
-
-**2. Read the Events**: find the exact reason:
+Look at the STATUS. Then get the full story:
 
 ```bash
 kubectl describe pod -l app=broken-img
 ```
 
-Scroll to the **Events** section at the bottom:
-
-```text
-Warning  Failed   ...  Failed to pull image "nginx:doesnotexist99999": ...
-Warning  Failed   ...  Error: ErrImagePull
-Warning  BackOff  ...  Back-off pulling image "nginx:doesnotexist99999"
-```
-
-Tag `doesnotexist99999` is not a real nginx tag. Pull fails. Kubernetes backs off and retries, forever, until you fix it.
-
-> [!NOTE]
-> The same symptom appears for a typo in the image name, a private registry with missing credentials, or a wrong digest. The **Events** message tells you which one.
-
-**3. Check logs**: nothing useful yet (the container never started), but worth confirming:
+Scroll to the **Events** section at the bottom. The warning lines there name exactly what failed and why.
 
 ```bash
 kubectl logs -l app=broken-img
 ```
 
-```text
-Error from server (BadRequest): container "app" in pod "..." is waiting to start: trying and failing to pull image
-```
-
-### Your task
-
-**1. Re-apply the Deployment** with a valid image tag, keeping the same Deployment name:
+Not much here (the container never started), but it confirms the container state.
 
 ```bash
-kubectl apply -f - <<'EOF'
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: broken-img
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: broken-img
-  template:
-    metadata:
-      labels:
-        app: broken-img
-    spec:
-      containers:
-      - name: app
-        image: nginx:1.27        # valid tag: this one will pull
-EOF
+kubectl get events --sort-by=.lastTimestamp
 ```
 
-**2. Watch the Pod recover:**
-
-```bash
-kubectl get pods -l app=broken-img -w
-```
-
-```text
-NAME                          READY   STATUS    RESTARTS   AGE
-broken-img-6c8d7f9b4-p9mkx   1/1     Running   0          12s
-```
+This gives you a timeline of everything that happened across the namespace.
 
 > [!TIP]
-> Still seeing `ImagePullBackOff` right after applying? Kubernetes is still in the back-off window. Give it up to 5 minutes: the retry interval backs off to 5 min max. Press Ctrl-C and re-run `kubectl get pods` to check again.
+> In the Events section of `describe`, look at the `Reason` column and the `Message` column together. The message tells you the exact image reference Kubernetes tried to pull.
 
-Then hit **Verify**. ✅
+📖 Docs: [Debug Running Pods](https://kubernetes.io/docs/tasks/debug/debug-application/debug-running-pod/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
+
+When `broken-img` is **Running** with `1/1` ready, hit **Verify**. ✅

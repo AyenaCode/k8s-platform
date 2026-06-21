@@ -1,85 +1,49 @@
 ## Déclencher un OOMKilled
 
-Déploie un conteneur avec une limite mémoire de **20Mi**, puis fais-lui allouer
-de la mémoire sans limite. `tail /dev/zero` lit un flux infini d'octets nuls en
-mémoire : l'OOM-killer du noyau le termine dès qu'il dépasse la limite.
+Quand un conteneur consomme plus de mémoire que sa limite le permet, l'OOM-killer du noyau Linux lui envoie un SIGKILL (code 137). Kubernetes appelle cet état **OOMKilled**. C'est la première cause de redémarrages en boucle d'un conteneur "en bonne santé" en production.
 
-### Ta tâche
+Tu vas le provoquer exprès pour reconnaître les signaux.
 
-**1. Applique le Pod hog :**
+### 🎯 Mission
 
-```bash
-kubectl apply -f - <<'EOF'
-apiVersion: v1
-kind: Pod
-metadata:
-  name: hog
-spec:
-  containers:
-  - name: app
-    image: busybox:1.36
-    command: ["sh", "-c", "tail /dev/zero"]
-    resources:
-      requests: { memory: "10Mi" }
-      limits:   { memory: "20Mi" }
-EOF
-```
+| Champ | Valeur |
+|-------|--------|
+| Kind | Pod |
+| Name | `hog` |
+| Image | `busybox:1.36` |
+| Command | `sh -c "tail /dev/zero"` (alloue de la mémoire sans limite) |
+| memory request | `10Mi` |
+| memory limit | `20Mi` |
+| Résultat attendu | Le Pod est OOMKilled en quelques secondes |
 
-**2. Observe le STATUS basculer**, en quelques secondes il dépasse 20Mi et le
-noyau le tue :
+### 🔍 Comment la trouver toi-même
+
+Consulte les champs `command` et `resources.limits` :
 
 ```bash
-kubectl get pod hog -w        # Ctrl-C dès que tu vois OOMKilled
+kubectl explain pod.spec.containers.command
+kubectl explain pod.spec.containers.resources.limits
 ```
 
-Ce que « bon » donne :
+Une fois le Pod démarré, observe-le basculer :
 
-```text
-NAME   READY   STATUS       RESTARTS   AGE
-hog    0/1     OOMKilled    0          4s
-hog    0/1     CrashLoopBackOff   1   8s
+```bash
+kubectl get pod hog -w
 ```
 
-> [!NOTE]
-> Le champ `STATUS` est transitoire : le kubelet redémarre le conteneur et la valeur
-> change. La preuve **fiable** est l'**état de terminaison du dernier conteneur**,
-> qui persiste entre les redémarrages.
-
-**3. Confirme la raison OOMKilled :**
+La colonne STATUS va flasher `OOMKilled`, puis `CrashLoopBackOff`. La preuve fiable est l'**état de terminaison du dernier conteneur**, qui persiste entre les redémarrages :
 
 ```bash
 kubectl get pod hog -o jsonpath='{.status.containerStatuses[0].lastState.terminated.reason}{"\n"}'
-```
-
-Ce que « bon » donne :
-
-```text
-OOMKilled
-```
-
-**4. Inspecte l'état de terminaison complet :**
-
-```bash
 kubectl describe pod hog | grep -A3 "Last State"
 ```
 
-Ce que « bon » donne :
-
-```text
-Last State:  Terminated
-  Reason:    OOMKilled
-  Exit Code: 137
-```
-
 > [!IMPORTANT]
-> Le code de sortie **137** = tué par le signal 9 (SIGKILL) de l'OOM-killer du
-> noyau. C'est la cause n°1 pour laquelle un conteneur « normal » ne cesse de
-> redémarrer en production : sa limite mémoire est trop basse. Augmente la limite
-> ou corrige la fuite.
+> Le code de sortie **137** signifie tué par SIGKILL de l'OOM-killer. `CrashLoopBackOff` seul ne dit pas pourquoi : lis toujours `lastState.terminated.reason` et le code de sortie.
 
 > [!WARNING]
-> `CrashLoopBackOff` ne signifie **pas** forcément OOMKilled : cela indique
-> seulement que le conteneur plante en boucle. Lis toujours
-> `lastState.terminated.reason` et le code de sortie pour connaître la vraie cause.
+> `CrashLoopBackOff` n'est pas toujours un OOMKill. Cela signifie seulement que le conteneur plante en boucle. La cause peut être n'importe quoi : mauvaise config, crash applicatif, ou limite mémoire trop basse.
 
-Puis clique sur **Vérifier**. ✅
+📖 Docs: [Resource Management for Pods and Containers](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) · [Pod QoS Classes](https://kubernetes.io/docs/concepts/workloads/pods/pod-qos/)
+
+Une fois `hog` OOMKilled au moins une fois, clique sur **Vérifier**. ✅

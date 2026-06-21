@@ -1,30 +1,17 @@
-## base64 ≠ encryption, know the truth
+## base64 is not encryption
 
-Every engineer who touches Kubernetes must understand this: Secrets are **not encrypted at rest by default**. They are base64-encoded: a reversible text format anyone can decode in one command.
+Every engineer who touches Kubernetes must understand this: Secrets are **not encrypted at rest by default**. They are base64-encoded: a reversible format anyone can decode in one command.
 
-Prove it yourself:
+Confirm it yourself on what you just created:
 
 ```bash
 kubectl get secret app-secret -o jsonpath='{.data.API_KEY}'
 ```
 
-```text
-czNjcjN0
-```
-
-Decode it:
-
-```bash
-kubectl get secret app-secret -o jsonpath='{.data.API_KEY}' | base64 -d
-```
-
-```text
-s3cr3t
-```
+Pipe that output through `base64 -d`. You get back the plain value immediately.
 
 > [!WARNING]
-> `czNjcjN0` is not ciphertext. It is the plain string `s3cr3t` with a different alphabet.
-> Any user who can run `kubectl get secret` reads your credentials instantly.
+> base64 is not ciphertext. It is a transport encoding. Any user who can run `kubectl get secret` reads your credentials instantly.
 
 ### What actually makes a Secret safer than a ConfigMap
 
@@ -36,7 +23,7 @@ s3cr3t
 | Encrypted at rest | No | Optional: enable `EncryptionConfiguration` |
 
 > [!IMPORTANT]
-> In production: enable **encryption at rest** (`EncryptionConfiguration` in the API server), use a secrets manager (Vault, AWS Secrets Manager, Sealed Secrets), and apply tight RBAC. base64 is a transport encoding, not a security control.
+> In production: enable encryption at rest (`EncryptionConfiguration` in the API server), use a secrets manager (Vault, AWS Secrets Manager, Sealed Secrets), and apply tight RBAC. base64 is a transport encoding, not a security control.
 
 ### Injection methods, quick reference
 
@@ -45,7 +32,7 @@ ConfigMap / Secret → Pod
 
   envFrom      all keys  → env vars
   valueFrom    one key   → one var
-  volume       all keys  → files  (updates)
+  volume       all keys  → files  (auto-updates)
   + subPath    one file  (no auto-update)
 ```
 

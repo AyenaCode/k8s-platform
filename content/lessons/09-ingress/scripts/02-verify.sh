@@ -4,7 +4,7 @@ set -uo pipefail
 
 port=$(kubectl get svc site-svc -o jsonpath='{.spec.ports[0].port}' 2>/dev/null)
 if [ -z "$port" ]; then
-  echo "✗ No Service 'site-svc'. Run: kubectl expose deployment site --name=site-svc --port=80"
+  echo "✗ No Service 'site-svc' found. Check the step instructions: you need to expose the 'site' Deployment as a ClusterIP Service named 'site-svc' on port 80."
   exit 1
 fi
 if [ "$port" != "80" ]; then

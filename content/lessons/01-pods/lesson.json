@@ -19,10 +19,6 @@
       "title": { "en": "Launch your first Pod", "fr": "Lance ton premier Pod" },
       "md": { "en": "steps/en/02-create.md", "fr": "steps/fr/02-create.md" },
       "verify": "scripts/02-verify.sh",
-      "hint": {
-        "en": "Run: kubectl run web --image=nginx, then wait until it is Running with `kubectl get pods -w`.",
-        "fr": "Lance : kubectl run web --image=nginx, puis attends l'état Running avec `kubectl get pods -w`."
-      },
       "xp": 60
     },
     {
@@ -30,10 +26,6 @@
       "title": { "en": "Inspect, logs & exec", "fr": "Inspecter, logs & exec" },
       "md": { "en": "steps/en/03-inspect.md", "fr": "steps/fr/03-inspect.md" },
       "verify": "scripts/03-verify.sh",
-      "hint": {
-        "en": "Add a label so the platform can detect your work: kubectl label pod web seen=true",
-        "fr": "Ajoute un label pour que la plateforme détecte ton travail : kubectl label pod web seen=true"
-      },
       "xp": 60
     }
   ]

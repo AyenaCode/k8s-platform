@@ -1,44 +1,39 @@
-## Comprendre les charges à exécution unique
+## Charges à exécution unique
 
-Les Deployments font tourner des processus **indéfiniment** : serveurs web, APIs.
-Mais une grande partie du travail réel est à l'opposé : effectuer une tâche
-**une seule fois**, puis s'arrêter. Une migration de base de données, une
-sauvegarde, un rapport nocturne, une importation par lots.
+Un Deployment, c'est comme une lumière qu'on laisse allumée en permanence : il redémarre tant que le cluster tourne. Un Job, c'est différent. Imagine une corvée : fais cette chose jusqu'au bout, puis arrête-toi.
 
-Kubernetes propose deux objets pour cela :
+Trois idées à retenir :
 
-- **Job** : exécute un ou plusieurs Pods jusqu'à ce qu'ils **réussissent**
-  (code de sortie 0), puis s'arrête. En cas d'échec, le Job relance le Pod
-  (jusqu'à `backoffLimit`).
-- **CronJob** : crée un Job selon un **calendrier**, en syntaxe cron à cinq
-  champs. Il possède un `jobTemplate` qui définit chaque Job déclenché.
-
-La différence essentielle avec un Deployment : un Pod de Job doit utiliser
-`restartPolicy: Never` ou `OnFailure`, **jamais** `Always`. Une tâche qui
-« redémarre toujours » ne se termine jamais.
+- Un **Job** exécute un ou plusieurs Pods jusqu'à ce qu'ils sortent avec le code 0, puis se marque terminé. Si un Pod plante, le Job le relance (jusqu'à `backoffLimit` fois).
+- Un **CronJob** est juste un minuteur qui crée un nouveau Job selon un planning. Il n'exécute rien lui-même ; il fabrique des Jobs à partir d'un `jobTemplate`.
+- La contrainte clé : un Pod de Job doit utiliser `restartPolicy: Never` ou `OnFailure`. Jamais `Always`. Une tâche qui redémarre toujours ne se termine jamais.
 
 > [!NOTE]
-> Un Job suit le *succès*, pas le *temps de fonctionnement*. Il est terminé
-> quand le nombre requis de Pods sort avec le code 0 (`completions`, défaut 1).
-> Un CronJob n'est qu'une fabrique de Jobs sur minuteur, il n'exécute rien
-> lui-même.
+> Un Job suit le *succès*, pas le *temps de fonctionnement*. Il est terminé quand le bon nombre de Pods sort avec le code 0 (`completions`, défaut 1).
 
-### La syntaxe cron en un coup d'œil
+### La syntaxe cron en un coup d'oeil
 
 ```text
-┬ ┬ ┬ ┬ ┬
-│ │ │ │ └ jour semaine (0-6, dim=0)
-│ │ │ └── mois        (1-12)
-│ │ └──── jour mois   (1-31)
-│ └────── heure       (0-23)
-└──────── minute      (0-59)
+.----------- minute (0-59)
+|  .-------- heure  (0-23)
+|  |  .----- jour du mois (1-31)
+|  |  |  .-- mois (1-12)
+|  |  |  |  . jour de la semaine (0-6, dim=0)
+|  |  |  |  |
+*  *  *  *  *
 
 */1 * * * *   toutes les minutes
-0 2 * * *     tous les jours à 02h00
-0 0 * * 0     dimanches à 00h00
+0 2 * * *     tous les jours a 02:00
+0 0 * * 0     tous les dimanches a 00:00
 ```
 
-Dans cette leçon, tu exécuteras un Job jusqu'à sa complétion, puis tu
-l'encapsuleras dans un CronJob et déclencheras une exécution à la demande.
+Explore l'API avant de passer a la suite :
 
-**Continuer →**
+```bash
+kubectl explain job.spec --recursive
+kubectl explain cronjob.spec.jobTemplate --recursive
+```
+
+📖 Docs : [Jobs](https://kubernetes.io/docs/concepts/workloads/controllers/job/) · [Cheat sheet kubectl](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
+
+**Continue vers la premiere mission.**

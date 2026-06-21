@@ -8,8 +8,8 @@ if [ -z "$qos" ]; then
   exit 1
 fi
 if [ "$qos" != "Guaranteed" ]; then
-  echo "✗ Pod 'guaranteed-demo' is QoS '$qos', not Guaranteed."
-  echo "  Every container needs cpu AND memory set, with limits == requests."
+  echo "✗ Pod 'guaranteed-demo' has QoS class '$qos'."
+  echo "  Check: kubectl explain pod.spec.containers.resources -- what rule makes a pod Guaranteed?"
   exit 1
 fi
 

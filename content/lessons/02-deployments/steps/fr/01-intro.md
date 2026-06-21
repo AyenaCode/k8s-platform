@@ -1,15 +1,8 @@
 ## Pourquoi les Deployments ?
 
-Un Pod seul est fragile : supprime-le, il disparaît. Les vraies charges utilisent un **Deployment** : tu déclares un état désiré, Kubernetes fait coïncider la réalité avec cet état, en permanence.
+Un Pod seul, c'est comme un post-it : arrache-le, il disparaît. Un **Deployment**, c'est un contrat : tu dis « je veux 3 copies de nginx », et Kubernetes applique ce contrat sans relâche.
 
-Un Deployment te donne quatre super-pouvoirs :
-
-- **État désiré** : *« je veux 3 replicas de nginx »* ; Kubernetes l'applique en continu.
-- **Auto-réparation** : un Pod crashe, un nœud meurt ? Un remplaçant apparaît automatiquement.
-- **Scaling** : change un seul nombre pour avoir plus ou moins de copies.
-- **Rolling update & rollback** : déploie une nouvelle image sans coupure ; annule en une commande.
-
-### La chaîne de propriété
+Sous le capot, un Deployment crée un ReplicaSet, qui crée les Pods :
 
 ```text
 Deployment
@@ -18,12 +11,22 @@ Deployment
 (tu édites) (auto-créé)  (conteneurs)
 ```
 
-Tu interagis uniquement avec le **Deployment**. Il crée un **ReplicaSet** dont l'unique rôle est « maintenir exactement N Pods vivants ». Quand tu changes l'image, le Deployment crée un *nouveau* ReplicaSet et bascule les Pods progressivement : c'est le rolling update.
+Tu interagis uniquement avec le Deployment. Le ReplicaSet a un seul rôle : « maintenir exactement N Pods vivants ».
+
+- **Auto-réparation** : un Pod meurt, un remplaçant arrive. Aucune action requise.
+- **Scaling** : change un seul nombre, Kubernetes ajuste le compte immédiatement.
+- **Rolling update** : change d'image sans coupure ; annule en une commande.
 
 > [!NOTE]
-> `apps/v1` est le groupe d'API stable pour les Deployments (et les ReplicaSets).
-> Tu verras `deployment.apps/web` dans la sortie de `kubectl get` : c'est normal.
+> Le groupe d'API stable est `apps/v1`. Tu verras `deployment.apps/web` dans la sortie de `kubectl get`. C'est normal.
 
-Dans cette leçon, tu vas créer un Deployment, le scaler, le voir s'auto-réparer, puis déployer une nouvelle version et tester le rollback, le tout dans le terminal en direct.
+Explore la structure de la ressource avant de commencer :
+
+```bash
+kubectl explain deployment --recursive
+kubectl explain deployment.spec.strategy
+```
+
+📖 Docs : [Deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
 
 **Continuer →**

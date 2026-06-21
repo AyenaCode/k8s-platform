@@ -1,62 +1,46 @@
 ## Run a Job to completion
 
-A Job creates Pods, runs them, and tracks whether they **succeeded**. When the
-required number exits 0 the Job is marked complete, and the Pods stick around
-so you can read their logs.
+A Job is like giving Kubernetes one chore: "run this container until it exits cleanly, then stop." No auto-restart forever. Just: done or not done.
 
-### Your task
+Your goal is to create a Job, watch its Pod finish, and read the output it left behind.
 
-**1. Create the Job** named `hello`:
+### 🎯 Mission
 
-```bash
-kubectl create job hello --image=busybox:1.36 -- /bin/sh -c "echo hello from a job; sleep 2"
-```
+| Field | Value |
+|-------|-------|
+| Kind | Job |
+| Name | `hello` |
+| Image | `busybox:1.36` |
+| Command | prints something, then exits cleanly (exit 0) |
+| State | Job shows `1/1` COMPLETIONS |
 
-**2. Watch the Pod move from `Running` to `Completed`:**
+### 🔍 How to find it yourself
 
-```bash
-kubectl get pods -l job-name=hello -w     # Ctrl-C when Completed
-```
-
-What good looks like:
-
-```text
-NAME          READY   STATUS      RESTARTS   AGE
-hello-xxxxx   0/1     Completed   0          8s
-```
-
-**3. Block until the Job is done**, handy in scripts and pipelines:
+Start with the built-in help to see the shape of the command:
 
 ```bash
-kubectl wait --for=condition=complete job/hello --timeout=60s
+kubectl create job --help
 ```
 
-**4. Confirm the result:**
+Read the synopsis line and the examples. Notice how a command is passed after `--`.
+
+Once the Job exists, track its Pod and read the output:
 
 ```bash
-kubectl get job hello
+kubectl get jobs,pods
+kubectl logs job/hello
 ```
 
-What good looks like:
-
-```text
-NAME    COMPLETIONS   DURATION   AGE
-hello   1/1           4s         20s
-```
-
-**5. Read the output:**
+Want to understand which spec fields control retries and parallelism? Ask the API:
 
 ```bash
-kubectl logs -l job-name=hello
+kubectl explain job.spec.backoffLimit
+kubectl explain job.spec.completions
 ```
 
 > [!TIP]
-> The completed Pod **stays around** so you can inspect logs after the fact.
-> Set `ttlSecondsAfterFinished` on the Job spec if you want automatic cleanup.
+> Not sure the Pod finished? `kubectl get pods -l job-name=hello` shows you the STATUS column. `Completed` means exit 0.
 
-> [!NOTE]
-> Key Job spec fields: `completions` (how many Pods must succeed, default 1),
-> `parallelism` (how many run at once, default 1), `backoffLimit` (max retries
-> before the Job is marked failed, default 6).
+📖 Docs: [Jobs](https://kubernetes.io/docs/concepts/workloads/controllers/job/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
 
-When `hello` shows **`1/1` COMPLETIONS**, then hit **Verify**. ✅
+When `hello` shows **`1/1` COMPLETIONS**, hit **Verify**. ✅

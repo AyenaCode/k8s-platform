@@ -20,10 +20,6 @@
       "md": { "en": "steps/en/02-hpa.md", "fr": "steps/fr/02-hpa.md" },
       "setup": "scripts/02-setup.sh",
       "verify": "scripts/02-verify.sh",
-      "hint": {
-        "en": "The 'web-hpa' Deployment (with cpu requests) is pre-created. Run: kubectl autoscale deployment web-hpa --cpu=50% --min=1 --max=5, then wait ~30s for metrics.",
-        "fr": "Le Deployment 'web-hpa' (avec cpu requests) est déjà créé. Lance : kubectl autoscale deployment web-hpa --cpu=50% --min=1 --max=5, puis attends ~30s pour les métriques."
-      },
       "xp": 150
     }
   ]

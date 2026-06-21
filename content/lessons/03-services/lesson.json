@@ -20,10 +20,6 @@
       "md": { "en": "steps/en/02-clusterip.md", "fr": "steps/fr/02-clusterip.md" },
       "setup": "scripts/02-setup.sh",
       "verify": "scripts/02-verify.sh",
-      "hint": {
-        "en": "kubectl expose deployment web --port=80: then check endpoints with: kubectl get endpoints web",
-        "fr": "kubectl expose deployment web --port=80 : puis vérifie les endpoints : kubectl get endpoints web"
-      },
       "xp": 70
     },
     {
@@ -31,10 +27,6 @@
       "title": { "en": "Open it to the outside with NodePort", "fr": "L'ouvrir vers l'extérieur avec NodePort" },
       "md": { "en": "steps/en/03-nodeport.md", "fr": "steps/fr/03-nodeport.md" },
       "verify": "scripts/03-verify.sh",
-      "hint": {
-        "en": "kubectl expose deployment web --name=web-np --type=NodePort --port=80",
-        "fr": "kubectl expose deployment web --name=web-np --type=NodePort --port=80"
-      },
       "xp": 80
     },
     {

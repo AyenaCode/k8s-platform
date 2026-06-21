@@ -1,47 +1,43 @@
 ## Open it to the outside with NodePort
 
-A ClusterIP is only reachable inside the cluster. A **NodePort** opens a port in
-the range 30000–32767 on every node and forwards traffic to the Service.
+A ClusterIP only works inside the cluster. A **NodePort** punches a hole: it picks a port in the range 30000-32767 on every node and forwards outside traffic in.
 
-### Your task
+Think of it like opening a specific door on the building so visitors can enter from the street.
 
-**1. Create a NodePort Service named `web-np`.**
+### 🎯 Mission
+
+| Field | Value |
+|-------|-------|
+| Resource to create | Service |
+| Name | `web-np` |
+| Type | `NodePort` |
+| Port | `80` |
+| Proof | `curl localhost:<nodePort>` returns HTTP 200 |
+
+### 🔍 How to find it yourself
+
+You already know `kubectl expose`. Now you need to change the type and the name:
 
 ```bash
-kubectl expose deployment web --name=web-np --type=NodePort --port=80
+kubectl expose --help              # look for the --type and --name flags
+kubectl explain service.spec.type  # see valid type values
 ```
 
-**2. Find the assigned node port.**
+After creating it, find the assigned node port:
 
 ```bash
 kubectl get svc web-np
 ```
 
-What good looks like:
-
-```text
-NAME     TYPE       CLUSTER-IP    EXTERNAL-IP   PORT(S)        AGE
-web-np   NodePort   10.43.5.67    <none>        80:31234/TCP   5s
-```
-
-The `80:31234` means port 80 on the Service maps to node port 31234.
-
-**3. Hit it on `localhost`**, this terminal shares the node's network.
+The `PORT(S)` column shows `80:<nodePort>/TCP`. Use that port to test from this terminal (it shares the node's network):
 
 ```bash
-PORT=$(kubectl get svc web-np -o jsonpath='{.spec.ports[0].nodePort}')
-curl localhost:$PORT
+kubectl get svc web-np -o jsonpath='{.spec.ports[0].nodePort}'
 ```
 
-You get the nginx welcome page, reached from outside the cluster.
-
 > [!NOTE]
-> On a real cloud cluster you would use the node's external IP instead of
-> `localhost`. For production external access, prefer **type: LoadBalancer**
-> (on k3s, the bundled ServiceLB assigns a real external IP automatically).
+> On a real cloud cluster you use the node's external IP instead of `localhost`. For production, prefer **type: LoadBalancer**.
 
-> [!TIP]
-> Already have a ClusterIP Service `web` from the previous step? Good: you can
-> have both types in front of the same Deployment at the same time.
+📖 Docs: [Service](https://kubernetes.io/docs/concepts/services-networking/service/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
 
-Then hit **Verify**. ✅
+When `web-np` exists and the node port returns HTTP 200, hit **Verify**. ✅

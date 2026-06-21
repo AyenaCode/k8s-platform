@@ -1,15 +1,8 @@
 ## Why Deployments?
 
-A bare Pod is fragile: delete it and it's gone. Real workloads use a **Deployment**: declare a desired state, and Kubernetes drives reality to match it, forever.
+A bare Pod is like a sticky note: tear it off and it's gone forever. A **Deployment** is more like a contract: you say "I want 3 copies of nginx running", and Kubernetes enforces that contract non-stop.
 
-A Deployment gives you four superpowers:
-
-- **Desired state**: *"I want 3 replicas of nginx"*; Kubernetes enforces it continuously.
-- **Self-healing**: a Pod crashes, a node dies? A replacement appears automatically.
-- **Scaling**: change one number to run more or fewer copies instantly.
-- **Rolling updates & rollback**: ship a new image with zero downtime; undo in one command.
-
-### The ownership chain
+Under the hood, one Deployment creates one ReplicaSet, which creates the Pods:
 
 ```text
 Deployment
@@ -18,12 +11,22 @@ Deployment
 (you edit)   (auto-created)  (containers)
 ```
 
-You interact with the **Deployment** only. It creates a **ReplicaSet** whose sole job is "keep exactly N Pods alive." When you update the image, the Deployment creates a *new* ReplicaSet and shifts Pods over gradually: that's a rolling update.
+You only touch the Deployment. The ReplicaSet's only job is "keep exactly N Pods alive".
+
+- **Self-healing**: a Pod dies, a replacement appears. No action needed.
+- **Scaling**: change one number, Kubernetes adjusts the count immediately.
+- **Rolling update**: swap images without downtime; undo in one command.
 
 > [!NOTE]
-> `apps/v1` is the stable API group for Deployments (and ReplicaSets).
-> You'll see `deployment.apps/web` in `kubectl get` output: that's normal.
+> The stable API group is `apps/v1`. You will see `deployment.apps/web` in `kubectl get` output. That is normal.
 
-In this lesson you'll create a Deployment, scale it, watch it self-heal, then roll out a new version and explore rollback, all in the live terminal.
+Explore the resource shape before you dive in:
+
+```bash
+kubectl explain deployment --recursive
+kubectl explain deployment.spec.strategy
+```
+
+📖 Docs: [Deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) · [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
 
 **Continue →**

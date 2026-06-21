@@ -16,5 +16,5 @@ if [ -n "$ips" ]; then
 fi
 
 echo "✗ Service 'api' still has no endpoints: its selector does not match any Pod."
-echo "  Pods are labelled app=api. Set the Service selector to app: api."
+echo "  Run: kubectl get svc api -o yaml   and compare spec.selector to: kubectl get pods -l app=api --show-labels"
 exit 1
