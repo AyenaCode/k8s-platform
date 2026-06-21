@@ -12,40 +12,42 @@ import { encodeResize, terminalSocketURL } from '@/core/api/ws'
 
 const FONT_FAMILY =
   "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
-const FONT_SIZE = 13
+// Enlarged 1.5× (was 13) for readability; integer keeps the canvas glyphs crisp.
+// The fit addon recomputes cols/rows from this and resizes the PTY automatically.
+const FONT_SIZE = 20
 
-// Carbon surfaces + one signal-lime accent, mapped from the design tokens. The
-// background MATCHES .lab__terminal-body (--ink-850) so the panel padding frames
-// the canvas seamlessly. ANSI 16 stay semantically conventional (red=error,
-// green=ok) so kubectl / vim / k9s output still reads correctly — they're only
-// tuned toward the palette, with signal-lime reserved for the cursor + brightGreen.
+// Navy surfaces + Kubernetes-blue accent, mapped from the "Control Plane" design
+// tokens. The background MATCHES .lab__terminal-body (--ink-850) so the panel
+// padding frames the canvas seamlessly. ANSI 16 stay semantically conventional
+// (red=error, green=ok) so kubectl / vim / k9s output still reads correctly —
+// they're only tuned toward the palette, with K8s-blue reserved for the cursor.
 const THEME = {
-  background: '#0a0d0b',
-  foreground: '#e9f0ea',
-  cursor: '#b6f23a',
-  cursorAccent: '#070908',
-  selectionBackground: 'rgba(182, 242, 58, 0.22)',
-  selectionInactiveBackground: 'rgba(140, 151, 142, 0.16)',
-  scrollbarSliderBackground: 'rgba(140, 151, 142, 0.16)',
-  scrollbarSliderHoverBackground: 'rgba(140, 151, 142, 0.30)',
-  scrollbarSliderActiveBackground: 'rgba(182, 242, 58, 0.35)',
+  background: '#0a1020',
+  foreground: '#e9eefb',
+  cursor: '#326ce5',
+  cursorAccent: '#080d1a',
+  selectionBackground: 'rgba(50, 108, 229, 0.28)',
+  selectionInactiveBackground: 'rgba(147, 160, 192, 0.16)',
+  scrollbarSliderBackground: 'rgba(147, 160, 192, 0.16)',
+  scrollbarSliderHoverBackground: 'rgba(147, 160, 192, 0.30)',
+  scrollbarSliderActiveBackground: 'rgba(50, 108, 229, 0.40)',
 
-  black: '#1a201c',
+  black: '#18233f',
   red: '#ff5d5d',
-  green: '#57d98a',
-  yellow: '#f0b429',
-  blue: '#5aa9e6',
+  green: '#38c98a',
+  yellow: '#f5a623',
+  blue: '#5a8df5',
   magenta: '#c792ea',
-  cyan: '#56d6e0',
-  white: '#cfd8d0',
-  brightBlack: '#5b655e',
+  cyan: '#3fc8d6',
+  white: '#cfd8e8',
+  brightBlack: '#5d6a8c',
   brightRed: '#ff7a7a',
-  brightGreen: '#b6f23a',
+  brightGreen: '#6ef0a8',
   brightYellow: '#ffce5c',
-  brightBlue: '#82c0ff',
+  brightBlue: '#82b0ff',
   brightMagenta: '#e0a9ff',
   brightCyan: '#8be9f0',
-  brightWhite: '#e9f0ea',
+  brightWhite: '#e9eefb',
 }
 
 export function PtyTerminal() {

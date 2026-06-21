@@ -360,11 +360,26 @@ kbd {
    flex / height rules here; only colours & borders are restyled. */
 .lab {
   display: grid; grid-template-columns: minmax(300px, 2fr) minmax(420px, 3fr);
+  /* explicit single row that can shrink BELOW its content (minmax(0,…)): without
+     this the tall terminal + long lesson force the row past the viewport, the whole
+     pane scrolls, and the content pane's own overflow (which the sticky action bar
+     pins to) never engages — so "Verify/Next" drops to the end of the document. */
+  grid-template-rows: minmax(0, 1fr);
   height: 100%; min-height: 0;
 }
-.lab__content { overflow: auto; padding: 1.6rem 1.8rem 0; min-width: 0; position: relative; }
+.lab__content {
+  /* min-height:0 lets this grid item shrink below its content so its own scroll
+     engages and the sticky action bar pins to the visible bottom. */
+  overflow: auto; min-height: 0; padding: 1.6rem 1.8rem 0; min-width: 0; position: relative;
+  /* Course text enlarged 1.5× for readability. zoom (not font-size) so the many
+     rem-based sizes in .md/.lesson scale too, and the element's own padding scales
+     with it so the sticky action bar keeps bleeding to the pane edges. Safe on
+     width: .lab__content is an fr grid item, so its track width is set by the grid,
+     not by the scaled content. */
+  zoom: 1.5;
+}
 .lab__terminal {
-  display: flex; flex-direction: column; min-width: 0;
+  display: flex; flex-direction: column; min-width: 0; min-height: 0;
   position: relative;
   border-left: 1px solid var(--line);
   background: var(--ink-850);
@@ -404,17 +419,24 @@ kbd {
   padding-left: 0.7rem; border-left: 1px solid var(--line);
 }
 .lab__terminal-bar .spacer { flex: 1; }
-.lab__terminal-bar .keyhint {
+/* discreet "Reset cluster" control on the terminal bar — a quiet mono pill that
+   sits where the copy/paste hints used to, brightening only on hover. */
+.lab__reset {
   display: inline-flex; align-items: center; gap: 0.4rem;
-  color: var(--faint); font-size: 0.68rem;
+  padding: 0.2rem 0.6rem; border-radius: var(--r-pill);
+  background: transparent; border: 1px solid transparent; color: var(--faint);
+  font-family: var(--font-mono); font-size: 0.68rem; font-weight: 600;
+  letter-spacing: 0.04em; line-height: 1.4; cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
-.lab__terminal-bar .keyhint kbd {
-  font-family: var(--font-mono); font-size: 0.62rem; color: var(--muted);
-  background: var(--ink-600); border: 1px solid var(--line);
-  border-radius: 5px; padding: 0.12rem 0.42rem; line-height: 1.4;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
+.lab__reset:hover:not(:disabled) { color: var(--fg); border-color: var(--line); background: var(--ink-600); }
+.lab__reset:disabled { color: var(--muted); cursor: default; }
+.lab__reset-ico { width: 0.95em; height: 0.95em; display: block; flex: none; }
+.lab__reset:disabled .lab__reset-ico { animation: spin 0.85s linear infinite; transform-origin: 50% 50%; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .lab__reset:disabled .lab__reset-ico { animation: none; }
 }
-.lab__terminal-bar .keyhint__sep { color: var(--line); }
 .lab__terminal-body {
   flex: 1; min-height: 0; padding: 0.55rem 0.6rem 0.5rem;
   position: relative; background: var(--ink-850);
@@ -498,22 +520,53 @@ kbd {
   font-family: var(--font-mono); font-size: 0.78rem; color: #d6ffd0; margin: 1rem 0 0;
 }
 
-.task__solved { color: var(--good); font-family: var(--font-mono); font-size: 0.8rem; }
-
-/* sticky action bar: Verify is ALWAYS reachable */
+/* sticky action bar: zoned by intent so Verify is ALWAYS reachable and never
+   crowded. column-gap/row-gap keep generous spacing whether it sits on one row or
+   reflows; every button is nowrap so a label is never split mid-word. */
 .actionbar {
   position: sticky; bottom: 0; z-index: 5;
-  display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+  display: flex; align-items: center; flex-wrap: wrap;
+  column-gap: 0.75rem; row-gap: 0.55rem;
   margin: 1.4rem -1.8rem 0; padding: 0.85rem 1.8rem;
   background: linear-gradient(180deg, rgba(10, 13, 11, 0), var(--ink-850) 32%);
   backdrop-filter: blur(8px); border-top: 1px solid var(--line);
 }
-.actionbar__nav { display: inline-flex; align-items: center; gap: 0.4rem; }
-.actionbar__pos { font-family: var(--font-mono); font-size: 0.74rem; color: var(--muted); padding: 0 0.4rem; }
-.actionbar__spacer { flex: 1; }
-.actionbar__task { display: inline-flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-.btn-verify { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.15rem; font-size: 0.92rem; }
+.actionbar button { white-space: nowrap; }
+
+/* left: a single back arrow — square, centred icon button. A bare arrow glyph in a
+   default text button renders lopsided + rectangular; this reads as a tidy step-back
+   control at any zoom. */
+.actionbar__back { width: 2.2rem; height: 2.2rem; padding: 0; display: grid; place-items: center; }
+.actionbar__back .ico-arrow { width: 1.2rem; height: 1.2rem; }
+.actionbar__pos { font-family: var(--font-mono); font-size: 0.74rem; color: var(--muted); padding: 0 0.1rem; white-space: nowrap; }
+
+/* right: the act-on-this-step cluster. margin-left:auto anchors it to the trailing
+   edge; flex-wrap:nowrap keeps its buttons together, and when the pane is too narrow
+   the whole cluster (not its labels) wraps to its own row, staying right. */
+.actionbar__task {
+  margin-left: auto; flex: 0 1 auto;
+  display: inline-flex; align-items: center; justify-content: flex-end; gap: 0.5rem;
+  flex-wrap: nowrap;
+}
+.task__solved { color: var(--good); font-family: var(--font-mono); font-size: 0.8rem; white-space: nowrap; }
+
+/* Verify: a stable target with a min-width floor so it doesn't jitter between
+   "Verify" / "Checking…" / "Verify again". */
+.btn-verify {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  padding: 0.6rem 1.15rem; font-size: 0.92rem; min-width: 7rem;
+}
 .btn-verify kbd { color: var(--signal-ink); }
+
+/* the single forward "Next" button; its arrow nudges right on hover. */
+.btn-next {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+  padding: 0.6rem 1.15rem; font-size: 0.92rem;
+}
+.btn-next:hover:not(:disabled) .ico-arrow { transform: translateX(3px); }
+.btn-next .ico-arrow { transition: transform 0.18s var(--ease); }
+/* inline arrow icon — crisp SVG, sized in em so it tracks the button's text. */
+.ico-arrow { width: 1.05em; height: 1.05em; display: block; flex: none; }
 
 /* ============================== Markdown ================================ */
 .md { font-size: 0.96rem; }

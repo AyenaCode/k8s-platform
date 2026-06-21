@@ -20,6 +20,28 @@ import { progressSummaryQuery } from '@/features/progress/api/progress.queries'
 import { completedLessonSlugs, solvedStepKeys, stepKey, useProgressSummary } from '@/features/progress/hooks'
 import { MarkdownView } from '@/shared/components/Markdown/Markdown'
 
+// Crisp SVG arrow for the action bar. A font arrow glyph (←/→) renders lopsided in
+// the body face and looks broken in a button; this stays centred at any zoom/size.
+function Arrow({ dir = 'right' }: { dir?: 'left' | 'right' }) {
+  return (
+    <svg
+      className="ico-arrow"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      style={dir === 'left' ? { transform: 'scaleX(-1)' } : undefined}
+    >
+      <path
+        d="M4 12h14m-6-6 6 6-6 6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 export function LessonPage({ slug }: { slug: string }) {
   const { lang } = useLang()
   const { data, isLoading, error } = useQuery(lessonDetailQuery(slug, lang))
@@ -177,10 +199,6 @@ export function LessonPage({ slug }: { slug: string }) {
     }
   }
 
-  const onReset = () => {
-    runStream('/api/reset', 'reset cluster')
-  }
-
   const goPrev = () => {
     clearAdvance()
     setIdx((i) => Math.max(0, i - 1))
@@ -240,51 +258,57 @@ export function LessonPage({ slug }: { slug: string }) {
         )}
       </article>
 
-      {/* sticky: Verify is always reachable, however long the brief */}
+      {/* Sticky action bar, kept minimal: a single back arrow on the left, and one
+          forward "Next" button on the right. Verify (when the step has a check) is
+          the primary action; otherwise Next is. Every label is nowrap and the right
+          cluster wraps as ONE unit when narrow, so a word is never split mid-label.
+          (Reset lives discreetly on the terminal bar — see LabLayout.) */}
       <div className="actionbar">
-        <div className="actionbar__nav">
-          <button className="ghost" disabled={idx === 0} onClick={goPrev} title="Previous step" aria-label="Previous step">
-            ←
-          </button>
-          <span className="actionbar__pos">
-            {idx + 1} / {data.steps.length}
-          </span>
-          <button
-            className="ghost"
-            disabled={forwardDisabled}
-            onClick={forward}
-            title={isLast ? 'Next mission' : 'Next step'}
-            aria-label={isLast ? 'Next mission' : 'Next step'}
-          >
-            →
-          </button>
-        </div>
+        <button
+          className="ghost actionbar__back"
+          disabled={idx === 0}
+          onClick={goPrev}
+          title="Previous step"
+          aria-label="Previous step"
+        >
+          <Arrow dir="left" />
+        </button>
 
-        <div className="actionbar__spacer" />
+        <span className="actionbar__pos">
+          {idx + 1} / {data.steps.length}
+        </span>
 
         <div className="actionbar__task">
-          <button className="ghost" disabled={busy} onClick={onReset} title="Reset the cluster to a clean state">
-            Reset
-          </button>
+          {stepSolved && !busy && <span className="task__solved">✓ solved</span>}
           {step.hasSetup && (
             <button
+              className="actionbar__prepare"
               disabled={busy}
               onClick={() => runStream(`/api/lessons/${slug}/steps/${step.id}/setup`, `setup ${step.id}`)}
             >
               Prepare
             </button>
           )}
-          {stepSolved && !busy && <span className="task__solved">✓ solved</span>}
-          {step.hasVerify ? (
+          {step.hasVerify && (
             <button className="primary btn-verify" disabled={busy} onClick={onVerify}>
               {busy ? 'Checking…' : stepSolved ? 'Verify again' : 'Verify'}
               {!busy && <kbd>⌘↵</kbd>}
             </button>
-          ) : (
-            <button className="primary btn-verify" disabled={forwardDisabled} onClick={forward}>
-              {isLast ? (nextSlug ? 'Next mission →' : 'Course complete 🎉') : 'Continue →'}
-            </button>
           )}
+          <button
+            className={'btn-next' + (step.hasVerify ? '' : ' primary')}
+            disabled={forwardDisabled}
+            onClick={forward}
+            title={isLast ? 'Next mission' : 'Next step'}
+          >
+            {isLast && !nextSlug ? (
+              <>Course complete 🎉</>
+            ) : (
+              <>
+                Next <Arrow />
+              </>
+            )}
+          </button>
         </div>
       </div>
 
