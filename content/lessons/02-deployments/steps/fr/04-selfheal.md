@@ -31,4 +31,4 @@ Tu devrais voir le compteur passer à 4 l'espace d'un instant, puis un nouveau P
 > [!WARNING]
 > Un Pod seul (créé avec `kubectl run`, sans Deployment) n'est **pas** recréé à la suppression. Seuls les objets gérés par un contrôleur bénéficient de cette puissance.
 
-Cette étape est de l'observation uniquement. Pas de vérification. **Continuer →**
+Cette étape est de l'observation uniquement. Pas de vérification.

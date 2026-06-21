@@ -30,5 +30,3 @@ kubectl get pods       # ce qui tourne maintenant (sans doute rien)
 > `kubectl run --help` montre comment un verbe marche. Tu vas t'en servir sans arrêt.
 
 📖 Doc : [Pods](https://kubernetes.io/docs/concepts/workloads/pods/) · [Cheat sheet kubectl](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
-
-**Continuer →**

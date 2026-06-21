@@ -39,5 +39,3 @@ kubectl explain pod.spec.containers.livenessProbe --recursive
 
 Tu vas ensuite faire en sorte que la readiness filtre le trafic, puis regarder la
 liveness redémarrer un conteneur bloqué.
-
-**Continuer →**

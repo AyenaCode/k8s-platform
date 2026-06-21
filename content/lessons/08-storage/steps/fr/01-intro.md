@@ -49,4 +49,4 @@ kubectl explain persistentvolumeclaim.spec
 
 📖 Docs : [Volumes](https://kubernetes.io/docs/concepts/storage/volumes/) · [Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
 
-Ensuite, réserve du stockage et prouve qu'il survit au redémarrage d'un Pod. **Continuer →**
+Ensuite, réserve du stockage et prouve qu'il survit au redémarrage d'un Pod.

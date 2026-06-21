@@ -20,6 +20,5 @@ veux (« je veux 3 copies de cette app, en permanence ») et Kubernetes trouve l
 comment, et le **maintient vrai** même quand les machines tombent.
 
 Dans les étapes suivantes, tu découvriras la mécanique qui rend cela possible.
-**Continuer →**
 
 📖 Docs: [Aide-mémoire kubectl](https://kubernetes.io/docs/reference/kubectl/quick-reference/)

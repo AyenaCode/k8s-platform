@@ -23,5 +23,3 @@ La colonne **STATUS** te dit dans quelle catégorie de problème tu te trouves a
 > `get` montre le symptôme. `describe` montre les indices (descends jusqu'à **Events**). `logs` donne la voix de l'application elle-même. Exécute-les toujours dans cet ordre. Ne saute pas d'étapes.
 
 La plateforme va casser trois workloads intentionnellement. Pour chacun : clique sur **Préparer la tâche**, lis les indices, comprends ce qui ne va pas, corrige, puis clique sur **Vérifier**.
-
-**Continuer →**
