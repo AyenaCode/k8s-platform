@@ -56,27 +56,47 @@ function Fetch ($src, $dst) {
 Fetch "docker-compose.release.yml" "docker-compose.yml"
 Fetch "docker/registries.yaml"     (Join-Path "docker" "registries.yaml")
 Fetch "docker/warm-cache.sh"       (Join-Path "docker" "warm-cache.sh")
+Fetch "release-readme.md"          "README.md"
 Ok "Lab files downloaded."
 
 # ── 3) Start the stack (auto-falling back if the port is taken) ──────────────
 if (-not $env:LAB_IMAGE) { $env:LAB_IMAGE = "ghcr.io/ayenacode/k8s-platform:latest" }
 
-# If the app port is busy and the user didn't pin LAB_PORT, pick a free one up front.
+# Both host ports can clash: 8088 (app) and 6443 (k8s API). Pick a free one for
+# each unless the user pinned it.
 if (-not $PortPinned -and (PortBusy $Port)) {
   $new = FreePort ($Port + 1)
-  Warn "Port $Port is already in use on this machine. Using free port $new instead."
+  Warn "Port $Port (app) is already in use on this machine — using $new instead."
   $Port = $new; $Url = "http://localhost:$Port"
 }
 $env:LAB_PORT = "$Port"
 
+$ApiPinned = [bool]$env:LAB_API_PORT
+$ApiPort   = if ($env:LAB_API_PORT) { [int]$env:LAB_API_PORT } else { 6443 }
+if (-not $ApiPinned -and (PortBusy $ApiPort)) {
+  $na = FreePort ($ApiPort + 1)
+  Warn "Port $ApiPort (k8s API) is already in use on this machine — using $na instead."
+  $ApiPort = $na
+}
+$env:LAB_API_PORT = "$ApiPort"
+
 Say "Pulling images and starting the lab (first boot pulls k3s + the app image)…"
 Push-Location $HomeDir
 try {
-  & $Compose[0] $Compose[1..($Compose.Count-1)] pull --quiet *> $null
+  # up -d pulls missing images and streams its progress live (not redirected).
   & $Compose[0] $Compose[1..($Compose.Count-1)] up -d
   if ($LASTEXITCODE -ne 0) { Die "Failed to start the stack (port $Port may be busy — re-run with `$env:LAB_PORT=9090). See: cd $HomeDir ; $($Compose -join ' ') logs" }
 } finally { Pop-Location }
-Ok "Stack started on port $Port."
+Ok "Stack started (app port $Port, k8s API port $ApiPort)."
+
+# Persist the resolved image + ports so later `docker compose up -d` in this
+# folder reuses the SAME ports (Compose auto-loads .env).
+@"
+# Written by the K8s Lab installer. Compose loads this automatically.
+LAB_IMAGE=$($env:LAB_IMAGE)
+LAB_PORT=$Port
+LAB_API_PORT=$ApiPort
+"@ | Set-Content -Path (Join-Path $HomeDir ".env") -Encoding ascii
 
 # ── 4) Wait for the app (k3s needs ~30s on a cold start) ─────────────────────
 Say "Waiting for the cluster + app to come up (up to ~3 min on first run)…"
@@ -101,4 +121,6 @@ Manage it:
   $($Compose -join ' ') stop            # stop (keeps progress + cluster)
   $($Compose -join ' ') up -d           # start again
   $($Compose -join ' ') down -v         # remove everything (fresh start)
+
+Full guide:  $HomeDir\README.md      Help:  ayenacode1@gmail.com
 "@

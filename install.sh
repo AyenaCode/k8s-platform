@@ -36,7 +36,18 @@ die()  { printf '%s\n' "${R}✗${N} $*" >&2; exit 1; }
 # Is something already listening on this TCP port? (bash /dev/tcp, portable on mac+linux)
 port_busy() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null && { exec 3>&- 3<&-; return 0; }; return 1; }
 # First free port at/above the given one.
-free_port() { local p="$1"; while port_busy "$p"; do p=$((p+1)); [ "$p" -gt 8200 ] && break; done; printf '%s' "$p"; }
+free_port() { local p="$1"; while port_busy "$p"; do p=$((p+1)); [ "$p" -gt 65000 ] && break; done; printf '%s' "$p"; }
+# Resolve a host port: keep it if the user pinned it, else bump past anything
+# already listening. Echoes the chosen port. Args: <port> <pinned 0|1> <label>
+resolve_port() {
+  local p="$1" pinned="$2" label="$3" np
+  if [ "$pinned" -eq 0 ] && port_busy "$p"; then
+    np="$(free_port $((p + 1)))"
+    warn "Port ${p} (${label}) is already in use on this machine — using ${np} instead."
+    p="$np"
+  fi
+  printf '%s' "$p"
+}
 
 # ── 1) Preconditions ─────────────────────────────────────────────────────────
 command -v docker >/dev/null 2>&1 || die "Docker is not installed. Get it at https://docs.docker.com/get-docker/ then re-run this."
@@ -60,32 +71,52 @@ fetch() { curl -fsSL "${RAW}/$1" -o "${HOME_DIR}/$2" || die "Could not download 
 fetch "docker-compose.release.yml" "docker-compose.yml"
 fetch "docker/registries.yaml"     "docker/registries.yaml"
 fetch "docker/warm-cache.sh"       "docker/warm-cache.sh"
+fetch "release-readme.md"          "README.md"
 ok "Lab files downloaded."
 
-# ── 3) Start the stack (auto-falling back if the port is taken) ──────────────
+# ── 3) Start the stack (auto-picking free host ports) ────────────────────────
 export LAB_IMAGE="${LAB_IMAGE:-ghcr.io/ayenacode/k8s-platform:latest}"
-export LAB_PORT="$PORT"
-say "Pulling images and starting the lab (first boot pulls k3s + the app image)…"
-( cd "${HOME_DIR}" && $COMPOSE pull --quiet 2>/dev/null || true )
 
+# Both host ports can clash: 8088 (app) and 6443 (k8s API, only used if you run
+# kubectl from the host). Pick a free one for each unless the user pinned it.
+API_PINNED=0; [ -n "${LAB_API_PORT:-}" ] && API_PINNED=1
+APORT="${LAB_API_PORT:-6443}"
+PORT="$(resolve_port "$PORT"  "$PORT_PINNED" "app")"
+APORT="$(resolve_port "$APORT" "$API_PINNED" "k8s API")"
+export LAB_PORT="$PORT" LAB_API_PORT="$APORT"
+URL="http://localhost:${PORT}"
+
+say "Pulling images and starting the lab (first boot pulls k3s + the app image)…"
 errf="$(mktemp)"
-start() { ( cd "${HOME_DIR}" && $COMPOSE up -d ) 2>"$errf"; }
+# Stream Compose progress live AND keep a copy, so a residual bind clash (a port
+# taken between our check and the bind) can trigger one more retry. pipefail
+# (set above) makes the pipeline report Compose's exit status, not tee's.
+start() { ( cd "${HOME_DIR}" && $COMPOSE up -d ) 2>&1 | tee "$errf"; }
 if ! start; then
-  # A foreign process on the port makes the k3s container fail to bind. If the
-  # user didn't pin LAB_PORT, retry once on the next free port.
-  if [ "$PORT_PINNED" -eq 0 ] && grep -qiE 'already in use|already allocated|bind for|failed to bind' "$errf"; then
-    newp="$(free_port $((PORT + 1)))"
-    warn "Port ${PORT} is already in use on this machine. Retrying on free port ${newp}…"
-    PORT="$newp"; export LAB_PORT="$PORT"; URL="http://localhost:${PORT}"
+  if grep -qiE 'already in use|already allocated|bind for|failed to bind' "$errf" \
+     && { [ "$PORT_PINNED" -eq 0 ] || [ "$API_PINNED" -eq 0 ]; }; then
+    warn "A port was taken at the last moment — re-picking and retrying once…"
     ( cd "${HOME_DIR}" && $COMPOSE down >/dev/null 2>&1 || true )   # drop the half-started stack
-    if ! start; then cat "$errf" >&2; rm -f "$errf"; die "Still could not start. See: cd ${HOME_DIR} && $COMPOSE logs"; fi
+    PORT="$(resolve_port  "$PORT"  "$PORT_PINNED" "app")"
+    APORT="$(resolve_port "$APORT" "$API_PINNED" "k8s API")"
+    export LAB_PORT="$PORT" LAB_API_PORT="$APORT"; URL="http://localhost:${PORT}"
+    start || { rm -f "$errf"; die "Still could not start. See: cd ${HOME_DIR} && $COMPOSE logs"; }
   else
-    cat "$errf" >&2; rm -f "$errf"
+    rm -f "$errf"
     die "Failed to start the stack. See: cd ${HOME_DIR} && $COMPOSE logs"
   fi
 fi
 rm -f "$errf"
-ok "Stack started on port ${PORT}."
+ok "Stack started (app port ${PORT}, k8s API port ${APORT})."
+
+# Persist the resolved image + ports. Compose reads this folder's .env on every
+# run, so later `docker compose up -d` reuses the SAME ports (no surprise clash).
+cat > "${HOME_DIR}/.env" <<ENV
+# Written by the K8s Lab installer. Compose loads this automatically.
+LAB_IMAGE=${LAB_IMAGE}
+LAB_PORT=${PORT}
+LAB_API_PORT=${APORT}
+ENV
 
 # ── 4) Wait for the app (k3s needs ~30s on a cold start) ─────────────────────
 say "Waiting for the cluster + app to come up (up to ~3 min on first run)…"
@@ -118,4 +149,6 @@ Manage it:
   ${COMPOSE} stop            # stop (keeps progress + cluster)
   ${COMPOSE} up -d           # start again
   ${COMPOSE} down -v         # remove everything (fresh start)
+
+Full guide:  ${HOME_DIR}/README.md      Help:  ayenacode1@gmail.com
 EOF
