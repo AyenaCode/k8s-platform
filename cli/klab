@@ -84,31 +84,23 @@ open_browser() {
   fi
 }
 
-# Block until the lab actually answers on its URL (the true "ready" signal),
-# polling for ~4 min. Falls back to a fixed wait if curl is missing.
-wait_until_ready() {
-  local url; url="$(lab_url)" i
-  command -v curl >/dev/null 2>&1 || { sleep 30; return 0; }
-  for i in $(seq 1 120); do
-    curl -fsS -o /dev/null --max-time 2 "$url" 2>/dev/null && return 0
-    sleep 2
-  done
-  return 1
-}
-
-# Run `dc up` in the foreground (logs stream, Ctrl-C stops all) while a background
-# watcher opens the browser and prints the link once the app is genuinely ready.
-up_foreground() {
-  (
-    if wait_until_ready; then
-      open_browser
-      printf '\n%s\n' "${G}✓${N} Lab is ready → ${B}$(lab_url)${N}"
-    fi
-  ) &
-  local watcher=$!
-  # Stop the watcher whenever this script exits (e.g. Ctrl-C tears down dc up).
-  trap 'kill "$watcher" 2>/dev/null || true' EXIT
-  dc up
+# Bring the stack up and block — using Compose's own --wait, no polling watcher —
+# until k3s is healthy and the app has started, then open the browser + print the
+# link, and stream logs in this terminal. Ctrl-C stops the whole stack.
+start_and_stream() {
+  if dc up -d --wait --wait-timeout 300; then
+    open_browser
+    ok "Lab is ready → ${B}$(lab_url)${N}"
+  else
+    warn "Services took a while to report ready — opening anyway (check: klab logs)."
+    open_browser
+    printf '%s\n' "URL: ${B}$(lab_url)${N}"
+  fi
+  printf '%s\n' "Streaming logs — press ${B}Ctrl-C${N} to stop everything."
+  # In detached mode Ctrl-C only quits `logs`; trap it to stop the stack too,
+  # preserving the old foreground behaviour (run in this terminal, Ctrl-C = stop).
+  trap 'printf "\n"; dc stop; exit 0' INT
+  dc logs -f || true
 }
 
 # Remove the klab symlink from wherever the installer put it on the PATH.
@@ -154,21 +146,18 @@ case "$cmd" in
   run|up|start)
     need_install
     if [ "${1:-}" = "-d" ] || [ "${1:-}" = "--detach" ]; then
-      dc up -d
-      printf '%s\n' "Lab is starting in the background — waiting for it to come up…"
-      if wait_until_ready; then
+      printf '%s\n' "Starting the lab in the background — waiting for k3s + app to be ready…"
+      if dc up -d --wait --wait-timeout 300; then
         open_browser
         ok "Lab is ready → ${B}$(lab_url)${N}"
       else
-        warn "Lab is taking a while. Open ${B}$(lab_url)${N} once it's up (see: klab logs)."
+        warn "Services took a while to report ready. Open ${B}$(lab_url)${N} (see: klab logs)."
       fi
     else
-      # Foreground: logs stream here and Ctrl-C stops the whole stack. No daemon.
-      # A background watcher opens the browser + prints the link once it's ready.
-      printf '%s\n' "Starting the lab in this terminal — logs stream below."
-      printf '%s\n' "Your browser will open at ${B}$(lab_url)${N} once it's ready (~30s on first boot)."
-      printf '%s\n' "Press ${B}Ctrl-C${N} to stop everything. Start again with: klab run"
-      up_foreground
+      # Wait (docker-native) until k3s is healthy and the app has started, then open
+      # the browser and print the link, then stream logs. Ctrl-C stops everything.
+      printf '%s\n' "Starting the lab in this terminal — waiting for k3s + app (~30s on first boot)…"
+      start_and_stream
     fi
     ;;
   stop|down)
@@ -177,8 +166,8 @@ case "$cmd" in
   restart)
     need_install
     dc stop
-    printf '%s\n' "Restarting in this terminal — Ctrl-C stops everything. URL: ${B}$(lab_url)${N}"
-    up_foreground
+    printf '%s\n' "Restarting in this terminal — waiting for k3s + app, then opening your browser…"
+    start_and_stream
     ;;
   status|ps)
     need_install; dc ps
@@ -201,8 +190,8 @@ case "$cmd" in
     ok "Lab files updated."
     dc pull
     ok "Pulled the latest image."
-    printf '%s\n' "Starting in this terminal — Ctrl-C stops everything. URL: ${B}$(lab_url)${N}"
-    up_foreground
+    printf '%s\n' "Starting in this terminal — waiting for k3s + app, then opening your browser…"
+    start_and_stream
     ;;
   internal-sync)
     # Hidden command used by install.sh to download the lab files after it has
