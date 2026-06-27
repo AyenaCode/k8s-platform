@@ -459,12 +459,13 @@
         </div>
         <div class="term__body" id="term">
           <span class="ln"><span class="p">$</span> <span class="cmd">curl -fsSL …/install.sh | bash</span></span>
-          <span class="ln"><span class="ok">✓</span> Docker and Compose are ready.</span>
-          <span class="ln"><span class="arrow">==&gt;</span> Pulling images and starting the lab…</span>
-          <span class="ln"><span class="ok">✓</span> Stack started (app port 8088).</span>
-          <span class="ln"><span class="arrow">==&gt;</span> Waiting for the cluster + app…</span>
-          <span class="ln"><span class="ok">✓</span> The lab is up.</span>
-          <span class="ln">K8s Lab is ready.  Open: <span class="url">http://localhost:8088</span><span class="cursor"></span></span>
+          <span class="ln"><span class="ok">✓</span> Docker is ready.</span>
+          <span class="ln"><span class="arrow">==&gt;</span> Downloading klab…</span>
+          <span class="ln"><span class="ok">✓</span> Installed the 'klab' command.</span>
+          <span class="ln"><span class="ok">✓</span> Images ready (app port 8088).</span>
+          <span class="ln">K8s Lab is installed.  Start it: <span class="cmd">klab run</span></span>
+          <span class="ln"><span class="p">$</span> <span class="cmd">klab run</span></span>
+          <span class="ln"><span class="ok">✓</span> Lab is up.  Open: <span class="url">http://localhost:8088</span><span class="cursor"></span></span>
         </div>
       </div>
     </section>
@@ -638,7 +639,7 @@
           <code><span class="p">&gt;</span> irm https://raw.githubusercontent.com/AyenaCode/k8s-platform/main/install.ps1 | iex</code>
         </div>
       </div>
-      <p class="note" data-en="# Needs Docker. The installer picks a free port if 8088 is taken, then opens the lab for you." data-fr="# Nécessite Docker. L'installeur choisit un port libre si 8088 est pris, puis ouvre le lab pour toi."># Needs Docker. The installer picks a free port if 8088 is taken, then opens the lab for you.</p>
+      <p class="note" data-en="# Needs Docker. The installer sets everything up and picks a free port if 8088 is taken. Then run `klab run` to start the lab — it opens your browser for you." data-fr="# Nécessite Docker. L'installeur prépare tout et choisit un port libre si 8088 est pris. Ensuite, lance `klab run` pour démarrer le lab — il ouvre ton navigateur pour toi."># Needs Docker. The installer sets everything up and picks a free port if 8088 is taken. Then run `klab run` to start the lab — it opens your browser for you.</p>
 
       <div class="launch reveal">
         <h2 data-en="Boot your cluster." data-fr="Lance ton cluster.">Boot your cluster.</h2>

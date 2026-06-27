@@ -13,9 +13,9 @@ Killercoda / KodeKloud do: **read a concept, then practise it immediately** in a
 
 ### One command, no clone (recommended)
 
-The fastest way in. It downloads a tiny compose file, pulls the **prebuilt
-image**, starts the lab, waits for it, and opens your browser. **Docker is the
-only thing you need installed.**
+The fastest way in. It downloads the prebuilt **`klab`** command, picks free
+ports, and pre-pulls the **prebuilt image** — then you start the lab yourself
+with one command. **Docker is the only thing you need installed.**
 
 **macOS / Linux**
 ```bash
@@ -27,8 +27,14 @@ curl -fsSL https://raw.githubusercontent.com/AyenaCode/k8s-platform/main/install
 irm https://raw.githubusercontent.com/AyenaCode/k8s-platform/main/install.ps1 | iex
 ```
 
-It installs into `~/.k8s-lab` (`%USERPROFILE%\.k8s-lab` on Windows) and opens
-**http://localhost:8088** (k3s takes ~30s on first boot).
+It installs into `~/.k8s-lab` (`%USERPROFILE%\.k8s-lab` on Windows) and puts a
+`klab` command on your PATH. Start the lab whenever you want:
+
+```bash
+klab run     # starts in the background, then opens http://localhost:8088
+             # (k3s takes ~30s on first boot)
+klab help    # stop, logs, update, uninstall, … — all commands
+```
 
 ### Or clone and build it yourself
 
