@@ -10,5 +10,10 @@ frontend/dist/
 backend/bin/
 *.test
 
+# CLI (klab) — built binaries, never committed (the release workflow builds them)
+cli/dist/
+cli/klab
+cli/klab.exe
+
 # OS / editor
 .DS_Store
