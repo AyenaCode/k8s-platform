@@ -76,11 +76,21 @@ need_install() {
   Install it:  curl -fsSL https://raw.githubusercontent.com/AyenaCode/k8s-platform/main/install.sh | bash"
 }
 
+# Seconds to wait before opening the browser, so the page is more likely to find
+# the app already answering. Override with KLAB_BROWSER_DELAY (0 = open at once).
+BROWSER_DELAY="${KLAB_BROWSER_DELAY:-6}"
+
 open_browser() {
   local url; url="$(lab_url)"
-  if   command -v open     >/dev/null 2>&1; then open "$url"     >/dev/null 2>&1 || true
-  elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$url" >/dev/null 2>&1 || true
-  fi
+  # Run in the BACKGROUND: the caller (e.g. `run`) goes straight to the
+  # foreground `dc up` that starts the stack, while we wait the head-start here.
+  # This is a fixed delay on purpose — NOT a health poll / watcher.
+  (
+    sleep "$BROWSER_DELAY"
+    if   command -v open     >/dev/null 2>&1; then open "$url"     >/dev/null 2>&1 || true
+    elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$url" >/dev/null 2>&1 || true
+    fi
+  ) >/dev/null 2>&1 &
 }
 
 # Remove the klab symlink from wherever the installer put it on the PATH.
@@ -169,9 +179,14 @@ case "$cmd" in
     ok "Lab files updated."
     dc pull
     ok "Pulled the latest image."
-    printf '%s\n' "Starting in this terminal — Ctrl-C stops everything. URL: ${B}$(lab_url)${N}"
-    open_browser
-    dc up
+    # Drop the OLD containers before starting, or `up` reuses the existing
+    # container on an unchanged tag (latest) and the freshly pulled image never
+    # takes effect — you keep running yesterday's content. `down` (NO -v) removes
+    # containers + the network only; the named volumes (pgdata = progress,
+    # k3s-data = cluster, registry-cache) survive, so this is NOT `klab rm`.
+    dc down
+    ok "Update ready. Old containers removed (progress + cluster data kept)."
+    printf '%s\n' "Start the new version when you want:  ${B}klab run${N}"
     ;;
   internal-sync)
     # Hidden command used by install.sh to download the lab files after it has

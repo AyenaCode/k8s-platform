@@ -3,8 +3,9 @@
 #   irm https://raw.githubusercontent.com/AyenaCode/k8s-platform/main/install.ps1 | iex
 #
 # What it does: checks Docker Desktop, downloads the release compose file + its two
-# helper files into %USERPROFILE%\.k8s-lab, starts the stack with the PREBUILT
-# image (no local build), waits for the app, opens your browser and prints the URL.
+# helper files into %USERPROFILE%\.k8s-lab, picks free host ports and pre-pulls the
+# PREBUILT image (no local build). It does NOT start the lab — you start it
+# yourself with `docker compose up -d`.
 #
 # The ONLY requirement is Docker Desktop (with the WSL 2 backend enabled).
 #
@@ -13,7 +14,6 @@
 #   LAB_IMAGE    app image to run             (default: ghcr.io/ayenacode/k8s-platform:latest)
 #   LAB_HOME     install directory            (default: %USERPROFILE%\.k8s-lab)
 #   LAB_PORT     host port for the app        (default: 8088; auto-bumped if busy)
-#   LAB_NO_OPEN  set to 1 to not open the browser
 
 $ErrorActionPreference = "Stop"
 
@@ -59,11 +59,11 @@ Fetch "docker/warm-cache.sh"       (Join-Path "docker" "warm-cache.sh")
 Fetch "release-readme.md"          "README.md"
 Ok "Lab files downloaded."
 
-# ── 3) Start the stack (auto-falling back if the port is taken) ──────────────
+# ── 3) Pick free host ports, persist them, and pre-pull the images ───────────
 if (-not $env:LAB_IMAGE) { $env:LAB_IMAGE = "ghcr.io/ayenacode/k8s-platform:latest" }
 
 # Both host ports can clash: 8088 (app) and 6443 (k8s API). Pick a free one for
-# each unless the user pinned it.
+# each unless the user pinned it. We only RESERVE them (no bind until you start).
 if (-not $PortPinned -and (PortBusy $Port)) {
   $new = FreePort ($Port + 1)
   Warn "Port $Port (app) is already in use on this machine — using $new instead."
@@ -80,17 +80,8 @@ if (-not $ApiPinned -and (PortBusy $ApiPort)) {
 }
 $env:LAB_API_PORT = "$ApiPort"
 
-Say "Pulling images and starting the lab (first boot pulls k3s + the app image)…"
-Push-Location $HomeDir
-try {
-  # up -d pulls missing images and streams its progress live (not redirected).
-  & $Compose[0] $Compose[1..($Compose.Count-1)] up -d
-  if ($LASTEXITCODE -ne 0) { Die "Failed to start the stack (port $Port may be busy — re-run with `$env:LAB_PORT=9090). See: cd $HomeDir ; $($Compose -join ' ') logs" }
-} finally { Pop-Location }
-Ok "Stack started (app port $Port, k8s API port $ApiPort)."
-
-# Persist the resolved image + ports so later `docker compose up -d` in this
-# folder reuses the SAME ports (Compose auto-loads .env).
+# Persist the resolved image + ports so `docker compose up -d` in this folder
+# reuses the SAME ports (Compose auto-loads .env).
 @"
 # Written by the K8s Lab installer. Compose loads this automatically.
 LAB_IMAGE=$($env:LAB_IMAGE)
@@ -98,29 +89,31 @@ LAB_PORT=$Port
 LAB_API_PORT=$ApiPort
 "@ | Set-Content -Path (Join-Path $HomeDir ".env") -Encoding ascii
 
-# ── 4) Wait for the app (k3s needs ~30s on a cold start) ─────────────────────
-Say "Waiting for the cluster + app to come up (up to ~3 min on first run)…"
-$up = $false
-for ($i = 0; $i -lt 90; $i++) {
-  try { Invoke-WebRequest -UseBasicParsing -Uri $Url -TimeoutSec 3 *> $null; $up = $true; break }
-  catch { Start-Sleep -Seconds 2 }
-}
-if ($up) { Ok "The lab is up." }
-else     { Warn "The app did not answer on $Url yet. Check: cd $HomeDir ; $($Compose -join ' ') logs -f app" }
-
-# ── 5) Open the browser + print the link ─────────────────────────────────────
-if ($env:LAB_NO_OPEN -ne "1") { Start-Process $Url }
+# Pre-pull the images so the first start is fast and any pull error shows up now,
+# not mid-lesson. We do NOT start the stack — you start it yourself.
+Say "Pulling images (first boot pulls k3s + the app image)…"
+Push-Location $HomeDir
+try {
+  & $Compose[0] $Compose[1..($Compose.Count-1)] pull
+  if ($LASTEXITCODE -ne 0) { Warn "Could not pre-pull every image; the first start will pull what's missing." }
+} finally { Pop-Location }
+Ok "Images ready (app port $Port, k8s API port $ApiPort)."
 
 Write-Host ""
-Write-Host "K8s Lab is ready.  Open:  $Url" -ForegroundColor Green
+Write-Host "K8s Lab is installed." -ForegroundColor Green
 Write-Host @"
 
-Manage it:
+Start it whenever you want:
   cd $HomeDir
+  $($Compose -join ' ') up -d           # start in the background
+Then open:  $Url   (ready ~30s on first boot)
+
+Manage it:
   $($Compose -join ' ') logs -f app     # watch logs
   $($Compose -join ' ') stop            # stop (keeps progress + cluster)
   $($Compose -join ' ') up -d           # start again
-  $($Compose -join ' ') down -v         # remove everything (fresh start)
+  $($Compose -join ' ') down            # remove containers (keeps progress)
+  $($Compose -join ' ') down -v         # remove EVERYTHING (fresh start)
 
 Full guide:  $HomeDir\README.md      Help:  ayenacode1@gmail.com
 "@

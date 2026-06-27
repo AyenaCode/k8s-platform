@@ -4,8 +4,9 @@
 #   curl -fsSL https://raw.githubusercontent.com/AyenaCode/k8s-platform/main/install.sh | bash
 #
 # What it does: checks Docker, downloads the release compose file + its two helper
-# files into ~/.k8s-lab, starts the stack with the PREBUILT image (no local
-# build), waits for the app, opens your browser and prints the URL.
+# files into ~/.k8s-lab, installs the `klab` command, picks free host ports and
+# pre-pulls the PREBUILT image (no local build). It does NOT start the lab — you
+# start it yourself with `klab run` (same flow as `klab update`).
 #
 # The ONLY requirement on your machine is Docker (Desktop or Engine).
 #
@@ -14,7 +15,6 @@
 #   LAB_IMAGE    app image to run                   (default: ghcr.io/ayenacode/k8s-platform:latest)
 #   LAB_HOME     install directory                  (default: ~/.k8s-lab)
 #   LAB_PORT     host port for the app              (default: 8088; auto-bumped if busy)
-#   LAB_NO_OPEN  set to 1 to not open the browser
 set -euo pipefail
 
 REPO="AyenaCode/k8s-platform"
@@ -105,11 +105,12 @@ else
   warn "Could not install the 'klab' command on your PATH. You can still run it: ${HOME_DIR}/klab"
 fi
 
-# ── 3) Start the stack (auto-picking free host ports) ────────────────────────
+# ── 3) Pick free host ports, persist them, and pre-pull the images ───────────
 export LAB_IMAGE="${LAB_IMAGE:-ghcr.io/ayenacode/k8s-platform:latest}"
 
 # Both host ports can clash: 8088 (app) and 6443 (k8s API, only used if you run
 # kubectl from the host). Pick a free one for each unless the user pinned it.
+# We only RESERVE them here (no bind happens until `klab run`).
 API_PINNED=0; [ -n "${LAB_API_PORT:-}" ] && API_PINNED=1
 APORT="${LAB_API_PORT:-6443}"
 PORT="$(resolve_port "$PORT"  "$PORT_PINNED" "app")"
@@ -117,31 +118,8 @@ APORT="$(resolve_port "$APORT" "$API_PINNED" "k8s API")"
 export LAB_PORT="$PORT" LAB_API_PORT="$APORT"
 URL="http://localhost:${PORT}"
 
-say "Pulling images and starting the lab (first boot pulls k3s + the app image)…"
-errf="$(mktemp)"
-# Stream Compose progress live AND keep a copy, so a residual bind clash (a port
-# taken between our check and the bind) can trigger one more retry. pipefail
-# (set above) makes the pipeline report Compose's exit status, not tee's.
-start() { ( cd "${HOME_DIR}" && $COMPOSE up -d ) 2>&1 | tee "$errf"; }
-if ! start; then
-  if grep -qiE 'already in use|already allocated|bind for|failed to bind' "$errf" \
-     && { [ "$PORT_PINNED" -eq 0 ] || [ "$API_PINNED" -eq 0 ]; }; then
-    warn "A port was taken at the last moment — re-picking and retrying once…"
-    ( cd "${HOME_DIR}" && $COMPOSE down >/dev/null 2>&1 || true )   # drop the half-started stack
-    PORT="$(resolve_port  "$PORT"  "$PORT_PINNED" "app")"
-    APORT="$(resolve_port "$APORT" "$API_PINNED" "k8s API")"
-    export LAB_PORT="$PORT" LAB_API_PORT="$APORT"; URL="http://localhost:${PORT}"
-    start || { rm -f "$errf"; die "Still could not start. See: cd ${HOME_DIR} && $COMPOSE logs"; }
-  else
-    rm -f "$errf"
-    die "Failed to start the stack. See: cd ${HOME_DIR} && $COMPOSE logs"
-  fi
-fi
-rm -f "$errf"
-ok "Stack started (app port ${PORT}, k8s API port ${APORT})."
-
 # Persist the resolved image + ports. Compose reads this folder's .env on every
-# run, so later `docker compose up -d` reuses the SAME ports (no surprise clash).
+# run, so `klab run` reuses the SAME ports (no surprise clash).
 cat > "${HOME_DIR}/.env" <<ENV
 # Written by the K8s Lab installer. Compose loads this automatically.
 LAB_IMAGE=${LAB_IMAGE}
@@ -149,35 +127,26 @@ LAB_PORT=${PORT}
 LAB_API_PORT=${APORT}
 ENV
 
-# ── 4) Wait for the app (k3s needs ~30s on a cold start) ─────────────────────
-say "Waiting for the cluster + app to come up (up to ~3 min on first run)…"
-i=0
-until curl -fsS -o /dev/null "${URL}" 2>/dev/null; do
-  i=$((i + 1))
-  if [ "$i" -gt 90 ]; then
-    warn "The app did not answer on ${URL} yet."
-    warn "It may still be starting. Check logs: cd ${HOME_DIR} && $COMPOSE logs -f app"
-    break
-  fi
-  sleep 2
-done
-[ "$i" -le 90 ] && ok "The lab is up."
-
-# ── 5) Open the browser + print the link ─────────────────────────────────────
-if [ "${LAB_NO_OPEN:-0}" != "1" ]; then
-  if   command -v open      >/dev/null 2>&1; then open "${URL}"       >/dev/null 2>&1 || true   # macOS
-  elif command -v xdg-open  >/dev/null 2>&1; then xdg-open "${URL}"   >/dev/null 2>&1 || true   # Linux
-  fi
-fi
+# Pre-pull the images so the first `klab run` is fast and any pull error shows up
+# now, not mid-lesson. We do NOT start the stack — same flow as `klab update`:
+# the user starts it themselves with `klab run`.
+say "Pulling images (first boot pulls k3s + the app image)…"
+( cd "${HOME_DIR}" && $COMPOSE pull ) \
+  || warn "Could not pre-pull every image; 'klab run' will pull what's missing on first start."
+ok "Images ready (app port ${PORT}, k8s API port ${APORT})."
 
 cat <<EOF
 
-${G}${B}K8s Lab is ready.${N}  Open:  ${B}${URL}${N}
+${G}${B}K8s Lab is installed.${N}
 
-Manage it from anywhere with the ${B}klab${N} command:
+Start it whenever you want:
+  ${B}klab run${N}          # start in this terminal (Ctrl-C stops it)
+  ${B}klab run -d${N}       # …or start it in the background
+Then open:  ${B}${URL}${N}  (ready ~30s on first boot)
+
+Other commands:
   klab logs        # watch logs
   klab stop        # stop (keeps progress + cluster)
-  klab run         # start again
   klab update      # pull the latest version
   klab uninstall   # remove the lab's data (fresh start)
   klab clean       # wipe EVERYTHING off this PC (images + files + command)
